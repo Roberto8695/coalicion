@@ -1,0 +1,143 @@
+CREATE TABLE publicaciones (
+id SERIAL PRIMARY KEY,
+title VARCHAR(255) NOT NULL, -- Text (requerido)
+description TEXT, -- Rich Text
+type VARCHAR(50) NOT NULL CHECK (type IN ('informe', 'estudio', 'monitoreo', 'investigacion')), -- Enumeration
+category VARCHAR(50) NOT NULL CHECK (category IN ('electoral', 'desinformacion', 'democracia', 'analisis')), -- Enumeration
+date DATE, -- Date
+author VARCHAR(255), -- Text
+pages INTEGER, -- Number
+downloadUrl VARCHAR(255), -- Text
+previewUrl VARCHAR(255), -- Text (opcional)
+tags JSONB, -- JSON (array de strings), se usa JSONB para eficiencia
+featured BOOLEAN, -- Boolean
+slug VARCHAR(255) UNIQUE, -- UID
+thumbnail VARCHAR(255), -- Media (imagen), se almacena la URL o el ID del archivo
+fileSize VARCHAR(50), -- Text
+status VARCHAR(50) CHECK (status IN ('published', 'draft', 'archived')) -- Enumeration
+);
+
+CREATE TABLE noticias (
+id SERIAL PRIMARY KEY,
+title VARCHAR(255) NOT NULL, -- Text (requerido)
+description TEXT, -- Rich Text
+type VARCHAR(50) NOT NULL CHECK (type IN ('actividad', 'taller', 'comunicado', 'evento')), -- Enumeration
+date TIMESTAMP WITH TIME ZONE, -- DateTime
+location VARCHAR(255), -- Text (opcional)
+organizer VARCHAR(255), -- Text
+participants INTEGER, -- Number (opcional)
+url VARCHAR(255), -- Text (opcional)
+status VARCHAR(50) CHECK (status IN ('upcoming', 'ongoing', 'completed')), -- Enumeration
+featured BOOLEAN, -- Boolean
+image VARCHAR(255), -- Media (opcional)
+slug VARCHAR(255) UNIQUE, -- UID
+duration VARCHAR(50), -- Text (para eventos)
+registrationUrl VARCHAR(255) -- Text (opcional)
+);
+
+
+CREATE TABLE multimedia (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL, -- Text (requerido)
+    description TEXT, -- Rich Text
+    type VARCHAR(50) NOT NULL CHECK (type IN ('infografia', 'video', 'arte', 'presentacion')), -- Enumeration
+    category VARCHAR(50) NOT NULL CHECK (category IN ('campana', 'educativo', 'promocional', 'informativo')), -- Enumeration
+    thumbnail VARCHAR(255), -- Media (imagen)
+    downloadUrl VARCHAR(255), -- Text
+    previewUrl VARCHAR(255), -- Text (opcional)
+    duration VARCHAR(50), -- Text (para videos)
+    format VARCHAR(50), -- Text (PDF, MP4, PNG, etc.)
+    size VARCHAR(50), -- Text
+    tags JSONB, -- JSON (array de strings)
+    featured BOOLEAN, -- Boolean
+    slug VARCHAR(255) UNIQUE, -- UID
+    mediaFile VARCHAR(255) -- Media
+);
+
+CREATE TABLE verificadores (
+id SERIAL PRIMARY KEY,
+name VARCHAR(255) NOT NULL, -- Text (requerido)
+description TEXT, -- Rich Text
+type VARCHAR(50) NOT NULL CHECK (type IN ('website', 'bot', 'api', 'tool')), -- Enumeration
+url VARCHAR(255), -- Text
+logo VARCHAR(255), -- Media (imagen)
+features JSONB, -- JSON (array de strings)
+isActive BOOLEAN, -- Boolean
+slug VARCHAR(255) UNIQUE, -- UID
+contact VARCHAR(255), -- Text (opcional)
+socialMedia JSONB -- JSON (opcional)
+);
+
+CREATE TABLE eventos (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL, -- Text (requerido)
+    type VARCHAR(50) NOT NULL CHECK (type IN ('taller', 'capacitacion', 'foro', 'debate')), -- Enumeration
+    date TIMESTAMP WITH TIME ZONE, -- DateTime
+    time VARCHAR(50), -- Text
+    location VARCHAR(255), -- Text
+    description TEXT, -- Rich Text
+    duration VARCHAR(50), -- Text
+    capacity INTEGER, -- Number (opcional)
+    registrationUrl VARCHAR(255), -- Text (opcional)
+    slug VARCHAR(255) UNIQUE, -- UID
+    organizer VARCHAR(255), -- Text
+    status VARCHAR(50) CHECK (status IN ('upcoming', 'ongoing', 'completed', 'cancelled')), -- Enumeration
+    image VARCHAR(255), -- Media (opcional)
+    requirements TEXT -- Rich Text (opcional)
+);
+
+CREATE TABLE guias_electorales (
+id SERIAL PRIMARY KEY,
+title VARCHAR(255) NOT NULL, -- Text (requerido)
+description TEXT, -- Rich Text
+type VARCHAR(50) NOT NULL CHECK (type IN ('PDF', 'DOC', 'XLSX')), -- Enumeration
+size VARCHAR(50), -- Text
+downloadUrl VARCHAR(255), -- Text
+previewUrl VARCHAR(255), -- Text (opcional)
+date DATE, -- Date
+category VARCHAR(50) NOT NULL CHECK (category IN ('manual', 'procedimiento', 'normativa', 'capacitacion')), -- Enumeration
+slug VARCHAR(255) UNIQUE, -- UID
+version VARCHAR(50), -- Text (opcional)
+language VARCHAR(10) DEFAULT 'es', -- Text (default: es)
+downloadFile VARCHAR(255) -- Media
+);
+
+CREATE TABLE categorias (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL, -- Text (requerido)
+    description TEXT, -- Rich Text
+    icon VARCHAR(255), -- Text
+    color VARCHAR(50), -- Text
+    slug VARCHAR(255) UNIQUE, -- UID
+    isActive BOOLEAN -- Boolean
+);
+
+-- Primero, elimina la columna 'category' existente si ya creaste la tabla:
+ALTER TABLE publicaciones
+DROP COLUMN category;
+
+-- 1. Añade la nueva columna para la clave foránea (FK)
+ALTER TABLE publicaciones
+ADD COLUMN categoria_id INTEGER;
+
+-- 2. Define la clave foránea
+ALTER TABLE publicaciones
+ADD CONSTRAINT fk_publicacion_categoria
+FOREIGN KEY (categoria_id) 
+REFERENCES categorias (id)
+ON DELETE RESTRICT; -- ON DELETE RESTRICT evita que se borre una categoría que está en uso
+
+-- Primero, elimina la columna 'category' existente si ya creaste la tabla:
+ALTER TABLE multimedia
+DROP COLUMN category;
+
+-- 1. Añade la nueva columna para la clave foránea (FK)
+ALTER TABLE multimedia
+ADD COLUMN categoria_id INTEGER;
+
+-- 2. Define la clave foránea
+ALTER TABLE multimedia
+ADD CONSTRAINT fk_multimedia_categoria
+FOREIGN KEY (categoria_id) 
+REFERENCES categorias (id)
+ON DELETE RESTRICT;
