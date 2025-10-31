@@ -107,7 +107,12 @@ export const FileUpload = ({
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (e?: React.MouseEvent) => {
+    // Prevenir que se abra el diálogo de archivos cuando se hace clic en el botón
+    if (e) {
+      e.stopPropagation();
+    }
+    
     if (!selectedFile || !onUpload) return;
 
     try {
@@ -132,7 +137,12 @@ export const FileUpload = ({
     fileInputRef.current?.click();
   };
 
-  const clearFile = () => {
+  const clearFile = (e?: React.MouseEvent) => {
+    // Prevenir que se abra el diálogo de archivos cuando se hace clic en el botón
+    if (e) {
+      e.stopPropagation();
+    }
+    
     setSelectedFile(null);
     setUploadedUrl('');
     setError('');
@@ -206,7 +216,7 @@ export const FileUpload = ({
         />
 
         {selectedFile ? (
-          <div className="space-y-2">
+          <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-center space-x-2">
               <span className="text-2xl">{getFileIcon(selectedFile.name)}</span>
               <div className="text-left">
@@ -221,7 +231,7 @@ export const FileUpload = ({
             
             {/* Preview para imágenes */}
             {preview && selectedFile.type.startsWith('image/') && (
-              <div className="mt-2">
+              <div className="mt-2" onClick={(e) => e.stopPropagation()}>
                 <img
                   src={URL.createObjectURL(selectedFile)}
                   alt="Preview"
@@ -230,7 +240,7 @@ export const FileUpload = ({
               </div>
             )}
 
-            <div className="flex space-x-2 justify-center">
+            <div className="flex space-x-2 justify-center" onClick={(e) => e.stopPropagation()}>
               {onUpload && (
                 <Button
                   onClick={handleUpload}

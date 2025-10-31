@@ -234,12 +234,21 @@ export const MultimediaCMS = () => {
     const slug = uploadsService.generateSlug(file.name);
     const size = uploadsService.formatFileSize(file.size);
     
+    // Determinar si el archivo es una imagen
+    const isImage = file.type.startsWith('image/') || 
+                   ['infografia', 'arte'].includes(formData.type);
+    
     setFormData(prev => ({
       ...prev,
       format: extension.toUpperCase(),
       size: size,
       slug: slug,
-      mediafile: file.name
+      mediafile: file.name,
+      // Si es imagen, preparar para usar como vista previa y miniatura
+      ...(isImage && {
+        thumbnail: '[Se asignará automáticamente al subir]',
+        previewurl: '[Se asignará automáticamente al subir]'
+      })
     }));
   };
 
@@ -255,13 +264,21 @@ export const MultimediaCMS = () => {
       const response = await uploadsService.uploadFile(file, formData.type);
       
       if (response.success) {
+        // Determinar si el archivo es una imagen para auto-asignar como vista previa y miniatura
+        const isImage = file.type.startsWith('image/') || 
+                       ['infografia', 'arte'].includes(formData.type) ||
+                       ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(response.data.format?.toLowerCase());
+
         setFormData(prev => ({
           ...prev,
           downloadurl: response.data.url,
           mediafile: response.data.filename,
           format: response.data.format,
           size: response.data.size,
-          duration: response.data.duration || prev.duration
+          duration: response.data.duration || prev.duration,
+          // Auto-asignar como vista previa y miniatura si es imagen
+          thumbnail: isImage ? response.data.url : prev.thumbnail,
+          previewurl: isImage ? response.data.url : prev.previewurl
         }));
         return response;
       } else {
@@ -485,7 +502,7 @@ export const MultimediaCMS = () => {
           modalMode === 'edit' ? 'Editar Multimedia' :
           'Ver Multimedia'
         }
-        size="lg"
+        size={modalMode === 'view' ? "xl" : "lg"}
         onConfirm={modalMode !== 'view' ? handleSubmit : undefined}
         onCancel={closeModal}
         confirmText={modalMode === 'create' ? 'Crear' : 'Actualizar'}
@@ -494,6 +511,87 @@ export const MultimediaCMS = () => {
         {modalMode === 'view' ? (
           // Vista de solo lectura
           <div className="space-y-6">
+            {/* Vista previa del archivo */}
+            {selectedItem?.downloadurl && (
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <label className="block text-sm font-medium text-gray-300 mb-3">Vista Previa del Archivo</label>
+                <div className="bg-gray-800 p-4 rounded-lg">
+                  {selectedItem.type === 'infografia' || selectedItem.type === 'arte' ? (
+                    // Vista previa para imágenes
+                    <div className="flex justify-center">
+                      <img
+                        src={getFullUrl(selectedItem.downloadurl)}
+                        alt={selectedItem.title}
+                        className="max-w-full max-h-96 object-contain rounded-lg shadow-lg"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      />
+                      <div className="hidden text-center text-gray-400 py-8">
+                        <svg className="w-16 h-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <p>No se pudo cargar la imagen</p>
+                      </div>
+                    </div>
+                  ) : selectedItem.type === 'video' ? (
+                    // Vista previa para videos
+                    <div className="flex justify-center">
+                      <video
+                        controls
+                        className="max-w-full max-h-96 rounded-lg shadow-lg"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      >
+                        <source src={getFullUrl(selectedItem.downloadurl)} />
+                        Tu navegador no soporta el elemento de video.
+                      </video>
+                      <div className="hidden text-center text-gray-400 py-8">
+                        <svg className="w-16 h-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <p>No se pudo cargar el video</p>
+                      </div>
+                    </div>
+                  ) : selectedItem.type === 'presentacion' && selectedItem.format?.toLowerCase() === 'pdf' ? (
+                    // Vista previa para PDFs
+                    <div className="space-y-4">
+                      <iframe
+                        src={`${getFullUrl(selectedItem.downloadurl)}#view=FitH`}
+                        className="w-full h-96 rounded-lg border border-gray-600"
+                        title={selectedItem.title}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'block';
+                        }}
+                      />
+                      <div className="hidden text-center text-gray-400 py-8">
+                        <svg className="w-16 h-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p>No se pudo cargar el PDF</p>
+                      </div>
+                    </div>
+                  ) : (
+                    // Vista previa genérica para otros tipos de archivo
+                    <div className="text-center text-gray-400 py-8">
+                      <svg className="w-16 h-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <p className="mb-2">Vista previa no disponible para este tipo de archivo</p>
+                      <p className="text-sm">Archivo: {selectedItem.mediafile}</p>
+                      <p className="text-sm">Formato: {selectedItem.format}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            
+
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-gray-700 p-4 rounded-lg">
                 <label className="block text-sm font-medium text-gray-300 mb-2">Título</label>
@@ -653,18 +751,41 @@ export const MultimediaCMS = () => {
             {/* Miniatura y vista previa */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-300 border-b border-gray-700 pb-2">
-                Imágenes
+                Imágenes {(formData.type === 'infografia' || formData.type === 'arte') && 
+                         <span className="text-sm font-normal text-blue-400">(Se auto-asignan del archivo principal)</span>}
               </h3>
+              
+              {/* Mostrar información si es imagen */}
+              {(formData.type === 'infografia' || formData.type === 'arte') && (
+                <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm text-blue-300 font-medium">Auto-asignación de imágenes</p>
+                      <p className="text-xs text-blue-200 mt-1">
+                        Para archivos de imagen (infografías/arte), la miniatura y vista previa se asignan automáticamente 
+                        del archivo principal. Solo necesitas subirlas manualmente si quieres usar imágenes diferentes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4">
                   <FileUpload
-                    label="Subir Miniatura"
+                    label={`Subir Miniatura ${(formData.type === 'infografia' || formData.type === 'arte') ? '(Opcional)' : ''}`}
                     accept="image/*"
                     maxSize={10}
                     onFileSelect={(file) => console.log('Miniatura seleccionada:', file)}
                     onUpload={handleThumbnailUpload}
-                    helperText="Imagen pequeña para mostrar en listas"
+                    helperText={
+                      (formData.type === 'infografia' || formData.type === 'arte') 
+                        ? "Solo si quieres una miniatura diferente al archivo principal"
+                        : "Imagen pequeña para mostrar en listas"
+                    }
                   />
                   
                   <FilePicker
@@ -678,12 +799,16 @@ export const MultimediaCMS = () => {
 
                 <div className="space-y-4">
                   <FileUpload
-                    label="Subir Vista Previa"
+                    label={`Subir Vista Previa ${(formData.type === 'infografia' || formData.type === 'arte') ? '(Opcional)' : ''}`}
                     accept="image/*"
                     maxSize={10}
                     onFileSelect={(file) => console.log('Vista previa seleccionada:', file)}
                     onUpload={handlePreviewUpload}
-                    helperText="Imagen de vista previa más grande"
+                    helperText={
+                      (formData.type === 'infografia' || formData.type === 'arte')
+                        ? "Solo si quieres una vista previa diferente al archivo principal"
+                        : "Imagen de vista previa más grande"
+                    }
                   />
                   
                   <FilePicker
@@ -695,6 +820,33 @@ export const MultimediaCMS = () => {
                   />
                 </div>
               </div>
+
+              {/* Mostrar URLs auto-asignadas si aplica */}
+              {(formData.type === 'infografia' || formData.type === 'arte') && formData.downloadurl && (
+                <div className="space-y-3 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                  <h4 className="text-sm font-medium text-gray-300">URLs Auto-asignadas del Archivo Principal:</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">Miniatura</label>
+                      <p className="text-xs text-green-400 bg-gray-900 p-2 rounded border break-all">
+                        {formData.thumbnail === '[Se asignará automáticamente al subir]' ? 
+                          'Se asignará al subir el archivo' : 
+                          formData.thumbnail || formData.downloadurl
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">Vista Previa</label>
+                      <p className="text-xs text-green-400 bg-gray-900 p-2 rounded border break-all">
+                        {formData.previewurl === '[Se asignará automáticamente al subir]' ? 
+                          'Se asignará al subir el archivo' : 
+                          formData.previewurl || formData.downloadurl
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Información adicional */}
