@@ -13,7 +13,14 @@ app.use(express.json()); // Para parsear JSON en las peticiones
 
 // Configuración de CORS mejorada para permitir descargas
 const allowedOrigins = process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL, 'https://tu-frontend-en-render.onrender.com'] // Actualiza con tu URL de frontend
+    ? [
+        process.env.FRONTEND_URL, 
+        'https://coalicion-frontend.onrender.com',
+        'https://coalicion-frontend.vercel.app',
+        'https://coalicion.vercel.app',
+        /\.onrender\.com$/,
+        /\.vercel\.app$/
+      ]
     : ['http://localhost:3000', 'http://localhost:3001'];
 
 app.use(cors({
