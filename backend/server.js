@@ -16,12 +16,13 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
     ? [
         process.env.FRONTEND_URL, 
         'https://coalicion-frontend.onrender.com',
-        'https://coalicion-frontend.vercel.app',
-        'https://coalicion.vercel.app',
+        'https://coalicion-two.vercel.app',
+        'https://coalicion-two.vercel.app',
         /\.onrender\.com$/,
         /\.vercel\.app$/
       ]
     : ['http://localhost:3000', 'http://localhost:3001'];
+.
 
 app.use(cors({
     origin: allowedOrigins,
@@ -40,14 +41,17 @@ app.use('/uploads', (req, res, next) => {
 }, express.static(path.join(__dirname, 'uploads')));
 
 // Configuración de la base de datos
+// Configuración de la base de datos
 const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_DATABASE,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
-});
-
+    ssl: process.env.NODE_ENV === 'production' ? {
+        rejectUnauthorized: false
+    } : false
+});Patriciorey
 // Verificar conexión a la base de datos
 pool.on('connect', () => {
     console.log('✅ Cliente de PostgreSQL conectado');
