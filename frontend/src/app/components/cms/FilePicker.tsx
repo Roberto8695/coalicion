@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from './Button';
 import { Modal } from './Modal';
 import { uploadsService } from '@/api';
@@ -41,13 +41,7 @@ export const FilePicker = ({
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [currentPath, setCurrentPath] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (showModal) {
-      loadFiles();
-    }
-  }, [showModal, type]); // Removemos loadFiles de las dependencias para evitar loops
-
-  const loadFiles = async () => {
+  const loadFiles = useCallback(async () => {
     try {
       setLoading(true);
       const response = await uploadsService.listFiles({ type });
@@ -55,12 +49,19 @@ export const FilePicker = ({
       if (response.success) {
         setFiles(response.data);
       }
-    } catch (error: any) {
-      console.error('Error cargando archivos:', error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      console.error('Error cargando archivos:', message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [type]);
+
+  useEffect(() => {
+    if (showModal) {
+      loadFiles();
+    }
+  }, [showModal, loadFiles]);
 
   const handleFileSelect = (file: FileItem) => {
     if (file.type === 'file' && file.url) {

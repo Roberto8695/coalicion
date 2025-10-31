@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconCalendar, IconMapPin, IconExternalLink, IconUsers, IconMicrophone } from "@tabler/icons-react";
-import { noticiasService } from "@/api";
+import { noticiasService, Noticia } from "@/api";
 
 interface NoticiaItem {
   id: number;
@@ -37,7 +37,29 @@ export function NoticiasSection() {
       try {
         setLoading(true);
         const response = await noticiasService.getAll();
-        setNoticias(response.data);
+        
+        // Mapear desde Noticia a NoticiaItem
+        const mappedNoticias: NoticiaItem[] = response.data.map((noticia: Noticia) => ({
+          id: noticia.id || 0,
+          title: noticia.title,
+          description: noticia.excerpt || noticia.content || '',
+          type: 'comunicado' as const, // Valor por defecto
+          date: noticia.publishDate || new Date().toISOString(),
+          location: undefined,
+          organizer: noticia.author || 'Sin autor',
+          participants: undefined,
+          url: undefined,
+          status: noticia.status === 'published' ? 'completed' : 'upcoming',
+          featured: noticia.featured || false,
+          image: noticia.imageUrl,
+          slug: noticia.slug,
+          duration: undefined,
+          registrationurl: undefined,
+          createdAt: noticia.publishDate,
+          updatedAt: noticia.publishDate
+        }));
+        
+        setNoticias(mappedNoticias);
         setError(null);
       } catch (err) {
         console.error('Error loading noticias:', err);

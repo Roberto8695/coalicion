@@ -110,7 +110,7 @@ export class PublicacionesService extends BaseService<Publicacion> {
   }
 
   // Métodos específicos para publicaciones
-  async getWithCategory(params?: any) {
+  async getWithCategory(params?: Record<string, unknown>) {
     return await api.get(`${this.endpoint}/with-category`, { params });
   }
 
@@ -118,7 +118,7 @@ export class PublicacionesService extends BaseService<Publicacion> {
     return await api.get(`${this.endpoint}/featured`, { params: { limit } });
   }
 
-  async searchAdvanced(query: string, filters?: any) {
+  async searchAdvanced(query: string, filters?: Record<string, unknown>) {
     return await api.get(`${this.endpoint}/search-advanced`, { 
       params: { q: query, ...filters } 
     });
@@ -146,7 +146,7 @@ export class MultimediaService extends BaseService<Multimedia> {
     super('multimedia');
   }
 
-  async getByType(type: string, params?: any) {
+  async getByType(type: string, params?: Record<string, unknown>) {
     return await api.get(`${this.endpoint}/by-type/${type}`, { params });
   }
 }
@@ -160,7 +160,7 @@ export class EventosService extends BaseService<Evento> {
     return await api.get(`${this.endpoint}/upcoming`, { params: { limit } });
   }
 
-  async getByStatus(status: string, params?: any) {
+  async getByStatus(status: string, params?: Record<string, unknown>) {
     return await api.get(`${this.endpoint}/status/${status}`, { params });
   }
 }
@@ -170,7 +170,7 @@ export class GuiasElectoralesService extends BaseService<GuiaElectoral> {
     super('guias-electorales');
   }
 
-  async getByAudience(audience: string, params?: any) {
+  async getByAudience(audience: string, params?: Record<string, unknown>) {
     return await api.get(`${this.endpoint}/audience/${audience}`, { params });
   }
 }
@@ -180,7 +180,7 @@ export class VerificadoresService extends BaseService<Verificador> {
     super('verificadores');
   }
 
-  async getActive(params?: any) {
+  async getActive(params?: Record<string, unknown>) {
     return await api.get(`${this.endpoint}/active`, { params });
   }
 }
@@ -206,8 +206,9 @@ export class UploadsService {
       });
 
       return await response.json();
-    } catch (error: any) {
-      throw new Error(`Error subiendo archivo: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      throw new Error(`Error subiendo archivo: ${message}`);
     }
   }
 
@@ -224,8 +225,9 @@ export class UploadsService {
       });
 
       return await response.json();
-    } catch (error: any) {
-      throw new Error(`Error subiendo ${type}: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      throw new Error(`Error subiendo ${type}: ${message}`);
     }
   }
 
@@ -245,8 +247,9 @@ export class UploadsService {
       });
 
       return await response.json();
-    } catch (error: any) {
-      throw new Error(`Error obteniendo lista de archivos: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      throw new Error(`Error obteniendo lista de archivos: ${message}`);
     }
   }
 
@@ -261,8 +264,9 @@ export class UploadsService {
       });
 
       return await response.json();
-    } catch (error: any) {
-      throw new Error(`Error eliminando archivo: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      throw new Error(`Error eliminando archivo: ${message}`);
     }
   }
 

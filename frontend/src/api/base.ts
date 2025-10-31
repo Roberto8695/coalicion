@@ -27,7 +27,7 @@ export class BaseService<T> {
   }
 
   // Obtener todos los registros
-  async getAll(params?: PaginationParams & Record<string, any>): Promise<ApiResponse<T[]>> {
+  async getAll(params?: PaginationParams & Record<string, unknown>): Promise<ApiResponse<T[]>> {
     return await api.get(this.endpoint, { params });
   }
 
@@ -52,7 +52,7 @@ export class BaseService<T> {
   }
 
   // Búsqueda
-  async search(query: string, params?: Record<string, any>): Promise<ApiResponse<T[]>> {
+  async search(query: string, params?: Record<string, unknown>): Promise<ApiResponse<T[]>> {
     return await api.get(`${this.endpoint}/search`, { 
       params: { q: query, ...params } 
     });

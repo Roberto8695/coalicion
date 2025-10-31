@@ -6,14 +6,18 @@ const path = require('path');
 
 dotenv.config(); // Carga las variables de entorno
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 4000; // Cambiar puerto por defecto
 
 // Middlewares
 app.use(express.json()); // Para parsear JSON en las peticiones
 
 // Configuración de CORS mejorada para permitir descargas
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL, 'https://tu-frontend-en-render.onrender.com'] // Actualiza con tu URL de frontend
+    : ['http://localhost:3000', 'http://localhost:3001'];
+
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'], // Permitir frontend
+    origin: allowedOrigins,
     credentials: true,
     optionsSuccessStatus: 200
 }));

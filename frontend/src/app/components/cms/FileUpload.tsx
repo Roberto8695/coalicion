@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Button } from './Button';
 
 interface FileUploadProps {
@@ -8,7 +9,7 @@ interface FileUploadProps {
   accept?: string;
   maxSize?: number; // en MB
   onFileSelect: (file: File) => void;
-  onUpload?: (file: File) => Promise<any>;
+  onUpload?: (file: File) => Promise<{ success: boolean; data: { url: string }; message?: string }>;
   preview?: boolean;
   disabled?: boolean;
   helperText?: string;
@@ -126,8 +127,9 @@ export const FileUpload = ({
       } else {
         setError(result.message || 'Error al subir el archivo');
       }
-    } catch (err: any) {
-      setError(err.message || 'Error al subir el archivo');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al subir el archivo';
+      setError(message);
     } finally {
       setUploading(false);
     }
@@ -232,11 +234,16 @@ export const FileUpload = ({
             {/* Preview para imágenes */}
             {preview && selectedFile.type.startsWith('image/') && (
               <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                <img
-                  src={URL.createObjectURL(selectedFile)}
-                  alt="Preview"
-                  className="max-w-xs max-h-32 mx-auto rounded-lg"
-                />
+                <div className="relative max-w-xs max-h-32 mx-auto">
+                  <Image
+                    src={URL.createObjectURL(selectedFile)}
+                    alt="Preview"
+                    width={200}
+                    height={128}
+                    className="rounded-lg object-contain"
+                    style={{ maxWidth: '100%', height: 'auto' }}
+                  />
+                </div>
               </div>
             )}
 

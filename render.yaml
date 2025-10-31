@@ -1,0 +1,37 @@
+# render.yaml para configurar el despliegue en Render
+services:
+  - type: web
+    name: coalicion-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        generateValue: true
+      # Agregar aquí tus variables de base de datos desde el dashboard de Render
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_PORT
+        value: 5432
+      - key: FRONTEND_URL
+        sync: false
+        
+  - type: web
+    name: coalicion-frontend
+    env: static
+    buildCommand: npm run build
+    staticPublishPath: ./out
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

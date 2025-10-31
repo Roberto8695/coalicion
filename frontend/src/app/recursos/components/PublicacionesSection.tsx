@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconDownload, IconEye, IconCalendar, IconTag, IconFileText } from "@tabler/icons-react";
-import { publicacionesService } from "@/api";
+import { publicacionesService, Publicacion as PublicacionAPI } from "@/api";
 
 interface Publicacion {
   id: number;
@@ -59,7 +59,29 @@ export function PublicacionesSection() {
       try {
         setLoading(true);
         const response = await publicacionesService.getAll();
-        setPublicaciones(response.data);
+        
+        // Mapear desde PublicacionAPI a Publicacion local
+        const mappedPublicaciones: Publicacion[] = response.data.map((pub: PublicacionAPI) => ({
+          id: pub.id || 0,
+          title: pub.title,
+          description: pub.description || '',
+          type: pub.type || 'informe',
+          category: 'electoral', // Valor por defecto, podríamos mapear desde categoria_id
+          date: pub.date,
+          author: pub.author,
+          pages: pub.pages,
+          downloadUrl: pub.downloadUrl,
+          previewUrl: pub.previewUrl,
+          tags: pub.tags,
+          featured: pub.featured,
+          fileSize: pub.fileSize ? parseInt(pub.fileSize) : undefined,
+          fileFormat: undefined,
+          slug: pub.slug,
+          createdAt: pub.date,
+          updatedAt: pub.date
+        }));
+        
+        setPublicaciones(mappedPublicaciones);
         setError(null);
       } catch (err) {
         console.error('Error loading publicaciones:', err);

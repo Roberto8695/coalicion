@@ -14,6 +14,7 @@ import {
   IconSchool,
   IconX
 } from "@tabler/icons-react";
+import { Evento } from "@/api/services";
 
 // Tipos de eventos
 type EventType = 'taller' | 'capacitacion' | 'foro' | 'debate';
@@ -171,30 +172,34 @@ export function AgendaElectoralSection() {
         if (!mounted) return;
 
         // Mapear la respuesta de la API al tipo CalendarEvent
-        interface EventoAPI {
-          id: number;
-          title: string;
-          type: string;
-          date: string;
-          time?: string;
-          location?: string;
-          description?: string;
-          duration?: number;
-          participants?: number;
-          registrationurl?: string;
-        }
+        // Usar el tipo Evento importado desde services
         
-        const mapped: CalendarEvent[] = data.map((ev: EventoAPI) => ({
+        // Función para mapear tipos de evento
+        const mapEventType = (apiType: string): EventType => {
+          switch (apiType) {
+            case 'webinar':
+            case 'conferencia':
+              return 'foro';
+            case 'taller':
+              return 'taller';
+            case 'reunion':
+              return 'debate';
+            default:
+              return 'capacitacion';
+          }
+        };
+        
+        const mapped: CalendarEvent[] = data.map((ev: Evento) => ({
           id: ev.id?.toString() || String(Math.random()),
           title: ev.title || 'Evento sin título',
-          type: (ev.type as EventType) || 'foro',
-          date: ev.date ? new Date(ev.date) : new Date(),
-          time: ev.time || '',
+          type: mapEventType(ev.type),
+          date: ev.startDate ? new Date(ev.startDate) : new Date(),
+          time: '', // No hay campo time en Evento, usar valor por defecto
           location: ev.location || '',
           description: ev.description || '',
-          duration: ev.duration ? `${ev.duration} horas` : '',
-          capacity: ev.participants || undefined,
-          registrationUrl: ev.registrationurl || ''
+          duration: ev.maxParticipants ? `${ev.maxParticipants} participantes` : '',
+          capacity: ev.maxParticipants || undefined,
+          registrationUrl: ev.registrationUrl || ''
         }));
 
         // Reemplaza eventos sólo si hay datos desde la API
