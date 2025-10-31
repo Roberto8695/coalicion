@@ -22,7 +22,7 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
         /\.vercel\.app$/
       ]
     : ['http://localhost:3000', 'http://localhost:3001'];
-.
+
 
 app.use(cors({
     origin: allowedOrigins,
