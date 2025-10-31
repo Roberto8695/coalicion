@@ -51,7 +51,7 @@ const pool = new Pool({
     ssl: process.env.NODE_ENV === 'production' ? {
         rejectUnauthorized: false
     } : false
-});Patriciorey
+});
 // Verificar conexión a la base de datos
 pool.on('connect', () => {
     console.log('✅ Cliente de PostgreSQL conectado');
