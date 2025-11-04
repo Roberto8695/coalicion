@@ -1,11 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from './Button';
-import { Modal } from './Modal';
-import { Input } from './Input';
-import { Table } from './Table';
-import { Pagination } from './Pagination';
+import { Button, Modal, Input, Table, Pagination } from '../index';
 import { eventosService } from '@/api';
 
 export const EventosCMS = () => {
@@ -55,7 +51,7 @@ export const EventosCMS = () => {
       header: 'Título',
       render: (value) => (
         <div className="max-w-xs">
-          <p className="font-medium text-white truncate">{value}</p>
+          <p className="font-medium text-gray-900 truncate">{value}</p>
         </div>
       )
     },
@@ -64,12 +60,12 @@ export const EventosCMS = () => {
       header: 'Tipo',
       render: (value) => {
         const typeConfig = {
-          taller: { label: 'Taller', color: 'bg-blue-500 text-white' },
-          capacitacion: { label: 'Capacitación', color: 'bg-green-500 text-white' },
-          foro: { label: 'Foro', color: 'bg-purple-500 text-white' },
-          debate: { label: 'Debate', color: 'bg-red-500 text-white' }
+          taller: { label: 'Taller', color: 'bg-blue-100 text-blue-800' },
+          capacitacion: { label: 'Capacitación', color: 'bg-green-100 text-green-800' },
+          foro: { label: 'Foro', color: 'bg-purple-100 text-purple-800' },
+          debate: { label: 'Debate', color: 'bg-red-100 text-red-800' }
         };
-        const config = typeConfig[value] || { label: value, color: 'bg-gray-500 text-white' };
+        const config = typeConfig[value] || { label: value, color: 'bg-gray-100 text-gray-800' };
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
             {config.label}
@@ -79,7 +75,7 @@ export const EventosCMS = () => {
     },
     {
       key: 'date',
-      header: 'Fecha y Hora',
+      header: 'Fecha',
       render: (value) => {
         console.log('Renderizando fecha:', value, typeof value);
         
@@ -97,8 +93,8 @@ export const EventosCMS = () => {
           
           return (
             <div className="text-sm">
-              <div className="text-white">{date.toLocaleDateString('es-ES')}</div>
-              <div className="text-gray-300">{date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</div>
+              <div className="text-gray-900">{date.toLocaleDateString('es-ES')}</div>
+              <div className="text-gray-500">{date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</div>
             </div>
           );
         } catch (error) {
@@ -108,18 +104,11 @@ export const EventosCMS = () => {
       }
     },
     {
-      key: 'time',
-      header: 'Hora (texto)',
-      render: (value) => (
-        <span className="text-sm text-gray-300">{value || '-'}</span>
-      )
-    },
-    {
       key: 'location',
       header: 'Ubicación',
       render: (value) => (
         <div className="max-w-xs">
-          <p className="text-sm text-white truncate">{value || '-'}</p>
+          <p className="text-sm text-gray-900 truncate">{value || '-'}</p>
         </div>
       )
     },
@@ -128,12 +117,12 @@ export const EventosCMS = () => {
       header: 'Estado',
       render: (value) => {
         const statusConfig = {
-          upcoming: { label: 'Próximo', color: 'bg-yellow-500 text-black' },
-          ongoing: { label: 'En curso', color: 'bg-green-500 text-white' },
-          completed: { label: 'Completado', color: 'bg-gray-500 text-white' },
-          cancelled: { label: 'Cancelado', color: 'bg-red-500 text-white' }
+          upcoming: { label: 'Próximo', color: 'bg-yellow-100 text-yellow-800' },
+          ongoing: { label: 'En curso', color: 'bg-green-100 text-green-800' },
+          completed: { label: 'Completado', color: 'bg-gray-100 text-gray-800' },
+          cancelled: { label: 'Cancelado', color: 'bg-red-100 text-red-800' }
         };
-        const config = statusConfig[value] || { label: value, color: 'bg-gray-500 text-white' };
+        const config = statusConfig[value] || { label: value, color: 'bg-gray-100 text-gray-800' };
         return (
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
             {config.label}
@@ -144,7 +133,7 @@ export const EventosCMS = () => {
     {
       key: 'capacity',
       header: 'Capacidad',
-      render: (value) => <span className="text-sm text-gray-300">{value || '-'}</span>
+      render: (value) => <span className="text-sm text-gray-600">{value || '-'}</span>
     }
   ];
 
@@ -393,6 +382,26 @@ export const EventosCMS = () => {
     }
   };
 
+  // Acciones de la tabla
+  const actions = [
+    {
+      label: 'Ver',
+      onClick: handleView,
+      icon: '👁️'
+    },
+    {
+      label: 'Editar',
+      onClick: handleEdit,
+      icon: '✏️'
+    },
+    {
+      label: 'Eliminar',
+      onClick: handleDelete,
+      icon: '🗑️',
+      className: 'text-red-600 hover:text-red-800'
+    }
+  ];
+
   // Efectos
   useEffect(() => {
     loadEventos();
@@ -403,8 +412,8 @@ export const EventosCMS = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Gestión de Eventos</h1>
-          <p className="text-gray-300">Administra talleres, capacitaciones, foros y debates</p>
+          <h1 className="text-2xl font-bold text-gray-900">Gestión de Eventos</h1>
+          <p className="text-gray-600">Administra talleres, capacitaciones, foros y debates</p>
         </div>
         <Button
           onClick={handleCreate}
@@ -427,10 +436,7 @@ export const EventosCMS = () => {
           columns={columns}
           data={eventos}
           loading={loading}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          emptyMessage="No hay eventos disponibles"
+          actions={actions}
         />
         
         {/* Paginación */}
@@ -461,15 +467,15 @@ export const EventosCMS = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Título</label>
-                <p className="text-gray-300">{selectedItem?.title}</p>
+                <p className="text-gray-900">{selectedItem?.title}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Tipo</label>
-                <p className="text-gray-300">{eventTypeOptions.find(t => t.value === selectedItem?.type)?.label}</p>
+                <p className="text-gray-900">{eventTypeOptions.find(t => t.value === selectedItem?.type)?.label}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Fecha y Hora</label>
-                <p className="text-gray-300">
+                <label className="block text-sm font-medium text-gray-400 mb-1">Fecha</label>
+                <p className="text-gray-900">
                   {selectedItem?.date ? 
                     (() => {
                       try {
@@ -484,44 +490,44 @@ export const EventosCMS = () => {
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">Hora (texto adicional)</label>
-                <p className="text-gray-300">{selectedItem?.time || '-'}</p>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Hora</label>
+                <p className="text-gray-900">{selectedItem?.time || '-'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Ubicación</label>
-                <p className="text-gray-300">{selectedItem?.location || '-'}</p>
+                <p className="text-gray-900">{selectedItem?.location || '-'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Duración</label>
-                <p className="text-gray-300">{selectedItem?.duration || '-'}</p>
+                <p className="text-gray-900">{selectedItem?.duration || '-'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Capacidad</label>
-                <p className="text-gray-300">{selectedItem?.capacity || '-'}</p>
+                <p className="text-gray-900">{selectedItem?.capacity || '-'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Estado</label>
-                <p className="text-gray-300">{statusOptions.find(s => s.value === selectedItem?.status)?.label}</p>
+                <p className="text-gray-900">{statusOptions.find(s => s.value === selectedItem?.status)?.label}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Organizador</label>
-                <p className="text-gray-300">{selectedItem?.organizer || '-'}</p>
+                <p className="text-gray-900">{selectedItem?.organizer || '-'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">URL de Registro</label>
-                <p className="text-gray-300">{selectedItem?.registrationUrl || '-'}</p>
+                <p className="text-gray-900">{selectedItem?.registrationUrl || '-'}</p>
               </div>
             </div>
             {selectedItem?.description && (
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Descripción</label>
-                <p className="text-gray-300">{selectedItem.description}</p>
+                <p className="text-gray-900">{selectedItem.description}</p>
               </div>
             )}
             {selectedItem?.requirements && (
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1">Requisitos</label>
-                <p className="text-gray-300">{selectedItem.requirements}</p>
+                <p className="text-gray-900">{selectedItem.requirements}</p>
               </div>
             )}
           </div>

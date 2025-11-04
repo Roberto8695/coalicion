@@ -10,3 +10,4 @@ export { CMSLayout } from './CMSLayout';
 export { CMSDashboard } from './CMSDashboard';
 export { PublicacionesCMS } from './PublicacionesCMS';
 export { CategoriasCMS } from './CategoriasCMS';
+export { EventosCMS } from './EventosCMS';

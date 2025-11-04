@@ -295,7 +295,7 @@ export const CategoriasCMS = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nombre</label>
+                <label className="block text-sm font-medium text-gray-400">Nombre</label>
                 <div className="flex items-center space-x-3 mt-1">
                   {selectedItem?.color && (
                     <div 
@@ -307,25 +307,25 @@ export const CategoriasCMS = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Slug</label>
-                <p className="mt-1 text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">
+                <label className="block text-sm font-medium text-gray-400">Slug</label>
+                <p className="mt-1 text-sm text-gray-300 font-mono bg-gray-100 px-2 py-1 rounded">
                   {selectedItem?.slug}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Color</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem?.color}</p>
+                <label className="block text-sm font-medium text-gray-400">Color</label>
+                <p className="mt-1 text-sm text-gray-300">{selectedItem?.color}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Estado</label>
-                <p className="mt-1 text-sm text-gray-900">
+                <label className="block text-sm font-medium text-gray-400">Estado</label>
+                <p className="mt-1 text-sm text-gray-300">
                   {selectedItem?.isactive ? 'Activo' : 'Inactivo'}
                 </p>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Descripción</label>
-              <p className="mt-1 text-sm text-gray-900">{selectedItem?.description || '-'}</p>
+              <label className="block text-sm font-medium text-gray-400">Descripción</label>
+              <p className="mt-1 text-sm text-gray-300">{selectedItem?.description || '-'}</p>
             </div>
           </div>
         ) : (
@@ -361,7 +361,7 @@ export const CategoriasCMS = () => {
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-gray-400 mb-3">
                 Color
               </label>
               <div className="flex items-center space-x-3">

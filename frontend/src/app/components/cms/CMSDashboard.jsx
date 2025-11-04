@@ -149,8 +149,8 @@ export const CMSDashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Cargando dashboard...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400"></div>
+        <span className="ml-2 text-gray-300">Cargando dashboard...</span>
       </div>
     );
   }
@@ -159,8 +159,8 @@ export const CMSDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+        <p className="mt-1 text-sm text-gray-300">
           Resumen general del sistema de gestión de contenidos
         </p>
       </div>
@@ -168,20 +168,20 @@ export const CMSDashboard = () => {
       {/* Tarjetas de estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {statCards.map((card) => (
-          <div key={card.name} className="bg-white overflow-hidden shadow rounded-lg">
+          <div key={card.name} className="bg-gray-800 border border-gray-700 overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-200">
             <div className="p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className={`${card.color} p-3 rounded-md text-white`}>
+                  <div className={`${card.color} p-3 rounded-md text-white shadow-md`}>
                     {card.icon}
                   </div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-gray-400 truncate">
                       {card.name}
                     </dt>
-                    <dd className="text-3xl font-semibold text-gray-900">
+                    <dd className="text-3xl font-semibold text-white">
                       {card.value}
                     </dd>
                   </dl>
@@ -190,9 +190,9 @@ export const CMSDashboard = () => {
               <div className="mt-4">
                 <div className="flex items-center text-sm">
                   <span className={`${
-                    card.changeType === 'positive' ? 'text-green-600' :
-                    card.changeType === 'negative' ? 'text-red-600' :
-                    'text-gray-600'
+                    card.changeType === 'positive' ? 'text-green-400' :
+                    card.changeType === 'negative' ? 'text-red-400' :
+                    'text-gray-300'
                   }`}>
                     {card.change}
                   </span>
@@ -209,27 +209,27 @@ export const CMSDashboard = () => {
       {/* Grid de contenido */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Actividad reciente */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Actividad Reciente</h3>
+        <div className="bg-gray-800 border border-gray-700 shadow-lg rounded-lg">
+          <div className="px-6 py-4 border-b border-gray-700">
+            <h3 className="text-lg font-medium text-white">Actividad Reciente</h3>
           </div>
           <div className="p-6">
             {recentItems.length > 0 ? (
               <div className="space-y-4">
                 {recentItems.map((item, index) => (
-                  <div key={index} className="flex items-start space-x-3">
+                  <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors duration-150">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-white truncate">
                         {item.title}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-300">
                         {item.typeName} • {item.author || 'Sin autor'}
                       </p>
                       <p className="text-xs text-gray-400">
@@ -240,27 +240,27 @@ export const CMSDashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No hay actividad reciente</p>
+              <p className="text-gray-400 text-sm">No hay actividad reciente</p>
             )}
           </div>
         </div>
 
         {/* Acciones rápidas */}
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Acciones Rápidas</h3>
+        <div className="bg-gray-800 border border-gray-700 shadow-lg rounded-lg">
+          <div className="px-6 py-4 border-b border-gray-700">
+            <h3 className="text-lg font-medium text-white">Acciones Rápidas</h3>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-2 gap-4">
               <a
                 href="/cms/publicaciones"
-                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                className="block p-4 border border-gray-600 rounded-lg hover:bg-gray-700 hover:border-blue-500 transition-all duration-200 group"
               >
                 <div className="flex items-center">
-                  <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-blue-400 group-hover:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
-                  <span className="ml-2 text-sm font-medium text-gray-900">
+                  <span className="ml-2 text-sm font-medium text-white group-hover:text-blue-300">
                     Nueva Publicación
                   </span>
                 </div>
@@ -268,13 +268,13 @@ export const CMSDashboard = () => {
               
               <a
                 href="/cms/categorias"
-                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                className="block p-4 border border-gray-600 rounded-lg hover:bg-gray-700 hover:border-green-500 transition-all duration-200 group"
               >
                 <div className="flex items-center">
-                  <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-green-400 group-hover:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
-                  <span className="ml-2 text-sm font-medium text-gray-900">
+                  <span className="ml-2 text-sm font-medium text-white group-hover:text-green-300">
                     Nueva Categoría
                   </span>
                 </div>
@@ -282,13 +282,13 @@ export const CMSDashboard = () => {
               
               <a
                 href="/cms/noticias"
-                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                className="block p-4 border border-gray-600 rounded-lg hover:bg-gray-700 hover:border-yellow-500 transition-all duration-200 group"
               >
                 <div className="flex items-center">
-                  <svg className="w-6 h-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-yellow-400 group-hover:text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                   </svg>
-                  <span className="ml-2 text-sm font-medium text-gray-900">
+                  <span className="ml-2 text-sm font-medium text-white group-hover:text-yellow-300">
                     Nueva Noticia
                   </span>
                 </div>
@@ -296,13 +296,13 @@ export const CMSDashboard = () => {
               
               <a
                 href="/cms/eventos"
-                className="block p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                className="block p-4 border border-gray-600 rounded-lg hover:bg-gray-700 hover:border-red-500 transition-all duration-200 group"
               >
                 <div className="flex items-center">
-                  <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-6 h-6 text-red-400 group-hover:text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="ml-2 text-sm font-medium text-gray-900">
+                  <span className="ml-2 text-sm font-medium text-white group-hover:text-red-300">
                     Nuevo Evento
                   </span>
                 </div>
@@ -312,45 +312,7 @@ export const CMSDashboard = () => {
         </div>
       </div>
 
-      {/* Estado del sistema */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Estado del Sistema</h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full">
-                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h4 className="mt-2 text-sm font-medium text-gray-900">API Backend</h4>
-              <p className="text-sm text-green-600">Operativo</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full">
-                <svg className="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7c0-2.21-3.582-4-8-4s-8 1.79-8 4z" />
-                </svg>
-              </div>
-              <h4 className="mt-2 text-sm font-medium text-gray-900">Base de Datos</h4>
-              <p className="text-sm text-green-600">Conectada</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-blue-100 rounded-full">
-                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h4 className="mt-2 text-sm font-medium text-gray-900">CMS</h4>
-              <p className="text-sm text-blue-600">Activo</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      
     </div>
   );
 };

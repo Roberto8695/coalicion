@@ -159,6 +159,12 @@ class BaseController {
             const { id } = req.params;
             const data = req.body;
             
+            console.log('=== UPDATE DEBUG ===');
+            console.log('ID:', id);
+            console.log('Data recibida:', JSON.stringify(data, null, 2));
+            console.log('Keys:', Object.keys(data));
+            console.log('==================');
+            
             if (!id || isNaN(id)) {
                 return res.status(400).json({
                     success: false,
