@@ -3,6 +3,28 @@ class BaseController {
         this.repository = repository;
     }
 
+    // Métodos de respuesta estándar
+    success(res, data = null, message = 'Operación exitosa', statusCode = 200) {
+        return res.status(statusCode).json({
+            success: true,
+            message,
+            data
+        });
+    }
+
+    error(res, message = 'Error interno del servidor', statusCode = 500, errorDetails = null) {
+        const response = {
+            success: false,
+            message
+        };
+
+        if (errorDetails && process.env.NODE_ENV !== 'production') {
+            response.error = errorDetails;
+        }
+
+        return res.status(statusCode).json(response);
+    }
+
     // Obtener todos los registros
     async getAll(req, res) {
         try {

@@ -7,22 +7,33 @@ export function middleware(request: NextRequest) {
   // Rutas que requieren autenticación
   const protectedRoutes = ['/dashboard'];
   
+  // Rutas que NO requieren autenticación (rutas públicas)
+  const publicRoutes = ['/', '/login', '/about-us', '/publicaciones', '/recursos', '/actua', '/institucional'];
+  
+  // Verificar si la ruta actual es pública
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || (route === '/' && pathname === '/')
+  );
+  
+  // Si es una ruta pública, permitir el acceso
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+  
   // Verificar si la ruta actual está protegida
   const isProtectedRoute = protectedRoutes.some(route => 
     pathname.startsWith(route)
   );
 
   if (isProtectedRoute) {
-    // Verificar si hay un token de sesión en las cookies
-    const sessionToken = request.cookies.get('coalicion_session_token');
-    const isLoggedIn = request.cookies.get('isLoggedIn');
-
-    // Si no hay token de sesión válido, redirigir al login
-    if (!sessionToken || !isLoggedIn || isLoggedIn.value !== 'true') {
-      // Crear URL de redirección al login con mensaje de error
+    // Verificar si hay un token de autenticación
+    const authToken = request.cookies.get('authToken')?.value;
+    
+    // Si no hay token válido, redirigir al login
+    if (!authToken || authToken.trim() === '') {
+      // Redirigir al login sin mensaje de error para evitar mostrar
+      // mensajes cuando el usuario está haciendo logout
       const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('error', 'unauthorized');
-      loginUrl.searchParams.set('message', 'Debes iniciar sesión para acceder al dashboard');
       
       return NextResponse.redirect(loginUrl);
     }
@@ -40,8 +51,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - archivos estáticos en public
+     * - archivos estáticos en public (.png, .jpg, .css, .js, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)$',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
   ],
 };

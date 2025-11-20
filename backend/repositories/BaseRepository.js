@@ -3,6 +3,7 @@ const { pool } = require('../config/db');
 class BaseRepository {
     constructor(tableName) {
         this.tableName = tableName;
+        this.db = pool; // Agregar referencia al pool como db
     }
 
     // Obtener todos los registros con paginación opcional

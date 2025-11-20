@@ -1,22 +1,47 @@
 const express = require('express');
 const createBaseRoutes = require('./baseRoutes');
 const { EventosController } = require('../controllers');
+const { authenticateToken, requirePublicationAccess } = require('../middleware/auth');
 
 const router = express.Router();
 const controller = new EventosController();
 
-// Aplicar rutas base CRUD
+// ===========================================
+// RUTAS PÚBLICAS (SIN AUTENTICACIÓN)
+// Para el sitio web público
+// ===========================================
+
+// Aplicar rutas base CRUD públicas
 router.use('/', createBaseRoutes(EventosController));
 
-// Rutas específicas adicionales para eventos
+// ===========================================
+// RUTAS PROTEGIDAS DEL DASHBOARD
+// Solo para administradores
+// ===========================================
 
-// GET /api/eventos/status/:status - Obtener eventos por status
-router.get('/status/:status', (req, res) => controller.getByStatus(req, res));
+// POST /api/eventos/dashboard - Crear nuevo evento (solo administradores)
+router.post('/dashboard', authenticateToken, requirePublicationAccess('create'), (req, res) => controller.create(req, res));
 
-// GET /api/eventos/upcoming - Obtener eventos próximos
-router.get('/upcoming', (req, res) => controller.getUpcoming(req, res));
+// PUT /api/eventos/dashboard/:id - Actualizar evento (solo administradores)
+router.put('/dashboard/:id', authenticateToken, requirePublicationAccess('update'), (req, res) => {
+    if (!/^\d+$/.test(req.params.id)) {
+        return res.status(400).json({
+            success: false,
+            message: 'ID debe ser un número válido'
+        });
+    }
+    controller.update(req, res);
+});
 
-// GET /api/eventos/type/:type - Obtener eventos por tipo
-router.get('/type/:type', (req, res) => controller.getByType(req, res));
+// DELETE /api/eventos/dashboard/:id - Eliminar evento (solo administradores)
+router.delete('/dashboard/:id', authenticateToken, requirePublicationAccess('delete'), (req, res) => {
+    if (!/^\d+$/.test(req.params.id)) {
+        return res.status(400).json({
+            success: false,
+            message: 'ID debe ser un número válido'
+        });
+    }
+    controller.delete(req, res);
+});
 
 module.exports = router;

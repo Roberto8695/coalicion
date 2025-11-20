@@ -21,6 +21,17 @@ export interface Publicacion {
   categoria_id?: number;
 }
 
+export interface PublicacionTendencia {
+  id?: number;
+  titulo: string;
+  descripcion?: string;
+  autor?: string;
+  imagen?: string;
+  url?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Categoria {
   id?: number;
   name: string;
@@ -125,6 +136,31 @@ export class PublicacionesService extends BaseService<Publicacion> {
   }
 }
 
+export class PublicacionesTendenciasService extends BaseService<PublicacionTendencia> {
+  constructor() {
+    super('publicaciones-tendencias');
+  }
+
+  // Métodos específicos para publicaciones de tendencias
+  async getAllWithFilters(params?: Record<string, unknown>) {
+    return await api.get(`${this.endpoint}/with-filters`, { params });
+  }
+
+  async getRecent(limit?: number) {
+    return await api.get(`${this.endpoint}/recent`, { params: { limit } });
+  }
+
+  async searchPublications(query: string, params?: Record<string, unknown>) {
+    return await api.get(`${this.endpoint}/search`, { 
+      params: { q: query, ...params } 
+    });
+  }
+
+  async getByAuthor(autor: string, params?: Record<string, unknown>) {
+    return await api.get(`${this.endpoint}/author/${encodeURIComponent(autor)}`, { params });
+  }
+}
+
 export class CategoriasService extends BaseService<Categoria> {
   constructor() {
     super('categorias');
@@ -200,9 +236,12 @@ export class UploadsService {
       formData.append('file', file);
       formData.append('type', type);
 
-      const response = await fetch(`${this.baseURL}/uploads/file`, {
+      const response = await fetch(`${this.baseURL}/uploads/dashboard/file`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
       });
 
       return await response.json();
@@ -219,9 +258,12 @@ export class UploadsService {
       formData.append('file', file);
       formData.append('type', type);
 
-      const response = await fetch(`${this.baseURL}/uploads/thumbnail`, {
+      const response = await fetch(`${this.baseURL}/uploads/dashboard/thumbnail`, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        }
       });
 
       return await response.json();
@@ -239,10 +281,11 @@ export class UploadsService {
       if (filters.type) params.append('type', filters.type);
       if (filters.category) params.append('category', filters.category);
 
-      const response = await fetch(`${this.baseURL}/uploads/files?${params}`, {
+      const response = await fetch(`${this.baseURL}/uploads/dashboard/files?${params}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
       });
 
@@ -256,10 +299,11 @@ export class UploadsService {
   // Eliminar archivo
   async deleteFile(filepath: string) {
     try {
-      const response = await fetch(`${this.baseURL}/uploads/files/${encodeURIComponent(filepath)}`, {
+      const response = await fetch(`${this.baseURL}/uploads/dashboard/files/${encodeURIComponent(filepath)}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
       });
 
@@ -304,6 +348,7 @@ export class UploadsService {
 
 // Instancias de los servicios
 export const publicacionesService = new PublicacionesService();
+export const publicacionesTendenciasService = new PublicacionesTendenciasService();
 export const categoriasService = new CategoriasService();
 export const noticiasService = new NoticiasService();
 export const multimediaService = new MultimediaService();
@@ -311,3 +356,6 @@ export const eventosService = new EventosService();
 export const guiasElectoralesService = new GuiasElectoralesService();
 export const verificadoresService = new VerificadoresService();
 export const uploadsService = new UploadsService();
+
+// Exportar también el servicio de publicaciones coalición
+export { publicacionesCoalicionService } from './publicacionesCoalicion';

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "motion/react";
-import ChromaGrid from './components/ChromaGrid/ChromaGrid'
+import TendenciasGrid from './components/TendenciasGrid'
 import SimpleNavbar from "../components/layouts/simple-navbar";
 import { Footer } from "../components/layouts/footer";
 import ContactoModal from "../components/ContactoModal";
@@ -47,9 +47,9 @@ export default function PublicacionesPage() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.9, delay: 0.5 }}
               >
-                Nuestras{" "}
+                Tendencias{" "}
                 <span className="bg-gradient-to-r from-[#CBA135] to-[#B8941F] bg-clip-text text-transparent">
-                  Publicaciones
+                  Electorales
                 </span>
               </motion.h1>
               <motion.p 
@@ -58,23 +58,18 @@ export default function PublicacionesPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.7, delay: 0.7 }}
               >
-                Descubre las últimas investigaciones, reportes y contenido educativo de la Coalición Nacional para la Transparencia Electoral.
+                Explora las últimas tendencias y análisis electorales, investigaciones y reportes sobre el panorama político actual de Bolivia.
               </motion.p>
             </motion.div>
 
-            {/* Grid de publicaciones */}
+            {/* Grid de tendencias electorales */}
             <motion.div 
               className="relative"
               initial={{ opacity: 0, y: 50, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 1, delay: 0.9 }}
             >
-              <ChromaGrid 
-                radius={300}
-                damping={0.45}
-                fadeOut={0.6}
-                ease="power3.out"
-              />
+              <TendenciasGrid />
             </motion.div>
           </div>
 

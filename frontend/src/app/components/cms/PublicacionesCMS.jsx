@@ -7,8 +7,12 @@ import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { publicacionesService, categoriasService } from '@/api';
+import { usePermissions } from '@/hooks/useAuth';
 
 export const PublicacionesCMS = () => {
+  // Permisos del usuario
+  const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
+  
   // Estados principales
   const [publicaciones, setPublicaciones] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -277,12 +281,14 @@ export const PublicacionesCMS = () => {
                 Administra las publicaciones del sistema
               </p>
             </div>
-            <Button onClick={openCreateModal}>
-              <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Nueva Publicación
-            </Button>
+            {canCreateContent && (
+              <Button onClick={openCreateModal}>
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Nueva Publicación
+              </Button>
+            )}
           </div>
         </div>
 
@@ -305,8 +311,8 @@ export const PublicacionesCMS = () => {
             data={publicaciones}
             columns={columns}
             loading={loading}
-            onEdit={openEditModal}
-            onDelete={handleDelete}
+            onEdit={canEditContent ? openEditModal : undefined}
+            onDelete={canDeleteContent ? handleDelete : undefined}
             onView={openViewModal}
             emptyMessage="No hay publicaciones disponibles"
           />
