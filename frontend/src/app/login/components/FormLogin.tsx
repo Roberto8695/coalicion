@@ -174,7 +174,7 @@ export function FormLogin({ onLogin }: FormLoginProps = {}) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-2">
                 Correo Electrónico
               </label>
               <div className="relative">
@@ -210,7 +210,7 @@ export function FormLogin({ onLogin }: FormLoginProps = {}) {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-400 mb-2">
                 Contraseña
               </label>
               <div className="relative">

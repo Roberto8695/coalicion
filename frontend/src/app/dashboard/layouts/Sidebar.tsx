@@ -217,7 +217,13 @@ export const Logo = () => {
       href="#"
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal text-black"
     >
-      <div className="h-5 w-6 shrink-0 rounded-tl-lg rounded-tr-sm rounded-br-lg rounded-bl-sm bg-black dark:bg-white" />
+      <Image
+        src="/favicon.webp"
+        className="h-10 w-10 shrink-0 rounded-sm"
+        width={120}
+        height={120}
+        alt="Coalición Nacional Logo"
+      />
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -234,7 +240,13 @@ export const LogoIcon = () => {
       href="#"
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal text-black"
     >
-      <div className="h-5 w-6 shrink-0 rounded-tl-lg rounded-tr-sm rounded-br-lg rounded-bl-sm bg-black dark:bg-white" />
+      <Image
+        src="/favicon.webp"
+        className="h-6 w-6 shrink-0 rounded-sm"
+        width={24}
+        height={24}
+        alt="Coalición Nacional Logo"
+      />
     </a>
   );
 };

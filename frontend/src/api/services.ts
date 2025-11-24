@@ -75,15 +75,18 @@ export interface Evento {
   id?: number;
   title: string;
   description?: string;
-  startDate: string;
-  endDate?: string;
+  type: 'taller' | 'capacitacion' | 'foro' | 'debate';
+  date?: string; // TIMESTAMP WITH TIME ZONE
+  time?: string;
   location?: string;
-  type: 'webinar' | 'conferencia' | 'taller' | 'reunion' | 'otro';
-  status: 'programado' | 'en_curso' | 'finalizado' | 'cancelado';
-  maxParticipants?: number;
+  duration?: string;
+  capacity?: number;
   registrationUrl?: string;
-  imageUrl?: string;
+  slug?: string;
   organizer?: string;
+  status?: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  image?: string;
+  requirements?: string;
 }
 
 export interface GuiaElectoral {

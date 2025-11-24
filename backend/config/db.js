@@ -18,7 +18,12 @@ const pool = new Pool({
 
 // Opcional: Para verificar la conexión al iniciar la aplicación
 pool.on('connect', () => {
-    console.log('Cliente de PostgreSQL conectado');
+    console.log(`✅ Cliente de PostgreSQL conectado (${process.env.NODE_ENV})`);
+    console.log(`📊 Base de datos: ${process.env.DB_DATABASE} en ${process.env.DB_HOST}`);
+});
+
+pool.on('error', (err) => {
+    console.error('❌ Error inesperado en cliente PostgreSQL:', err);
 });
 
 module.exports = {

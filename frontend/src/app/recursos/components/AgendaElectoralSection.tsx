@@ -177,15 +177,16 @@ export function AgendaElectoralSection() {
         // Función para mapear tipos de evento
         const mapEventType = (apiType: string): EventType => {
           switch (apiType) {
-            case 'webinar':
-            case 'conferencia':
-              return 'foro';
             case 'taller':
               return 'taller';
-            case 'reunion':
+            case 'capacitacion':
+              return 'capacitacion';
+            case 'foro':
+              return 'foro';
+            case 'debate':
               return 'debate';
             default:
-              return 'capacitacion';
+              return 'taller';
           }
         };
         
@@ -193,12 +194,12 @@ export function AgendaElectoralSection() {
           id: ev.id?.toString() || String(Math.random()),
           title: ev.title || 'Evento sin título',
           type: mapEventType(ev.type),
-          date: ev.startDate ? new Date(ev.startDate) : new Date(),
-          time: '', // No hay campo time en Evento, usar valor por defecto
+          date: ev.date ? new Date(ev.date) : new Date(),
+          time: ev.time || '', 
           location: ev.location || '',
           description: ev.description || '',
-          duration: ev.maxParticipants ? `${ev.maxParticipants} participantes` : '',
-          capacity: ev.maxParticipants || undefined,
+          duration: ev.duration || '',
+          capacity: ev.capacity || undefined,
           registrationUrl: ev.registrationUrl || ''
         }));
 

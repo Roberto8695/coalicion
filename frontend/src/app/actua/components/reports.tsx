@@ -238,7 +238,7 @@ export function ReportsSection() {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2 font-opensans">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-2 font-opensans">
                   Correo electrónico *
                 </label>
                 <div className="relative">
@@ -258,7 +258,7 @@ export function ReportsSection() {
 
               {/* Enlaces del contenido denunciado */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 font-opensans">
+                <label className="block text-sm font-medium text-gray-400 mb-2 font-opensans">
                   Enlaces del contenido denunciado *
                 </label>
                 <div className="space-y-3">

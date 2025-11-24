@@ -108,7 +108,7 @@ export const GuiasElectoralesCMS = () => {
       key: 'downloadurl',
       header: 'Descargar',
       render: (value) => value ? (
-        <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-400">
+        <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-400">
           Descargar
         </a>
       ) : '-'
@@ -342,46 +342,46 @@ export const GuiasElectoralesCMS = () => {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Título</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem?.title}</p>
+                <label className="block text-sm font-medium text-gray-400">Título</label>
+                <p className="mt-1 text-sm text-gray-300">{selectedItem?.title}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Tipo</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem?.type}</p>
+                <label className="block text-sm font-medium text-gray-400">Tipo</label>
+                <p className="mt-1 text-sm text-gray-300">{selectedItem?.type}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Estado</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem?.status}</p>
+                <label className="block text-sm font-medium text-gray-400">Estado</label>
+                <p className="mt-1 text-sm text-gray-300">{selectedItem?.status}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Versión</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem?.version || '-'}</p>
+                <label className="block text-sm font-medium text-gray-400">Versión</label>
+                <p className="mt-1 text-sm text-gray-300">{selectedItem?.version || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Audiencia Objetivo</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem?.targetaudience || '-'}</p>
+                <label className="block text-sm font-medium text-gray-400">Audiencia Objetivo</label>
+                <p className="mt-1 text-sm text-gray-300">{selectedItem?.targetaudience || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Fecha Publicación</label>
-                <p className="mt-1 text-sm text-gray-900">
+                <label className="block text-sm font-medium text-gray-400">Fecha Publicación</label>
+                <p className="mt-1 text-sm text-gray-300">
                   {selectedItem?.publishdate ? new Date(selectedItem.publishdate).toLocaleDateString() : '-'}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Última Actualización</label>
-                <p className="mt-1 text-sm text-gray-900">
+                <label className="block text-sm font-medium text-gray-400">Última Actualización</label>
+                <p className="mt-1 text-sm text-gray-300">
                   {selectedItem?.lastupdate ? new Date(selectedItem.lastupdate).toLocaleDateString() : '-'}
                 </p>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Descripción</label>
-              <p className="mt-1 text-sm text-gray-900">{selectedItem?.description || '-'}</p>
+              <label className="block text-sm font-medium text-gray-400">Descripción</label>
+              <p className="mt-1 text-sm text-gray-300">{selectedItem?.description || '-'}</p>
             </div>
             {selectedItem?.downloadurl && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">URL de Descarga</label>
-                <p className="mt-1 text-sm text-gray-900">
+                <label className="block text-sm font-medium text-gray-400">URL de Descarga</label>
+                <p className="mt-1 text-sm text-gray-300">
                   <a href={selectedItem.downloadurl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-800">
                     {selectedItem.downloadurl}
                   </a>
@@ -390,8 +390,8 @@ export const GuiasElectoralesCMS = () => {
             )}
             {selectedItem?.tags && selectedItem.tags.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Tags</label>
-                <p className="mt-1 text-sm text-gray-900">{selectedItem.tags.join(', ')}</p>
+                <label className="block text-sm font-medium text-gray-400">Tags</label>
+                <p className="mt-1 text-sm text-gray-300">{selectedItem.tags.join(', ')}</p>
               </div>
             )}
           </div>

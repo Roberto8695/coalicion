@@ -25,7 +25,7 @@ export const Input = ({
   return (
     <div className={`space-y-1 ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-400">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>

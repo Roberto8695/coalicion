@@ -1,6 +1,6 @@
 const express = require('express');
 const createBaseRoutes = require('./baseRoutes');
-const { EventosController } = require('../controllers');
+const EventosController = require('../controllers/EventosController');
 const { authenticateToken, requirePublicationAccess } = require('../middleware/auth');
 
 const router = express.Router();
@@ -11,8 +11,24 @@ const controller = new EventosController();
 // Para el sitio web público
 // ===========================================
 
+// Ruta de debugging para ver qué datos llegan
+router.post('/debug', (req, res) => {
+    console.log('=== DEBUG EVENTOS ===');
+    console.log('Headers:', req.headers);
+    console.log('Body:', JSON.stringify(req.body, null, 2));
+    console.log('Query:', req.query);
+    console.log('Params:', req.params);
+    console.log('====================');
+    
+    res.json({
+        success: true,
+        message: 'Debug completado - revisa los logs del servidor',
+        received: req.body
+    });
+});
+
 // Aplicar rutas base CRUD públicas
-router.use('/', createBaseRoutes(EventosController));
+router.use('/', createBaseRoutes(controller));
 
 // ===========================================
 // RUTAS PROTEGIDAS DEL DASHBOARD

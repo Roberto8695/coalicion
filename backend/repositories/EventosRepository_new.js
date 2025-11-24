@@ -35,16 +35,6 @@ class EventosRepository extends BaseRepository {
             cleanData.capacity = data.maxParticipants;
         }
 
-        // Asegurar que hay una fecha por defecto si no se proporciona
-        if (!cleanData.date || cleanData.date === null || cleanData.date === '') {
-            // Asignar fecha por defecto: siguiente mes a las 10:00 AM
-            const defaultDate = new Date();
-            defaultDate.setMonth(defaultDate.getMonth() + 1);
-            defaultDate.setHours(10, 0, 0, 0);
-            cleanData.date = defaultDate.toISOString();
-            console.log('Asignando fecha por defecto:', cleanData.date);
-        }
-
         return cleanData;
     }
 

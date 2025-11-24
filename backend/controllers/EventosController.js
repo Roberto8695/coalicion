@@ -6,6 +6,93 @@ class EventosController extends BaseController {
         super(new EventosRepository());
     }
 
+    // Función para limpiar datos de eventos antes de operaciones
+    cleanEventData(data) {
+        const validFields = [
+            'title', 'description', 'type', 'date', 'time', 'location',
+            'duration', 'capacity', 'registrationUrl', 'slug', 
+            'organizer', 'status', 'image', 'requirements'
+        ];
+
+        const cleanData = {};
+        
+        // Solo incluir campos válidos
+        validFields.forEach(field => {
+            if (data[field] !== undefined && data[field] !== null && data[field] !== '') {
+                cleanData[field] = data[field];
+            }
+        });
+
+        // Mapear campos del esquema anterior si existen
+        if (data.startDate && !cleanData.date) {
+            cleanData.date = data.startDate;
+        }
+        if (data.endDate && !cleanData.duration && data.startDate) {
+            // Calcular duración si tenemos ambas fechas
+            const start = new Date(data.startDate);
+            const end = new Date(data.endDate);
+            const diffMs = end - start;
+            const diffHrs = Math.round(diffMs / (1000 * 60 * 60));
+            cleanData.duration = `${diffHrs} horas`;
+        }
+        if (data.imageUrl && !cleanData.image) {
+            cleanData.image = data.imageUrl;
+        }
+        if (data.maxParticipants && !cleanData.capacity) {
+            cleanData.capacity = data.maxParticipants;
+        }
+
+        return cleanData;
+    }
+
+    // Override create con limpieza de datos
+    async create(req, res) {
+        try {
+            const originalData = req.body;
+            const cleanData = this.cleanEventData(originalData);
+            
+            console.log('EventosController.create - Datos originales:', originalData);
+            console.log('EventosController.create - Datos limpiados:', cleanData);
+            
+            // Temporalmente modificar req.body
+            req.body = cleanData;
+            
+            // Llamar al método padre
+            return await super.create(req, res);
+        } catch (error) {
+            console.error('Error en EventosController.create:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al crear evento',
+                error: error.message
+            });
+        }
+    }
+
+    // Override update con limpieza de datos
+    async update(req, res) {
+        try {
+            const originalData = req.body;
+            const cleanData = this.cleanEventData(originalData);
+            
+            console.log('EventosController.update - Datos originales:', originalData);
+            console.log('EventosController.update - Datos limpiados:', cleanData);
+            
+            // Temporalmente modificar req.body
+            req.body = cleanData;
+            
+            // Llamar al método padre
+            return await super.update(req, res);
+        } catch (error) {
+            console.error('Error en EventosController.update:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al actualizar evento',
+                error: error.message
+            });
+        }
+    }
+
     // Obtener eventos por status
     async getByStatus(req, res) {
         try {
