@@ -7,8 +7,23 @@ import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { noticiasService, categoriasService } from '@/api';
+import { usePermissions } from '@/hooks/useAuth';
 
 export const NoticiasCMS = () => {
+  // Permisos del usuario
+  const permissions = usePermissions();
+  
+  // Verificar acceso al dashboard
+  if (!permissions.canAccessDashboard) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-red-600 text-lg font-semibold">
+          No tienes permisos para acceder a esta sección
+        </div>
+      </div>
+    );
+  }
+
   // Estados principales
   const [noticias, setNoticias] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -199,6 +214,18 @@ export const NoticiasCMS = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Verificar permisos
+    if (modalMode === 'create' && !permissions.canCreateContent) {
+      setError('No tienes permisos para crear noticias');
+      return;
+    }
+    
+    if (modalMode === 'edit' && !permissions.canEditContent) {
+      setError('No tienes permisos para editar noticias');
+      return;
+    }
+    
     try {
       setLoading(true);
       
@@ -242,6 +269,12 @@ export const NoticiasCMS = () => {
   };
 
   const handleDelete = async (item) => {
+    // Verificar permisos
+    if (!permissions.canDeleteContent) {
+      setError('No tienes permisos para eliminar noticias');
+      return;
+    }
+
     if (window.confirm('¿Estás seguro de que quieres eliminar esta noticia?')) {
       try {
         setLoading(true);
@@ -259,12 +292,20 @@ export const NoticiasCMS = () => {
 
   // Funciones de modal
   const openCreateModal = () => {
+    if (!permissions.canCreateContent) {
+      setError('No tienes permisos para crear noticias');
+      return;
+    }
     setModalMode('create');
     resetForm();
     setShowModal(true);
   };
 
   const openEditModal = (item) => {
+    if (!permissions.canEditContent) {
+      setError('No tienes permisos para editar noticias');
+      return;
+    }
     setModalMode('edit');
     setSelectedItem(item);
     setFormData({
@@ -326,14 +367,19 @@ export const NoticiasCMS = () => {
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Noticias</h1>
           <p className="mt-1 text-sm text-gray-500">
             Administra las noticias del sistema
+            {permissions.isReader && " (Solo lectura)"}
+            {permissions.isEditor && " (Editor: crear, editar, eliminar)"}
+            {permissions.isAdmin && " (Administrador: acceso completo)"}
           </p>
         </div>
-        <Button onClick={openCreateModal}>
-          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Nuevo Evento/Actividad
-        </Button>
+        {permissions.canCreateContent && (
+          <Button onClick={openCreateModal}>
+            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Nueva Noticia
+          </Button>
+        )}
       </div>
 
       {/* Error */}
@@ -354,10 +400,10 @@ export const NoticiasCMS = () => {
         data={noticias}
         columns={columns}
         loading={loading}
-        onEdit={openEditModal}
-        onDelete={handleDelete}
-        onView={openViewModal}
         emptyMessage="No hay noticias disponibles"
+        onView={openViewModal}
+        onEdit={permissions.canEditContent ? openEditModal : undefined}
+        onDelete={permissions.canDeleteContent ? handleDelete : undefined}
       />
 
       {/* Paginación */}
@@ -374,9 +420,9 @@ export const NoticiasCMS = () => {
         isOpen={showModal}
         onClose={closeModal}
         title={
-          modalMode === 'create' ? 'Nuevo Evento/Actividad' :
-          modalMode === 'edit' ? 'Editar Evento/Actividad' :
-          'Ver Evento/Actividad'
+          modalMode === 'create' ? 'Nueva Noticia' :
+          modalMode === 'edit' ? 'Editar Noticia' :
+          'Ver Noticia'
         }
         size="lg"
         onConfirm={modalMode !== 'view' ? handleSubmit : undefined}

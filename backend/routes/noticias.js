@@ -1,6 +1,6 @@
 const express = require('express');
 const createBaseRoutes = require('./baseRoutes');
-const { NoticiasController } = require('../controllers');
+const NoticiasController = require('../controllers/NoticiasController');
 const { authenticateToken, requirePublicationAccess } = require('../middleware/auth');
 
 const router = express.Router();

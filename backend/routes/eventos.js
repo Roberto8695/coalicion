@@ -28,7 +28,7 @@ router.post('/debug', (req, res) => {
 });
 
 // Aplicar rutas base CRUD públicas
-router.use('/', createBaseRoutes(controller));
+router.use('/', createBaseRoutes(EventosController));
 
 // ===========================================
 // RUTAS PROTEGIDAS DEL DASHBOARD

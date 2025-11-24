@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { IconCalendar, IconMapPin, IconExternalLink, IconUsers, IconMicrophone } from "@tabler/icons-react";
+import { IconCalendar, IconMapPin, IconExternalLink, IconUsers, IconMicrophone, IconClock } from "@tabler/icons-react";
 import { noticiasService, Noticia } from "@/api";
 
 interface NoticiaItem {
@@ -19,7 +19,7 @@ interface NoticiaItem {
   featured: boolean;
   image?: string;
   slug?: string;
-  duration?: number;
+  duration?: string; // Cambiar a string para manejar "15 horas"
   registrationurl?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -38,25 +38,25 @@ export function NoticiasSection() {
         setLoading(true);
         const response = await noticiasService.getAll();
         
-        // Mapear desde Noticia a NoticiaItem
-        const mappedNoticias: NoticiaItem[] = response.data.map((noticia: Noticia) => ({
+        // Mapear desde Noticia a NoticiaItem (los datos ya vienen en el formato correcto)
+        const mappedNoticias: NoticiaItem[] = response.data.map((noticia: any) => ({
           id: noticia.id || 0,
           title: noticia.title,
-          description: noticia.excerpt || noticia.content || '',
-          type: 'comunicado' as const, // Valor por defecto
-          date: noticia.publishDate || new Date().toISOString(),
-          location: undefined,
-          organizer: noticia.author || 'Sin autor',
-          participants: undefined,
-          url: undefined,
-          status: noticia.status === 'published' ? 'completed' : 'upcoming',
+          description: noticia.description || '',
+          type: noticia.type || 'comunicado',
+          date: noticia.date || new Date().toISOString(),
+          location: noticia.location,
+          organizer: noticia.organizer || 'Sin autor',
+          participants: noticia.participants,
+          url: noticia.url,
+          status: noticia.status || 'upcoming',
           featured: noticia.featured || false,
-          image: noticia.imageUrl,
+          image: noticia.image,
           slug: noticia.slug,
-          duration: undefined,
-          registrationurl: undefined,
-          createdAt: noticia.publishDate,
-          updatedAt: noticia.publishDate
+          duration: noticia.duration,
+          registrationurl: noticia.registrationurl,
+          createdAt: noticia.date,
+          updatedAt: noticia.date
         }));
         
         setNoticias(mappedNoticias);
@@ -130,11 +130,13 @@ export function NoticiasSection() {
     ? noticias 
     : noticias.filter(noticia => noticia.status === selectedStatus);
 
-  const handleViewMore = (url: string | undefined, title: string) => {
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+  const handleViewMore = (noticia: NoticiaItem) => {
+    // Priorizar registrationurl, luego url
+    const targetUrl = noticia.registrationurl || noticia.url;
+    if (targetUrl) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
     } else {
-      alert(`Más información sobre: ${title}`);
+      alert(`Más información sobre: ${noticia.title}`);
     }
   };
 
@@ -279,52 +281,65 @@ export function NoticiasSection() {
                   <h3 className="text-lg font-montserrat font-bold text-[#222426] mb-3 group-hover:text-[#CBA135] transition-colors line-clamp-2">
                     {noticia.title}
                   </h3>
-                  <p className="text-gray-600 font-opensans text-sm leading-relaxed mb-4 line-clamp-3">
-                    {noticia.description}
-                  </p>
+                  
+                  {/* Description */}
+                  {noticia.description && (
+                    <p className="text-gray-600 font-opensans text-sm leading-relaxed mb-4 line-clamp-3">
+                      {noticia.description}
+                    </p>
+                  )}
                   
                   {/* Meta info */}
-                  <div className="space-y-2 text-xs text-gray-500 mb-4">
+                  <div className="space-y-2 text-sm text-gray-600 mb-4">
                     <div className="flex items-center">
-                      <IconCalendar className="h-3 w-3 mr-2" />
-                      {new Date(noticia.date).toLocaleDateString('es-ES', { 
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}
+                      <IconCalendar className="h-4 w-4 mr-2 text-gray-400" />
+                      <span className="font-medium">
+                        {new Date(noticia.date).toLocaleDateString('es-ES', { 
+                          day: 'numeric',
+                          month: 'long', 
+                          year: 'numeric'
+                        })}
+                      </span>
                     </div>
+                    
                     {noticia.location && (
                       <div className="flex items-center">
-                        <IconMapPin className="h-3 w-3 mr-2" />
-                        {noticia.location}
+                        <IconMapPin className="h-4 w-4 mr-2 text-gray-400" />
+                        <span>{noticia.location}</span>
                       </div>
                     )}
+                    
                     {noticia.participants && (
                       <div className="flex items-center">
-                        <IconUsers className="h-3 w-3 mr-2" />
-                        {noticia.participants} participantes
+                        <IconUsers className="h-4 w-4 mr-2 text-gray-400" />
+                        <span>{noticia.participants} participantes</span>
+                      </div>
+                    )}
+                    
+                    {noticia.duration && (
+                      <div className="flex items-center">
+                        <IconClock className="h-4 w-4 mr-2 text-gray-400" />
+                        <span>{noticia.duration}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Organizer */}
-                  <div className="text-xs text-gray-500 mb-4">
+                  <div className="text-sm text-gray-500 mb-4">
                     <span className="font-semibold">Organiza:</span> {noticia.organizer}
                   </div>
                 </div>
 
                 {/* Action Button */}
-                {(noticia.url || noticia.type === "comunicado") && (
-                  <motion.button
-                    onClick={() => handleViewMore(noticia.url || "", noticia.title)}
-                    className="w-full bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:from-[#B8941F] hover:to-[#CBA135] transition-all duration-300 text-sm"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <IconExternalLink className="h-4 w-4" />
-                    Ver más información
-                  </motion.button>
-                )}
+                <motion.button
+                  onClick={() => handleViewMore(noticia)}
+                  className="w-full bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:from-[#B8941F] hover:to-[#CBA135] transition-all duration-300 text-sm"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <IconExternalLink className="h-4 w-4" />
+                  Ver más información
+                </motion.button>
               </motion.div>
             );
           })}
