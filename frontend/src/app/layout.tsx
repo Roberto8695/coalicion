@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Quicksand, Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
+import HydrationWrapper from './components/HydrationWrapper';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,8 +55,11 @@ export default function RootLayout({
     <html lang="es">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${quicksand.variable} ${montserrat.variable} ${openSans.variable} font-sans antialiased`}
+        suppressHydrationWarning={true}
       >
-        {children}
+        <HydrationWrapper>
+          {children}
+        </HydrationWrapper>
       </body>
     </html>
   );

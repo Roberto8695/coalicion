@@ -24,6 +24,19 @@ const nextConfig: NextConfig = {
   },
   // Configuración para deployment
   output: 'standalone', // Para optimizar el build
+  
+  // Suprimir warnings de hydration en desarrollo
+  ...(process.env.NODE_ENV === 'development' && {
+    onDemandEntries: {
+      maxInactiveAge: 25 * 1000,
+      pagesBufferLength: 2,
+    },
+  }),
+  
+  // Configuración experimental para manejar hydration
+  experimental: {
+    suppressHydrationWarning: true,
+  },
 };
 
 export default nextConfig;
