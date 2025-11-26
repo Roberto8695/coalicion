@@ -5,6 +5,7 @@ const NoticiasController = require('./NoticiasController');
 const MultimediaController = require('./MultimediaController');
 const EventosController = require('./EventosController');
 const GuiasElectoralesController = require('./GuiasElectoralesController');
+const DocumentosElectoralesController = require('./DocumentosElectoralesController');
 const VerificadoresController = require('./VerificadoresController');
 const CategoriasController = require('./CategoriasController');
 const UploadsController = require('./UploadsController');
@@ -18,6 +19,7 @@ module.exports = {
     MultimediaController,
     EventosController,
     GuiasElectoralesController,
+    DocumentosElectoralesController,
     VerificadoresController,
     CategoriasController,
     UploadsController,

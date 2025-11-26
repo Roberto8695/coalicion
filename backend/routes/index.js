@@ -8,6 +8,7 @@ const noticiasRoutes = require('./noticias');
 const multimediaRoutes = require('./multimedia');
 const eventosRoutes = require('./eventos');
 const guiasElectoralesRoutes = require('./guias-electorales');
+const documentosElectoralesRoutes = require('./documentos-electorales');
 const verificadoresRoutes = require('./verificadores');
 const categoriasRoutes = require('./categorias');
 const uploadsRoutes = require('./uploads');
@@ -23,6 +24,7 @@ router.use('/noticias', noticiasRoutes);
 router.use('/multimedia', multimediaRoutes);
 router.use('/eventos', eventosRoutes);
 router.use('/guias-electorales', guiasElectoralesRoutes);
+router.use('/documentos-electorales', documentosElectoralesRoutes);
 router.use('/verificadores', verificadoresRoutes);
 router.use('/categorias', categoriasRoutes);
 router.use('/uploads', uploadsRoutes);
@@ -42,6 +44,7 @@ router.get('/', (req, res) => {
             multimedia: '/api/multimedia',
             eventos: '/api/eventos',
             'guias-electorales': '/api/guias-electorales',
+            'documentos-electorales': '/api/documentos-electorales',
             verificadores: '/api/verificadores',
             categorias: '/api/categorias',
             usuarios: '/api/usuarios'

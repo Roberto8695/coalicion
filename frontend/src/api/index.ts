@@ -15,6 +15,7 @@ export {
   multimediaService,
   eventosService,
   guiasElectoralesService,
+  documentosElectoralesService,
   verificadoresService,
   uploadsService
 } from './services';

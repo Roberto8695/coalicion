@@ -5,6 +5,7 @@ const NoticiasRepository = require('./NoticiasRepository');
 const MultimediaRepository = require('./MultimediaRepository');
 const EventosRepository = require('./EventosRepository');
 const GuiasElectoralesRepository = require('./GuiasElectoralesRepository');
+const DocumentosElectoralesRepository = require('./DocumentosElectoralesRepository');
 const VerificadoresRepository = require('./VerificadoresRepository');
 const CategoriasRepository = require('./CategoriasRepository');
 const UsuariosRepository = require('./UsuariosRepository');
@@ -17,6 +18,7 @@ module.exports = {
     MultimediaRepository,
     EventosRepository,
     GuiasElectoralesRepository,
+    DocumentosElectoralesRepository,
     VerificadoresRepository,
     CategoriasRepository,
     UsuariosRepository

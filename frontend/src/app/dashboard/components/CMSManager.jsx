@@ -12,6 +12,7 @@ import { GuiasElectoralesCMS } from '@/app/components/cms/GuiasElectoralesCMS';
 import { VerificadoresCMS } from '@/app/components/cms/VerificadoresCMS';
 import { CMSDashboard } from '@/app/components/cms/CMSDashboard';
 import { UsuariosCMS } from './UsuariosCMS';
+import { DocumentosElectoralesCMS } from '@/app/components/cms/DocumentosElectoralesCMS';
 
 export const CMSManager = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -36,6 +37,8 @@ export const CMSManager = () => {
         return <EventosCMS />;
       case 'guias-electorales':
         return <GuiasElectoralesCMS />;
+      case 'documentos-electorales':
+        return <DocumentosElectoralesCMS />;
       case 'verificadores':
         return <VerificadoresCMS />;
       case 'usuarios':
