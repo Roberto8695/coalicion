@@ -1,82 +1,32 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { FormLogin } from './components/FormLogin';
 
 // Componente que maneja los parámetros de búsqueda
 function LoginContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Verificar si hay un mensaje de error en los parámetros de URL
+    // Solo mostrar mensajes de error si vienen de intentos fallidos de login
+    // NO mostrar para redirecciones automáticas desde middleware
     const error = searchParams.get('error');
     const message = searchParams.get('message');
+    const fromLogout = searchParams.get('logout');
     
-    if (error === 'unauthorized' && message) {
+    // Solo mostrar el mensaje si no es un logout y hay un error específico
+    if (error === 'unauthorized' && message && !fromLogout) {
       setErrorMessage(decodeURIComponent(message));
-      
-      // Limpiar los parámetros de la URL después de mostrar el mensaje
+    }
+    
+    // Limpiar los parámetros de la URL inmediatamente
+    if (error || message || fromLogout) {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
   }, [searchParams]);
-
-  const handleLogin = (email: string, password: string) => {
-    // Aquí puedes agregar la lógica de autenticación
-    console.log('Login attempt:', { email, password });
-    
-    // Credenciales para diferentes dashboards
-    const credentials = [
-      {
-        email: 'dashboard@coalicion.bo',
-        password: 'dashboard2025',
-        redirectTo: '/dashboard', // Dashboard interno
-        userType: 'local'
-      },
-      {
-        email: 'admin@coalicion.bo',
-        password: 'coalicion2025',
-        redirectTo: 'https://dashboard-disinfo-production.up.railway.app/',
-        userType: 'external'
-      }
-    ];
-
-    // Buscar credenciales válidas
-    const validUser = credentials.find(
-      cred => cred.email === email && cred.password === password
-    );
-
-    if (validUser) {
-      if (validUser.userType === 'local') {
-        // Para usuario local - guardar estado de autenticación
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('userEmail', email);
-        
-        // Establecer cookies para el middleware
-        document.cookie = 'isLoggedIn=true; path=/; max-age=86400'; // 24 horas
-        document.cookie = 'coalicion_session_token=coalicion_session_token; path=/; max-age=86400';
-        
-        // Redirigir al dashboard interno después de un breve delay
-        setTimeout(() => {
-          router.push(validUser.redirectTo);
-        }, 2000);
-      } else {
-        // Para usuario externo - redirigir en la misma ventana
-        setTimeout(() => {
-          window.location.href = validUser.redirectTo;
-        }, 2000);
-      }
-      
-      // Si las credenciales son válidas, retornar true para mostrar modal de éxito
-      return true;
-    } else {
-      // Si las credenciales no son válidas, retornar false para mostrar modal de error
-      return false;
-    }
-  };
 
   return (
     <>
@@ -93,7 +43,7 @@ function LoginContent() {
         </div>
       )}
       
-      <FormLogin onLogin={handleLogin} />
+      <FormLogin />
     </>
   );
 }

@@ -2,11 +2,17 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const UploadsController = require('../controllers/UploadsController');
+const { authenticateToken, requirePublicationAccess } = require('../middleware/auth');
 
 const router = express.Router();
 const uploadsController = new UploadsController();
 
-// Ruta para descarga forzada
+// ===========================================
+// RUTAS PÚBLICAS (SIN AUTENTICACIÓN)
+// Para descargas del sitio web público
+// ===========================================
+
+// Ruta para descarga forzada (pública)
 router.get('/download/:type/:format/:filename', (req, res) => {
     try {
         // Obtener parámetros de la ruta
@@ -38,16 +44,21 @@ router.get('/download/:type/:format/:filename', (req, res) => {
     }
 });
 
-// Subir archivo principal
-router.post('/file', uploadsController.uploadFile);
+// ===========================================
+// RUTAS PROTEGIDAS DEL DASHBOARD
+// Solo para administradores
+// ===========================================
 
-// Subir miniatura o vista previa
-router.post('/thumbnail', uploadsController.uploadThumbnail);
+// Subir archivo principal (solo administradores)
+router.post('/dashboard/file', authenticateToken, requirePublicationAccess('create'), uploadsController.uploadFile);
 
-// Listar archivos disponibles
-router.get('/files', uploadsController.listFiles);
+// Subir miniatura o vista previa (solo administradores)
+router.post('/dashboard/thumbnail', authenticateToken, requirePublicationAccess('create'), uploadsController.uploadThumbnail);
 
-// Eliminar archivo
-router.delete('/files/:filepath', uploadsController.deleteFile);
+// Listar archivos disponibles (solo administradores)
+router.get('/dashboard/files', authenticateToken, requirePublicationAccess('read'), uploadsController.listFiles);
+
+// Eliminar archivo (solo administradores)
+router.delete('/dashboard/files/:filepath', authenticateToken, requirePublicationAccess('delete'), uploadsController.deleteFile);
 
 module.exports = router;

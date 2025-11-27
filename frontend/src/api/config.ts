@@ -1,22 +1,50 @@
 import axios from 'axios';
 
+// Configuración base de URLs
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const BACKEND_BASE_URL = API_BASE_URL.replace('/api', ''); // Remover /api para URLs de assets
+
 // Configuración base de Axios
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Función para construir URLs completas de assets/imágenes
+export const getAssetUrl = (relativePath: string): string => {
+  if (!relativePath) return '';
+  
+  // Si ya es una URL completa, devolverla tal como está
+  if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+    return relativePath;
+  }
+  
+  // Si empieza con /uploads, construir URL completa del backend
+  if (relativePath.startsWith('/uploads')) {
+    return `${BACKEND_BASE_URL}${relativePath}`;
+  }
+  
+  // Si no empieza con /, agregarlo
+  if (!relativePath.startsWith('/')) {
+    relativePath = '/' + relativePath;
+  }
+  
+  return `${BACKEND_BASE_URL}/uploads${relativePath}`;
+};
+
 // Interceptor para requests
 api.interceptors.request.use(
   (config) => {
-    // Aquí puedes agregar tokens de autenticación si los necesitas
-    // const token = localStorage.getItem('token');
-    // if (token) {
-    //   config.headers.Authorization = `Bearer ${token}`;
-    // }
+    // Agregar token de autenticación si existe
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
     return config;
   },
   (error) => {

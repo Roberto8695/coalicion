@@ -32,11 +32,19 @@ app.use(cors({
 
 // Servir archivos estáticos desde la carpeta uploads con headers adecuados
 app.use('/uploads', (req, res, next) => {
-    // Headers para permitir descargas y cacheo
+    // Headers para permitir CORS pero NO forzar descarga para imágenes
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.header('Content-Disposition', 'attachment');
+    
+    // Solo forzar descarga para archivos específicos (PDFs, documentos)
+    const fileExtension = path.extname(req.path).toLowerCase();
+    const downloadableExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.zip', '.rar'];
+    
+    if (downloadableExtensions.includes(fileExtension)) {
+        res.header('Content-Disposition', 'attachment');
+    }
+    
     next();
 }, express.static(path.join(__dirname, 'uploads')));
 

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { PublicacionesCMS } from '@/app/components/cms/PublicacionesCMS';
+import { PublicacionesTendenciasCMS } from '@/app/components/cms/PublicacionesTendenciasCMS';
+import { PublicacionesCoalicionCMS } from '@/app/components/cms/PublicacionesCoalicionCMS';
 import { CategoriasCMS } from '@/app/components/cms/CategoriasCMS';
 import { NoticiasCMS } from '@/app/components/cms/NoticiasCMS';
 import { MultimediaCMS } from '@/app/components/cms/MultimediaCMS';
@@ -9,6 +11,7 @@ import { EventosCMS } from '@/app/components/cms/EventosCMS';
 import { GuiasElectoralesCMS } from '@/app/components/cms/GuiasElectoralesCMS';
 import { VerificadoresCMS } from '@/app/components/cms/VerificadoresCMS';
 import { CMSDashboard } from '@/app/components/cms/CMSDashboard';
+import { UsuariosCMS } from './UsuariosCMS';
 
 export const CMSManager = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -19,6 +22,10 @@ export const CMSManager = () => {
         return <CMSDashboard />;
       case 'publicaciones':
         return <PublicacionesCMS />;
+      case 'publicaciones-tendencias':
+        return <PublicacionesTendenciasCMS />;
+      case 'publicaciones-coalicion':
+        return <PublicacionesCoalicionCMS />;
       case 'categorias':
         return <CategoriasCMS />;
       case 'noticias':
@@ -31,6 +38,8 @@ export const CMSManager = () => {
         return <GuiasElectoralesCMS />;
       case 'verificadores':
         return <VerificadoresCMS />;
+      case 'usuarios':
+        return <UsuariosCMS />;
       default:
         return <CMSDashboard />;
     }

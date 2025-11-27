@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -9,41 +10,24 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const { isAuthenticated, isLoading } = useAuth();
+  const [hasChecked, setHasChecked] = useState(false);
 
   useEffect(() => {
-    // Verificar autenticación
-    const checkAuth = () => {
-      const isLoggedIn = localStorage.getItem('isLoggedIn');
-      const userEmail = localStorage.getItem('userEmail');
-      
-      // Verificar también las cookies
-      const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
-
-      const hasValidSession = isLoggedIn === 'true' && 
-                             userEmail && 
-                             cookies.isLoggedIn === 'true' && 
-                             cookies.coalicion_session_token;
-
-      if (!hasValidSession) {
-        // Redirigir al login con mensaje de error
-        router.push('/login?error=unauthorized&message=' + 
-          encodeURIComponent('Tu sesión ha expirado o no tienes permisos para acceder a esta página'));
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        // Redirigir al login sin mensaje de error para evitar mostrar
+        // mensajes durante logout
+        router.push('/login');
         return;
       }
-
-      setIsAuthenticated(true);
-    };
-
-    checkAuth();
-  }, [router]);
+      
+      setHasChecked(true);
+    }
+  }, [isAuthenticated, isLoading, router]);
 
   // Mostrar loading mientras verifica
-  if (isAuthenticated === null) {
+  if (isLoading || !hasChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

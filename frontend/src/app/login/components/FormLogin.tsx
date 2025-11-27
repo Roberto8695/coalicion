@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { IconEye, IconEyeOff, IconUser, IconLock, IconLogin } from '@tabler/icons-react';
 import Image from 'next/image';
 import { ModalLogin } from './ModalLogin';
+import { useAuth } from '@/hooks/useAuth';
 
 interface FormData {
   email: string;
@@ -12,10 +13,10 @@ interface FormData {
 }
 
 interface FormLoginProps {
-  onLogin?: (email: string, password: string) => void;
+  onLogin?: (email: string, password: string) => boolean;
 }
 
-export function FormLogin({ onLogin }: FormLoginProps) {
+export function FormLogin({ onLogin }: FormLoginProps = {}) {
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: ''
@@ -25,20 +26,9 @@ export function FormLogin({ onLogin }: FormLoginProps) {
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState<'success' | 'error'>('success');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // Credenciales de prueba - múltiples usuarios
-  const testCredentials = [
-    {
-      email: 'dashboard@coalicion.bo',
-      password: 'dashboard2025',
-      name: 'Dashboard Local'
-    },
-    {
-      email: 'admin@coalicion.bo',
-      password: 'coalicion2025',
-      name: 'Admin Desinformación'
-    }
-  ];
+  const { login } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -82,33 +72,38 @@ export function FormLogin({ onLogin }: FormLoginProps) {
 
     setIsLoading(true);
 
-    // Simular autenticación
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Usar el servicio de autenticación
+      const success = await login(formData.email, formData.password);
       
-      // Verificar credenciales de prueba
-      const validUser = testCredentials.find(
-        cred => cred.email === formData.email && cred.password === formData.password
-      );
-      
-      if (validUser) {
+      if (success) {
         setModalType('success');
         setShowModal(true);
         
-        // Llamar a la función onLogin que maneja la redirección
+        // Llamar al callback onLogin si existe (para compatibilidad)
         if (onLogin) {
           onLogin(formData.email, formData.password);
         }
+        
+        // Pequeño delay para asegurar que las cookies se establezcan
+        setTimeout(() => {
+          // Usar window.location en lugar de router.push para evitar problemas
+          window.location.href = '/dashboard';
+        }, 100); // Delay muy pequeño, solo 100ms
       } else {
+        console.log('Login failed - incorrect credentials');
         setErrors({
           email: 'Credenciales incorrectas',
           password: 'Credenciales incorrectas'
         });
+        setErrorMessage('Credenciales incorrectas. Verifica tu correo electrónico y contraseña.');
         setModalType('error');
         setShowModal(true);
       }
     } catch (error) {
       console.error('Error en login:', error);
+      const message = error instanceof Error ? error.message : 'Error en el servidor';
+      setErrorMessage(message);
       setModalType('error');
       setShowModal(true);
     } finally {
@@ -306,7 +301,7 @@ export function FormLogin({ onLogin }: FormLoginProps) {
         }}
         type={modalType}
         userEmail={formData.email}
-        errorMessage={modalType === 'error' ? 'Credenciales incorrectas. Verifica tu correo electrónico y contraseña.' : undefined}
+        errorMessage={modalType === 'error' ? errorMessage : undefined}
         autoCloseDelay={5000}
       />
     </div>

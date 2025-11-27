@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Quicksand, Montserrat, Open_Sans } from "next/font/google";
 import "./globals.css";
+<<<<<<< HEAD
 import HydrationWrapper from './components/HydrationWrapper';
+=======
+import { AuthProvider } from "@/hooks/useAuth";
+>>>>>>> 7f1c809783f60266d1286bb0a55e42930b21c9a6
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,9 +61,15 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${quicksand.variable} ${montserrat.variable} ${openSans.variable} font-sans antialiased`}
         suppressHydrationWarning={true}
       >
+<<<<<<< HEAD
         <HydrationWrapper>
           {children}
         </HydrationWrapper>
+=======
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+>>>>>>> 7f1c809783f60266d1286bb0a55e42930b21c9a6
       </body>
     </html>
   );

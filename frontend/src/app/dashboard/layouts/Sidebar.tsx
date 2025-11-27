@@ -1,11 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { Sidebar, SidebarBody, SidebarLink } from "@/app/components/ui/sidebar";
+import { useAuth, usePermissions } from "@/hooks/useAuth";
 import {
   IconArrowLeft,
-
   IconFileText,
   IconTags,
   IconNews,
@@ -13,7 +12,10 @@ import {
   IconCalendar,
   IconBook,
   IconUsers,
-  IconDashboard
+  IconDashboard,
+  IconTrendingUp,
+  IconUsersGroup,
+  IconUserCog
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { cn } from "@/app/lib/utils";
@@ -25,30 +27,34 @@ interface SidebarLayoutProps {
 }
 
 export function SidebarDemo({ children, activeSection = 'dashboard', onSectionChange }: SidebarLayoutProps = {}) {
-  const router = useRouter();
+  const { logout } = useAuth();
+  const { 
+    canManageUsers, 
+    canManageCategories
+  } = usePermissions();
   
   // Función para manejar el logout
   const handleLogout = () => {
-    // Limpiar la sesión del localStorage
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
+    // Limpiar la autenticación
+    logout();
     
-    // Eliminar cookies de sesión
-    document.cookie = 'isLoggedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    document.cookie = 'coalicion_session_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    
-    // Redirigir a la página principal
-    router.push('/');
+    // Usar window.location para forzar navegación completa y evitar verificaciones de React
+    window.location.href = '/';
   };
 
-  const links = [
+  // Links base que todos pueden ver
+  const baseLinks = [
     {
       label: "Dashboard",
       href: "#dashboard",
       icon: (
         <IconDashboard className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
-    },
+    }
+  ];
+
+  // Links de contenido (para lectores, editores y administradores)
+  const contentLinks = [
     {
       label: "Publicaciones",
       href: "#publicaciones",
@@ -57,10 +63,17 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
       ),
     },
     {
-      label: "Categorías",
-      href: "#categorias",
+      label: "Publicaciones Tendencias E.",
+      href: "#publicaciones-tendencias",
       icon: (
-        <IconTags className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+        <IconTrendingUp className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    },
+    {
+      label: "Publicaciones Coalición",
+      href: "#publicaciones-coalicion",
+      icon: (
+        <IconUsersGroup className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
     {
@@ -97,8 +110,29 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
       icon: (
         <IconUsers className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
-    },
+    }
   ];
+
+  // Links administrativos (solo para administradores)
+  const adminLinks = [
+    ...(canManageCategories ? [{
+      label: "Categorías",
+      href: "#categorias",
+      icon: (
+        <IconTags className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    }] : []),
+    ...(canManageUsers ? [{
+      label: "Usuarios",
+      href: "#usuarios",
+      icon: (
+        <IconUserCog className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    }] : [])
+  ];
+
+  // Combinar todos los links según permisos
+  const links = [...baseLinks, ...contentLinks, ...adminLinks];
   
   const [open, setOpen] = useState(false);
   return (
