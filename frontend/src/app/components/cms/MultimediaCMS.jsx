@@ -9,8 +9,12 @@ import { Pagination } from './Pagination';
 import { FileUpload } from './FileUpload';
 import { FilePicker } from './FilePicker';
 import { multimediaService, categoriasService, uploadsService } from '@/api';
+import { usePermissions } from '@/hooks/useAuth';
 
 export const MultimediaCMS = () => {
+  // Permisos del usuario
+  const permissions = usePermissions();
+  
   // Estados principales
   const [multimedia, setMultimedia] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -111,7 +115,7 @@ export const MultimediaCMS = () => {
     {
       key: 'id',
       header: 'ID',
-      render: (value) => <span className="font-mono text-sm">{value}</span>
+      render: (value) => <span className="font-mono text-sm text-gray-300">{value}</span>
     },
     {
       key: 'title',
@@ -127,13 +131,15 @@ export const MultimediaCMS = () => {
       header: 'Tipo',
       render: (value) => {
         const typeColors = {
-          infografia: 'bg-blue-100 text-blue-800',
-          video: 'bg-red-100 text-red-800',
-          arte: 'bg-purple-100 text-purple-800',
-          presentacion: 'bg-green-100 text-green-800'
+          infografia: 'bg-blue-500/20 text-blue-300',
+          video: 'bg-red-500/20 text-red-300',
+          arte: 'bg-purple-500/20 text-purple-300',
+          presentacion: 'bg-green-500/20 text-green-300',
+          image: 'bg-purple-500/20 text-purple-300',
+          audio: 'bg-orange-500/20 text-orange-300'
         };
         return (
-          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${typeColors[value] || 'bg-gray-100 text-gray-800'}`}>
+          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${typeColors[value] || 'bg-gray-500/20 text-gray-300'}`}>
             {value === 'infografia' ? 'Infografía' : value === 'presentacion' ? 'Presentación' : value}
           </span>
         );
@@ -142,12 +148,20 @@ export const MultimediaCMS = () => {
     {
       key: 'size',
       header: 'Tamaño',
-      render: (value) => value || '-'
+      render: (value) => (
+        <span className="text-gray-300">
+          {value || '-'}
+        </span>
+      )
     },
     {
       key: 'format',
       header: 'Formato',
-      render: (value) => value || '-'
+      render: (value) => (
+        <span className="text-gray-300">
+          {value || '-'}
+        </span>
+      )
     },
     {
       key: 'downloadurl',
@@ -335,6 +349,18 @@ export const MultimediaCMS = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Verificar permisos
+    if (modalMode === 'create' && !permissions.canCreateContent) {
+      setError('No tienes permisos para crear multimedia');
+      return;
+    }
+    
+    if (modalMode === 'edit' && !permissions.canEditContent) {
+      setError('No tienes permisos para editar multimedia');
+      return;
+    }
+    
     try {
       setLoading(true);
       
@@ -364,6 +390,12 @@ export const MultimediaCMS = () => {
   };
 
   const handleDelete = async (item) => {
+    // Verificar permisos
+    if (!permissions.canDeleteContent) {
+      setError('No tienes permisos para eliminar multimedia');
+      return;
+    }
+    
     if (window.confirm('¿Estás seguro de que quieres eliminar este archivo multimedia?')) {
       try {
         setLoading(true);
@@ -381,12 +413,20 @@ export const MultimediaCMS = () => {
 
   // Funciones de modal
   const openCreateModal = () => {
+    if (!permissions.canCreateContent) {
+      setError('No tienes permisos para crear multimedia');
+      return;
+    }
     setModalMode('create');
     resetForm();
     setShowModal(true);
   };
 
   const openEditModal = (item) => {
+    if (!permissions.canEditContent) {
+      setError('No tienes permisos para editar multimedia');
+      return;
+    }
     setModalMode('edit');
     setSelectedItem(item);
     setFormData({
@@ -443,64 +483,132 @@ export const MultimediaCMS = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de Multimedia</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Administra archivos multimedia del sistema
-          </p>
+    <div className="space-y-6 bg-gray-900 min-h-screen p-6">
+      <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700">
+        {/* Header */}
+        <div className="px-8 py-6 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Gestión de Multimedia</h1>
+              <p className="mt-1 text-sm text-gray-300">
+                Administra archivos multimedia del sistema
+                {permissions.isReader && " • Solo lectura"}
+                {permissions.isEditor && " • Editor: crear, editar, eliminar"}
+                {permissions.isAdmin && " • Administrador: acceso completo"}
+              </p>
+            </div>
+            {permissions.canCreateContent && (
+              <Button onClick={openCreateModal}>
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Nuevo Multimedia
+              </Button>
+            )}
+          </div>
         </div>
-        <Button onClick={openCreateModal}>
-          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Nuevo Multimedia
-        </Button>
-      </div>
 
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-          <button 
-            onClick={() => setError('')}
-            className="float-right text-red-500 hover:text-red-700"
-          >
-            ×
-          </button>
-        </div>
-      )}
+        <div className="p-8">
 
-      {/* Tabla */}
+          {/* Error */}
+          {error && (
+            <div className="bg-red-800 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">
+              {error}
+              <button 
+                onClick={() => setError('')}
+                className="float-right text-red-300 hover:text-red-100"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          {/* Estadísticas */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-blue-500/20">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4V2a1 1 0 011-1h4a1 1 0 011 1v2h4a1 1 0 110 2h-1v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6H3a1 1 0 110-2h4z" />
+                  </svg>
+                </div>
+                <div className="ml-5">
+                  <p className="text-sm font-medium text-gray-300">Total Archivos</p>
+                  <p className="text-2xl font-bold text-white">{totalItems}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-green-500/20">
+                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="ml-5">
+                  <p className="text-sm font-medium text-gray-300">Videos</p>
+                  <p className="text-2xl font-bold text-white">{multimedia.filter(m => m.type === 'video').length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-purple-500/20">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="ml-5">
+                  <p className="text-sm font-medium text-gray-300">Imágenes</p>
+                  <p className="text-2xl font-bold text-white">{multimedia.filter(m => m.type === 'image').length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+              <div className="flex items-center">
+                <div className="p-3 rounded-full bg-orange-500/20">
+                  <svg className="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                  </svg>
+                </div>
+                <div className="ml-5">
+                  <p className="text-sm font-medium text-gray-300">Audio</p>
+                  <p className="text-2xl font-bold text-white">{multimedia.filter(m => m.type === 'audio').length}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabla */}
       <Table
         data={multimedia}
         columns={columns}
         loading={loading}
-        onEdit={openEditModal}
-        onDelete={handleDelete}
+        onEdit={permissions.canEditContent ? openEditModal : undefined}
+        onDelete={permissions.canDeleteContent ? handleDelete : undefined}
         onView={openViewModal}
         emptyMessage="No hay archivos multimedia disponibles"
       />
 
-      {/* Paginación */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-        onPageChange={setCurrentPage}
-      />
+          {/* Paginación */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      </div>
 
       {/* Modal */}
       <Modal
         isOpen={showModal}
         onClose={closeModal}
         title={
-          modalMode === 'create' ? 'Nuevo Multimedia' :
-          modalMode === 'edit' ? 'Editar Multimedia' :
-          'Ver Multimedia'
+          modalMode === 'create' ? '📁 Nuevo Multimedia' :
+          modalMode === 'edit' ? '✏️ Editar Multimedia' :
+          '👁️ Ver Multimedia'
         }
         size={modalMode === 'view' ? "xl" : "lg"}
         onConfirm={modalMode !== 'view' ? handleSubmit : undefined}

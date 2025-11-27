@@ -15,7 +15,9 @@ import {
   IconDashboard,
   IconTrendingUp,
   IconUsersGroup,
-  IconUserCog
+  IconUserCog,
+  IconFiles,
+  IconFileDescription
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { cn } from "@/app/lib/utils";
@@ -102,6 +104,13 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
       href: "#guias-electorales",
       icon: (
         <IconBook className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    },
+    {
+      label: "Documentos Electorales",
+      href: "#documentos-electorales",
+      icon: (
+        <IconFileDescription className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
     {

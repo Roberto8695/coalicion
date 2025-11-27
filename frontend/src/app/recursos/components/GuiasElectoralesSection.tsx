@@ -3,148 +3,143 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconDownload, IconEye, IconFileText, IconCalendar } from "@tabler/icons-react";
-import { guiasElectoralesService } from "@/api";
+import { documentosElectoralesService } from "@/api";
 
-interface GuiaElectoral {
+interface DocumentoElectoral {
   id: number;
   title: string;
   description: string;
-  type: "PDF" | "DOC" | "XLSX";
-  size?: string;
-  downloadUrl?: string;
+  type: "PDF" | "DOC" | "XLSX" | "PPTX";
+  fileSize?: string;
+  fileUrl: string;
   previewUrl?: string;
-  date: string;
-  category: "manual" | "procedimiento" | "normativa" | "capacitacion";
-  fileSize?: number;
-  fileFormat?: string;
+  publishDate: string;
+  category: "Manual" | "Procedimiento" | "Normativa" | "Capacitación" | "Informe";
+  status: string;
+  tags?: string;
+  authorName?: string;
+  version?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
-const guiasElectorales: GuiaElectoral[] = [
-  {
-    id: 1,
-    title: "Manual de Verificación de Hechos Electorales",
-    description: "Guía completa para la verificación de información electoral y detección de desinformación.",
-    type: "PDF",
-    size: "2.3 MB",
-    downloadUrl: "/docs/manual-verificacion.pdf",
-    date: "2024-03-15",
-    category: "manual"
-  },
-  {
-    id: 2,
-    title: "Procedimientos de Monitoreo Electoral",
-    description: "Protocolos y metodologías para el monitoreo efectivo de procesos electorales.",
-    type: "PDF",
-    size: "1.8 MB",
-    downloadUrl: "/docs/procedimientos-monitoreo.pdf",
-    date: "2024-02-28",
-    category: "procedimiento"
-  },
-  {
-    id: 3,
-    title: "Marco Normativo Electoral Boliviano",
-    description: "Compendio de leyes y reglamentos que rigen los procesos electorales en Bolivia.",
-    type: "PDF",
-    size: "4.1 MB",
-    downloadUrl: "/docs/marco-normativo.pdf",
-    date: "2024-01-20",
-    category: "normativa"
-  },
-  {
-    id: 4,
-    title: "Guía de Capacitación para Observadores",
-    description: "Material de formación para observadores electorales y verificadores de información.",
-    type: "PDF",
-    size: "3.2 MB",
-    downloadUrl: "/docs/capacitacion-observadores.pdf",
-    date: "2024-03-01",
-    category: "capacitacion"
-  }
-];
-
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case "manual": return "from-blue-600 to-blue-700";
-    case "procedimiento": return "from-green-600 to-green-700";
-    case "normativa": return "from-purple-600 to-purple-700";
-    case "capacitacion": return "from-orange-600 to-orange-700";
+    case "Manual": return "from-blue-600 to-blue-700";
+    case "Procedimiento": return "from-green-600 to-green-700";
+    case "Normativa": return "from-purple-600 to-purple-700";
+    case "Capacitación": return "from-orange-600 to-orange-700";
+    case "Informe": return "from-red-600 to-red-700";
     default: return "from-gray-600 to-gray-700";
   }
 };
 
 const getCategoryLabel = (category: string) => {
-  switch (category) {
-    case "manual": return "Manual";
-    case "procedimiento": return "Procedimiento";
-    case "normativa": return "Normativa";
-    case "capacitacion": return "Capacitación";
-    default: return "Documento";
-  }
+  return category || "Documento";
 };
 
 export function GuiasElectoralesSection() {
-  const [guias, setGuias] = useState<GuiaElectoral[]>(guiasElectorales);
+  const [documentos, setDocumentos] = useState<DocumentoElectoral[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar guías desde API local
+  // Cargar documentos desde API local
   useEffect(() => {
-    async function fetchGuias() {
+    async function fetchDocumentos() {
       try {
         setLoading(true);
-        const response = await guiasElectoralesService.getAll();
-        const data = response.data;
+        const response = await documentosElectoralesService.getPublished();
         
-        /* eslint-disable @typescript-eslint/no-explicit-any */
-        const mapped: GuiaElectoral[] = data.map((item: any) => ({
-          id: item.id,
-          title: item.title || 'Guía sin título',
-          description: item.description || '',
-          type: (item.fileFormat?.toUpperCase() as "PDF" | "DOC" | "XLSX") || "PDF",
-          size: item.fileSize ? `${(item.fileSize / 1024 / 1024).toFixed(1)} MB` : "N/A",
-          downloadUrl: item.downloadUrl,
-          previewUrl: item.previewUrl,
-          date: item.date || item.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
-          category: (item.category as "manual" | "procedimiento" | "normativa" | "capacitacion") || "manual",
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt
-        }));
-        /* eslint-enable @typescript-eslint/no-explicit-any */
-        
-        if (mapped.length > 0) {
-          setGuias(mapped);
+        if (response.success && response.data) {
+          setDocumentos(response.data);
         }
         setError(null);
       } catch (err) {
-        console.error('Error loading guías electorales:', err);
-        setError('Error al cargar las guías electorales');
+        console.error('Error loading documentos electorales:', err);
+        setError('Error al cargar los documentos electorales');
       } finally {
         setLoading(false);
       }
     }
 
-    fetchGuias();
+    fetchDocumentos();
   }, []);
 
   // Helper function to handle file download
-  const handleDownload = (guia: GuiaElectoral) => {
-    if (!guia.downloadUrl) {
+  const handleDownload = async (documento: DocumentoElectoral) => {
+    if (!documento.fileUrl) {
       alert('No hay archivo disponible para descargar');
       return;
     }
 
     try {
-      const link = document.createElement('a');
-      link.href = guia.downloadUrl;
-      link.download = `${guia.title.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase()}.${guia.type.toLowerCase()}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Opción 1: Usar la ruta de descarga del backend si tenemos ID
+      if (documento.id) {
+        const downloadUrl = `/api/documentos-electorales/download/${documento.id}`;
+        
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${documento.title.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase()}.${documento.type.toLowerCase()}`;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        return;
+      }
+      
+      // Opción 2: Intentar descarga directa con fetch para forzar descarga
+      const response = await fetch(documento.fileUrl);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${documento.title.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase()}.${documento.type.toLowerCase()}`;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Limpiar el objeto URL
+        window.URL.revokeObjectURL(url);
+      } else {
+        // Si falla el fetch, usar el método tradicional
+        throw new Error('No se puede acceder al archivo');
+      }
     } catch (error) {
-      console.error('Error downloading file:', error);
-      alert('Error al descargar el archivo');
+      console.log('Descarga directa falló, intentando método tradicional...', error);
+      
+      // Método alternativo: usar link directo con download attribute
+      try {
+        const link = document.createElement('a');
+        link.href = documento.fileUrl;
+        link.download = `${documento.title.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase()}.${documento.type.toLowerCase()}`;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        
+        // Agregar evento para manejar la descarga
+        link.addEventListener('click', (e) => {
+          // Intentar forzar descarga con download attribute
+          if (!link.download) {
+            e.preventDefault();
+            window.open(documento.fileUrl, '_blank', 'noopener,noreferrer');
+          }
+        });
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (linkError) {
+        console.error('Error en descarga:', linkError);
+        // Como último recurso, notificar al usuario
+        alert('No se pudo descargar automáticamente. El archivo se abrirá en una nueva pestaña.');
+        window.open(documento.fileUrl, '_blank', 'noopener,noreferrer');
+      }
     }
   };
 
@@ -234,55 +229,64 @@ export function GuiasElectoralesSection() {
 
         {/* Guides Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
-          {guias.map((guia, index) => (
+          {documentos.map((documento, index) => (
             <motion.div
-              key={guia.id}
+              key={documento.id}
               className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group"
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
             >
-              {/* Header with category and type */}
+              {/* Header with category and file info */}
               <div className="flex items-center justify-between mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getCategoryColor(guia.category)}`}>
-                  {getCategoryLabel(guia.category)}
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getCategoryColor(documento.category)}`}>
+                  {getCategoryLabel(documento.category)}
                 </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {guia.type}
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="bg-gray-100 px-2 py-1 rounded uppercase font-medium">
+                    {documento.type}
                   </span>
-                  <span className="text-xs text-gray-500">
-                    {guia.size}
-                  </span>
+                  {documento.fileSize && (
+                    <span>
+                      {documento.fileSize}
+                    </span>
+                  )}
                 </div>
               </div>
 
               {/* Content */}
               <div className="mb-6">
-                <h3 className="text-xl font-montserrat font-bold text-[#222426] mb-3 group-hover:text-[#CBA135] transition-colors">
-                  {guia.title}
+                <h3 className="text-xl font-montserrat font-bold text-[#222426] mb-3 group-hover:text-[#CBA135] transition-colors leading-tight">
+                  {documento.title}
                 </h3>
-                <p className="text-gray-600 font-opensans leading-relaxed mb-6">
-                  {guia.description}
+                <p className="text-gray-600 font-opensans leading-relaxed mb-4 text-sm">
+                  {documento.description}
                 </p>
                 
-                {/* Date */}
-                <div className="flex items-center text-sm text-gray-500 mb-4">
-                  <IconCalendar className="h-4 w-4 mr-2" />
-                  {new Date(guia.date).toLocaleDateString('es-ES', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}
+                {/* Date and author info */}
+                <div className="space-y-2 text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <IconCalendar className="h-4 w-4 mr-2" />
+                    {new Date(documento.publishDate).toLocaleDateString('es-ES', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </div>
+                  {documento.authorName && (
+                    <div className="text-xs text-gray-400">
+                      Organiza: {documento.authorName}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Actions */}
               <div className="flex gap-3">
                 <motion.button
-                  onClick={() => handleDownload(guia)}
-                  className="flex-1 bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:from-[#B8941F] hover:to-[#CBA135] transition-all duration-300"
+                  onClick={() => handleDownload(documento)}
+                  className="flex-1 bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 hover:from-[#B8941F] hover:to-[#CBA135] transition-all duration-300 text-sm"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -291,8 +295,8 @@ export function GuiasElectoralesSection() {
                 </motion.button>
                 
                 <motion.button
-                  onClick={() => handlePreview(guia.previewUrl || guia.downloadUrl, guia.title)}
-                  className="px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold flex items-center justify-center gap-2 hover:border-[#CBA135] hover:text-[#CBA135] transition-all duration-300"
+                  onClick={() => handlePreview(documento.previewUrl || documento.fileUrl, documento.title)}
+                  className="px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold flex items-center justify-center gap-2 hover:border-[#CBA135] hover:text-[#CBA135] transition-all duration-300 text-sm"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

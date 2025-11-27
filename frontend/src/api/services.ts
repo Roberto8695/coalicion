@@ -103,6 +103,24 @@ export interface GuiaElectoral {
   status?: 'published' | 'draft' | 'archived';
 }
 
+export interface DocumentoElectoral {
+  id?: number;
+  title: string;
+  description?: string;
+  type: 'PDF' | 'DOC' | 'XLSX' | 'PPTX';
+  category: 'manual' | 'procedimiento' | 'normativa' | 'capacitacion' | 'informe';
+  fileUrl: string;
+  previewUrl?: string;
+  fileSize?: number;
+  publishDate?: string;
+  status: 'borrador' | 'revision' | 'publicado' | 'archivado';
+  tags?: string;
+  authorName?: string;
+  version?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Verificador {
   id?: number;
   name: string;
@@ -211,6 +229,28 @@ export class GuiasElectoralesService extends BaseService<GuiaElectoral> {
 
   async getByAudience(audience: string, params?: Record<string, unknown>) {
     return await api.get(`${this.endpoint}/audience/${audience}`, { params });
+  }
+}
+
+export class DocumentosElectoralesService extends BaseService<DocumentoElectoral> {
+  constructor() {
+    super('documentos-electorales');
+  }
+
+  async getByCategory(category: string, params?: Record<string, unknown>) {
+    return await api.get(`${this.endpoint}/category/${category}`, { params });
+  }
+
+  async getByType(type: string, params?: Record<string, unknown>) {
+    return await api.get(`${this.endpoint}/type/${type}`, { params });
+  }
+
+  async getByStatus(status: string, params?: Record<string, unknown>) {
+    return await api.get(`${this.endpoint}/status/${status}`, { params });
+  }
+
+  async getPublished(params?: Record<string, unknown>) {
+    return await api.get(`${this.endpoint}/published`, { params });
   }
 }
 
@@ -357,6 +397,7 @@ export const noticiasService = new NoticiasService();
 export const multimediaService = new MultimediaService();
 export const eventosService = new EventosService();
 export const guiasElectoralesService = new GuiasElectoralesService();
+export const documentosElectoralesService = new DocumentosElectoralesService();
 export const verificadoresService = new VerificadoresService();
 export const uploadsService = new UploadsService();
 
