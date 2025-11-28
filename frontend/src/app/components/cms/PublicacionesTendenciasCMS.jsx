@@ -304,7 +304,7 @@ export const PublicacionesTendenciasCMS = () => {
   };
 
   return (
-    <div className="space-y-6 bg-gray-900 min-h-screen p-6">
+    <div className="space-y-6 bg-gray-800 h-screen p-6">
       <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700">
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg">
@@ -341,53 +341,7 @@ export const PublicacionesTendenciasCMS = () => {
           )}
 
           {/* Estadísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-blue-500/20">
-                  <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-400">Total Publicaciones</p>
-                  <p className="text-2xl font-bold text-white">{totalItems}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-green-500/20">
-                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-400">Con Imágenes</p>
-                  <p className="text-2xl font-bold text-white">
-                    {publicaciones.filter(pub => pub.imagen).length}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-purple-500/20">
-                  <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-400">Con URLs</p>
-                  <p className="text-2xl font-bold text-white">
-                    {publicaciones.filter(pub => pub.url).length}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          
 
           {/* Tabla */}
           <Table

@@ -36,7 +36,7 @@ export const Table = ({
   return (
     <div className={`overflow-hidden shadow-2xl ring-1 ring-gray-700 md:rounded-lg bg-gray-800 ${className}`}>
       <table className="min-w-full divide-y divide-gray-700">
-        <thead className="bg-gray-900">
+        <thead className="bg-gray-800">
           <tr>
             {columns.map((column, index) => (
               <th

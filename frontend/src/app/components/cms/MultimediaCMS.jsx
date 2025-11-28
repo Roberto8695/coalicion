@@ -483,7 +483,7 @@ export const MultimediaCMS = () => {
   };
 
   return (
-    <div className="space-y-6 bg-gray-900 min-h-screen p-6">
+    <div className="space-y-6 bg-gray-800 h-screen p-6">
       <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700">
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg">
@@ -936,7 +936,7 @@ export const MultimediaCMS = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-medium text-gray-400 mb-1">Miniatura</label>
-                      <p className="text-xs text-green-400 bg-gray-900 p-2 rounded border break-all">
+                      <p className="text-xs text-green-400 bg-gray-800 p-2 rounded border break-all">
                         {formData.thumbnail === '[Se asignará automáticamente al subir]' ? 
                           'Se asignará al subir el archivo' : 
                           formData.thumbnail || formData.downloadurl
@@ -945,7 +945,7 @@ export const MultimediaCMS = () => {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-400 mb-1">Vista Previa</label>
-                      <p className="text-xs text-green-400 bg-gray-900 p-2 rounded border break-all">
+                      <p className="text-xs text-green-400 bg-gray-800 p-2 rounded border break-all">
                         {formData.previewurl === '[Se asignará automáticamente al subir]' ? 
                           'Se asignará al subir el archivo' : 
                           formData.previewurl || formData.downloadurl

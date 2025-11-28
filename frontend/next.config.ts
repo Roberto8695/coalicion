@@ -44,8 +44,27 @@ const nextConfig: NextConfig = {
   
   // Configuración experimental para manejar hydration
   experimental: {
-    suppressHydrationWarning: true,
+    // Configuraciones experimentales para reducir warnings
+    optimizePackageImports: ['@tabler/icons-react'],
+    // Suprimir warnings de hydration en desarrollo
+    ...(process.env.NODE_ENV === 'development' && {
+      forceSwcTransforms: true,
+    }),
   },
+  
+  // Configuración para suprimir warnings en desarrollo
+  ...(process.env.NODE_ENV === 'development' && {
+    logging: {
+      fetches: {
+        fullUrl: false,
+      },
+    },
+    // Suprimir warnings específicos de React
+    reactStrictMode: false,
+  }),
+  
+  // Configurar outputFileTracingRoot para evitar warnings de lockfiles
+  outputFileTracingRoot: __dirname,
 };
 
 export default nextConfig;

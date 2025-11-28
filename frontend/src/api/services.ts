@@ -1,4 +1,4 @@
-import { BaseService } from './base';
+import { BaseService, ApiResponse } from './base';
 import api from './config';
 
 // Tipos de datos
@@ -124,15 +124,17 @@ export interface DocumentoElectoral {
 export interface Verificador {
   id?: number;
   name: string;
-  email?: string;
-  organization?: string;
-  specialization?: string;
-  bio?: string;
-  imageUrl?: string;
-  socialMedia?: Record<string, string>;
-  certifications?: string[];
-  isActive?: boolean;
-  joinDate?: string;
+  description: string;
+  type: 'website' | 'bot' | 'api' | 'tool';
+  url: string;
+  logo?: string;
+  features?: string[];
+  isactive?: boolean; // Para PostgreSQL
+  isActive?: boolean; // Para compatibilidad frontend
+  createdat?: string;
+  createdAt?: string;
+  updatedat?: string;
+  updatedAt?: string;
 }
 
 // Servicios específicos
@@ -249,7 +251,7 @@ export class DocumentosElectoralesService extends BaseService<DocumentoElectoral
     return await api.get(`${this.endpoint}/status/${status}`, { params });
   }
 
-  async getPublished(params?: Record<string, unknown>) {
+  async getPublished(params?: Record<string, unknown>): Promise<ApiResponse<DocumentoElectoral[]>> {
     return await api.get(`${this.endpoint}/published`, { params });
   }
 }
@@ -259,8 +261,18 @@ export class VerificadoresService extends BaseService<Verificador> {
     super('verificadores');
   }
 
-  async getActive(params?: Record<string, unknown>) {
+  async getActive(params?: Record<string, unknown>): Promise<ApiResponse<Verificador[]>> {
     return await api.get(`${this.endpoint}/active`, { params });
+  }
+
+  async getByType(type: string, params?: Record<string, unknown>): Promise<ApiResponse<Verificador[]>> {
+    return await api.get(`${this.endpoint}/type/${type}`, { params });
+  }
+
+  async search(query: string, params?: Record<string, unknown>): Promise<ApiResponse<Verificador[]>> {
+    return await api.get(`${this.endpoint}/search`, { 
+      params: { q: query, ...params } 
+    });
   }
 }
 

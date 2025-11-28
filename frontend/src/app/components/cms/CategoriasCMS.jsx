@@ -8,7 +8,7 @@ import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { categoriasService } from '@/api';
 
-export const CategoriasCMS = () => {
+const CategoriasCMS = () => {
   // Estados principales
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -230,46 +230,56 @@ export const CategoriasCMS = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de Categorías</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Administra las categorías del sistema
-          </p>
+    <div className="h-screen bg-gray-800">
+      <div className="p-8">
+        {/* Header */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Gestión de Categorías
+              </h1>
+              <p className="text-gray-300">
+                Administra las categorías del sistema
+              </p>
+            </div>
+            <Button 
+              onClick={openCreateModal}
+              className="bg-[#CBA135] hover:bg-[#B8941F] text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Nueva Categoría
+            </Button>
+          </div>
         </div>
-        <Button onClick={openCreateModal}>
-          <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Nueva Categoría
-        </Button>
-      </div>
 
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-          <button 
-            onClick={() => setError('')}
-            className="float-right text-red-500 hover:text-red-700"
-          >
-            ×
-          </button>
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+            <button 
+              onClick={() => setError('')}
+              className="float-right text-red-500 hover:text-red-700"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Tabla */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700">
+          <Table
+            data={categorias}
+            columns={columns}
+            loading={loading}
+            onEdit={openEditModal}
+            onDelete={handleDelete}
+            onView={openViewModal}
+            emptyMessage="No hay categorías disponibles"
+          />
         </div>
-      )}
-
-      {/* Tabla */}
-      <Table
-        data={categorias}
-        columns={columns}
-        loading={loading}
-        onEdit={openEditModal}
-        onDelete={handleDelete}
-        onView={openViewModal}
-        emptyMessage="No hay categorías disponibles"
-      />
 
       {/* Paginación */}
       <Pagination
@@ -435,6 +445,9 @@ export const CategoriasCMS = () => {
           </form>
         )}
       </Modal>
+      </div>
     </div>
   );
 };
+
+export default CategoriasCMS;

@@ -130,7 +130,7 @@ export function PublicationsManager() {
         
         <button
           onClick={() => setShowForm(true)}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg 
+          className="px-6 py-3 bg-blue-600 hover:bg-[#CBA135] text-white font-semibold rounded-lg 
             transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 
             focus:ring-blue-500 focus:ring-offset-2"
         >

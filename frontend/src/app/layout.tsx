@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Quicksand, Montserrat, Open_Sans } from "next/font/g
 import "./globals.css";
 import HydrationWrapper from './components/HydrationWrapper';
 import { AuthProvider } from "@/hooks/useAuth";
+import { GlobalHydrationSuppressor } from './GlobalHydrationSuppressor';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,11 +54,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${quicksand.variable} ${montserrat.variable} ${openSans.variable} font-sans antialiased`}
         suppressHydrationWarning={true}
       >
+        <GlobalHydrationSuppressor />
         <HydrationWrapper>
           <AuthProvider>
             {children}

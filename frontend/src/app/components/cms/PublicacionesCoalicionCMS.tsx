@@ -40,15 +40,6 @@ interface FormData {
   url: string;
 }
 
-interface Stats {
-  total: number;
-  mes_actual: number;
-  mes_anterior: number;
-  recent?: number;
-  withImage?: number;
-  withUrl?: number;
-}
-
 interface Notification {
   message: string;
   type: 'success' | 'error' | 'info';
@@ -68,11 +59,6 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
   const [publicaciones, setPublicaciones] = useState<PublicacionCoalicion[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [stats, setStats] = useState<Stats>({
-    total: 0,
-    mes_actual: 0,
-    mes_anterior: 0
-  });
 
   // Estados del modal
   const [showModal, setShowModal] = useState(false);
@@ -138,49 +124,10 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
     }
   }, [searchTerm, showNotification]);
 
-  // Cargar estadísticas
-  const loadStats = useCallback(async () => {
-    try {
-      const response = await publicacionesCoalicionService.getStats();
-      
-      if (response && response.success && response.data) {
-        setStats({
-          total: response.data.total || 0,
-          mes_actual: 0, // El servicio no devuelve estos campos, usar valores por defecto
-          mes_anterior: 0,
-          recent: response.data.recent || 0,
-          withImage: response.data.withImage || 0,
-          withUrl: response.data.withUrl || 0
-        });
-      } else {
-        console.warn('Respuesta inválida de estadísticas:', response);
-        setStats({
-          total: 0,
-          mes_actual: 0,
-          mes_anterior: 0,
-          recent: 0,
-          withImage: 0,
-          withUrl: 0
-        });
-      }
-    } catch (error) {
-      console.error('Error al cargar estadísticas:', error);
-      setStats({
-        total: 0,
-        mes_actual: 0,
-        mes_anterior: 0,
-        recent: 0,
-        withImage: 0,
-        withUrl: 0
-      });
-    }
-  }, []);
-
   // Efectos
   useEffect(() => {
     loadPublicaciones();
-    loadStats();
-  }, [loadPublicaciones, loadStats]);
+  }, [loadPublicaciones]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -299,7 +246,6 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       showNotification('Publicación de coalición creada exitosamente', 'success');
       clearForm();
       loadPublicaciones(currentPage);
-      loadStats();
     } catch (error) {
       console.error('Error al crear publicación:', error);
       // Mostrar el mensaje de error específico si está disponible
@@ -338,7 +284,6 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       showNotification('Publicación de coalición actualizada exitosamente', 'success');
       clearForm();
       loadPublicaciones(currentPage);
-      loadStats();
     } catch (error) {
       console.error('Error al actualizar publicación:', error);
       showNotification('Error al actualizar la publicación de coalición', 'error');
@@ -355,7 +300,6 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       await publicacionesCoalicionService.delete(id);
       showNotification('Publicación de coalición eliminada exitosamente', 'success');
       loadPublicaciones(currentPage);
-      loadStats();
     } catch (error) {
       console.error('Error al eliminar publicación:', error);
       showNotification('Error al eliminar la publicación de coalición', 'error');
@@ -372,7 +316,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800 ${className}`}>
+    <div className={`h-screen bg-gray-800 ${className}`}>
       {/* Notificación */}
       {notification && (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg backdrop-blur-sm ${
@@ -394,73 +338,23 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
 
       <div className="p-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Publicaciones de Coalición
-          </h1>
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Gestión de Publicaciones de Coalición
+              </h1>
+              <p className="text-gray-300">
+                Administra las publicaciones específicas de la coalición
+              </p>
+            </div>
           <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
             Gestiona las publicaciones relacionadas con la coalición electoral
           </p>
         </div>
 
         {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/20">
-            <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7H5m14 14H5" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/20">
-            <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-r from-green-500 to-green-600 rounded-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Recientes</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.recent}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/20">
-            <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Con Imagen</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.withImage}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/20">
-            <div className="flex items-center">
-              <div className="p-3 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Con URL</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.withUrl}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        
 
         {/* Controles */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -481,14 +375,14 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
           {canCreateContent && (
             <button
               onClick={() => setShowModal(true)}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-medium"
+              className="px-6 py-3 bg-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-medium"
             >
               + Nueva Publicación
             </button>
           )}
         </div>
 
-        {/* Grid de publicaciones */}
+        {/* Tabla de publicaciones */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="relative">
@@ -498,102 +392,148 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
           </div>
         ) : publicaciones.length === 0 ? (
           <div className="text-center py-20">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-12 border border-white/20">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-12 border border-gray-700">
               <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14-7H5m14 14H5" />
               </svg>
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+              <h3 className="text-xl font-medium text-white mb-2">
                 No hay publicaciones de coalición
               </h3>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-gray-300">
                 Comienza creando tu primera publicación de coalición
               </p>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {publicaciones.map((publicacion) => (
-              <div
-                key={publicacion.id}
-                className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-white/20 overflow-hidden transform hover:scale-105"
-              >
-                {/* Imagen */}
-                <div className="relative h-48 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-600">
-                  {publicacion.imagen ? (
-                    <Image
-                      src={publicacion.imagen}
-                      alt={publicacion.titulo}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14-7H5m14 14H5" />
-                      </svg>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  
-                  {/* Acciones flotantes */}
-                  <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    {canEditContent && (
-                      <button
-                        onClick={() => handleEdit(publicacion)}
-                        className="p-2 bg-blue-600/90 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                    )}
-                    {canDeleteContent && (
-                      <button
-                        onClick={() => handleDelete(publicacion.id)}
-                        className="p-2 bg-red-600/90 text-white rounded-lg hover:bg-red-700 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Contenido */}
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
-                    {publicacion.titulo}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3">
-                    {publicacion.descripcion}
-                  </p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {formatDate(publicacion.fecha_publi)}
-                    </div>
-                    
-                    {publicacion.url && (
-                      <a
-                        href={publicacion.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center text-xs text-blue-600 hover:text-blue-700 font-medium"
-                      >
-                        Ver más
-                        <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-700/50">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Imagen
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Título
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Descripción
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Fecha
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      URL
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-700">
+                  {publicaciones.map((publicacion, index) => (
+                    <tr 
+                      key={publicacion.id} 
+                      className={`hover:bg-gray-700/30 transition-colors ${
+                        index % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-800/50'
+                      }`}
+                    >
+                      {/* Imagen */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center">
+                          {publicacion.imagen ? (
+                            <Image
+                              src={publicacion.imagen}
+                              alt={publicacion.titulo}
+                              width={64}
+                              height={64}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          )}
+                        </div>
+                      </td>
+                      
+                      {/* Título */}
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-white max-w-xs">
+                          <div className="truncate" title={publicacion.titulo}>
+                            {publicacion.titulo}
+                          </div>
+                        </div>
+                      </td>
+                      
+                      {/* Descripción */}
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-300 max-w-md">
+                          <div className="line-clamp-2" title={publicacion.descripcion}>
+                            {publicacion.descripcion}
+                          </div>
+                        </div>
+                      </td>
+                      
+                      {/* Fecha */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-300">
+                          {formatDate(publicacion.fecha_publi)}
+                        </div>
+                      </td>
+                      
+                      {/* URL */}
+                      <td className="px-6 py-4">
+                        {publicacion.url ? (
+                          <a
+                            href={publicacion.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-[#CBA135] hover:text-[#E5B935] font-medium flex items-center max-w-xs"
+                            title={publicacion.url}
+                          >
+                            <span className="truncate">Ver enlace</span>
+                            <svg className="w-3 h-3 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </a>
+                        ) : (
+                          <span className="text-sm text-gray-500">-</span>
+                        )}
+                      </td>
+                      
+                      {/* Acciones */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center space-x-2">
+                          {canEditContent && (
+                            <button
+                              onClick={() => handleEdit(publicacion)}
+                              className="p-2 bg-[#CBA135] hover:bg-[#E5B935] text-white rounded-lg transition-colors"
+                              title="Editar publicación"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                          )}
+                          {canDeleteContent && (
+                            <button
+                              onClick={() => handleDelete(publicacion.id)}
+                              className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                              title="Eliminar publicación"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
@@ -603,7 +543,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
             <button
               onClick={() => loadPublicaciones(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-gray-300"
             >
               Anterior
             </button>
@@ -622,8 +562,8 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                       onClick={() => loadPublicaciones(page)}
                       className={`px-3 py-2 rounded-lg transition-colors ${
                         currentPage === page
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          ? 'bg-[#CBA135] text-white'
+                          : 'bg-gray-800/80 backdrop-blur-sm border border-gray-700 hover:bg-gray-700 text-gray-300'
                       }`}
                     >
                       {page}
@@ -640,7 +580,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
             <button
               onClick={() => loadPublicaciones(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-gray-800 transition-colors"
+              className="px-4 py-2 bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-gray-300"
             >
               Siguiente
             </button>
@@ -650,18 +590,18 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
 
       {/* Modal de formulario */}
       {showModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="relative bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
             <form onSubmit={editingId ? handleUpdate : handleCreate}>
-              <div className="bg-white dark:bg-gray-800 px-6 pt-6">
+              <div className="bg-gray-800 px-6 pt-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-2xl font-bold text-white">
                     {editingId ? 'Editar Publicación' : 'Nueva Publicación'}
                   </h3>
                   <button
                     type="button"
                     onClick={clearForm}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="text-gray-400 hover:text-gray-300"
                   >
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -671,7 +611,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Título *
                     </label>
                     <input
@@ -680,13 +620,13 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                       required
                       value={formData.titulo}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-[#CBA135] focus:border-transparent"
                       placeholder="Ingresa el título de la publicación"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Descripción *
                     </label>
                     <textarea
@@ -695,14 +635,14 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                       rows={4}
                       value={formData.descripcion}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-[#CBA135] focus:border-transparent"
                       placeholder="Describe la publicación de coalición"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Fecha de Publicación *
                       </label>
                       <input
@@ -711,12 +651,12 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                         required
                         value={formData.fecha_publi}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-[#CBA135] focus:border-transparent"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         URL (opcional)
                       </label>
                       <input
@@ -724,21 +664,21 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                         name="url"
                         value={formData.url}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 rounded-xl border border-gray-600 bg-gray-700 text-white focus:ring-2 focus:ring-[#CBA135] focus:border-transparent"
                         placeholder="https://ejemplo.com"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
                       Imagen (opcional)
                     </label>
                     <div 
                       className={`relative border-2 border-dashed rounded-xl p-6 transition-colors duration-200 ${
                         isDragOver 
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
-                          : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'
+                          ? 'border-[#CBA135] bg-[#CBA135]/10' 
+                          : 'border-gray-600 hover:border-[#CBA135]'
                       }`}
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
@@ -782,7 +722,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                         <div className="text-center">
                           <svg 
                             className={`mx-auto h-12 w-12 transition-colors duration-200 ${
-                              isDragOver ? 'text-blue-500' : 'text-gray-400'
+                              isDragOver ? 'text-[#CBA135]' : 'text-gray-400'
                             }`} 
                             fill="none" 
                             stroke="currentColor" 
@@ -792,14 +732,14 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                           </svg>
                           <div className="mt-4">
                             <p className={`text-sm font-medium transition-colors duration-200 ${
-                              isDragOver ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'
+                              isDragOver ? 'text-[#CBA135]' : 'text-white'
                             }`}>
                               {isDragOver ? 'Suelta la imagen aquí' : 'Arrastra una imagen aquí'}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            <p className="text-xs text-gray-300 mt-1">
                               o haz clic para seleccionar
                             </p>
-                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                            <p className="text-xs text-gray-400 mt-2">
                               PNG, JPG hasta 10MB
                             </p>
                           </div>
@@ -810,17 +750,17 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0 justify-end rounded-b-xl">
+              <div className="bg-gray-700 px-6 py-4 flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0 justify-end rounded-b-xl">
                 <button
                   type="button"
                   onClick={clearForm}
-                  className="w-full sm:w-auto px-6 py-3 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-xl shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="w-full sm:w-auto px-6 py-3 bg-gray-600 border border-gray-500 rounded-xl shadow-sm text-sm font-medium text-gray-300 hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#CBA135]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#CBA135] hover:bg-[#E5B935] text-white rounded-xl shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#CBA135]"
                 >
                   {editingId ? 'Actualizar' : 'Crear'} Publicación
                 </button>
@@ -829,6 +769,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

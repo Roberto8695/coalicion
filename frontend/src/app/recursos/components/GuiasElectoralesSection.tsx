@@ -3,25 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconDownload, IconEye, IconFileText, IconCalendar } from "@tabler/icons-react";
-import { documentosElectoralesService } from "@/api";
+import { documentosElectoralesService, type DocumentoElectoral } from "@/api";
 
-interface DocumentoElectoral {
-  id: number;
-  title: string;
-  description: string;
-  type: "PDF" | "DOC" | "XLSX" | "PPTX";
-  fileSize?: string;
-  fileUrl: string;
-  previewUrl?: string;
-  publishDate: string;
-  category: "Manual" | "Procedimiento" | "Normativa" | "Capacitación" | "Informe";
-  status: string;
-  tags?: string;
-  authorName?: string;
-  version?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+// Interfaz local eliminada - usamos la del servicio
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -267,11 +251,11 @@ export function GuiasElectoralesSection() {
                 <div className="space-y-2 text-sm text-gray-500">
                   <div className="flex items-center">
                     <IconCalendar className="h-4 w-4 mr-2" />
-                    {new Date(documento.publishDate).toLocaleDateString('es-ES', { 
+                    {documento.publishDate ? new Date(documento.publishDate).toLocaleDateString('es-ES', { 
                       year: 'numeric', 
                       month: 'long', 
                       day: 'numeric' 
-                    })}
+                    }) : 'Fecha no disponible'}
                   </div>
                   {documento.authorName && (
                     <div className="text-xs text-gray-400">

@@ -1,22 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconExternalLink, IconShield } from "@tabler/icons-react";
 import Image from "next/image";
+import { verificadoresService } from "@/api/services";
+import type { Verificador } from "@/api/services";
 
-interface VerificadorTool {
-  id: number;
-  name: string;
-  description: string;
-  type: "website" | "bot" | "api" | "tool";
-  url: string;
-  logo?: string;
-  features: string[];
-  isActive: boolean;
-}
-
-const verificadores: VerificadorTool[] = [
+const staticVerificadores: Verificador[] = [
   {
     id: 1,
     name: "Chequea Bolivia",
@@ -102,6 +93,25 @@ const getTypeLabel = (type: string) => {
 };
 
 export function VerificacionHechosSection() {
+  const [verificadores, setVerificadores] = useState<Verificador[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadVerificadores = async () => {
+      try {
+        const response = await verificadoresService.getActive();
+        setVerificadores(response.data || []);
+      } catch (error) {
+        console.error('Error cargando verificadores:', error);
+        // Fallback a datos estáticos en caso de error
+        setVerificadores(staticVerificadores);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadVerificadores();
+  }, []);
   const handleVisit = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -160,8 +170,17 @@ export function VerificacionHechosSection() {
           </p>
         </motion.div>
 
-        {/* Tools Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CBA135] mx-auto mb-4"></div>
+              <p className="text-gray-600">Cargando verificadores...</p>
+            </div>
+          </div>
+        ) : (
+          /* Tools Grid */
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {verificadores.map((verificador, index) => {
             return (
               <motion.div
@@ -191,7 +210,7 @@ export function VerificacionHechosSection() {
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getTypeColor(verificador.type)}`}>
                       {getTypeLabel(verificador.type)}
                     </span>
-                    {verificador.isActive && (
+                    {(verificador.isActive ?? verificador.isactive) && (
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     )}
                   </div>
@@ -207,14 +226,16 @@ export function VerificacionHechosSection() {
                   </p>
                   
                   {/* Features */}
-                  <div className="space-y-2">
-                    {verificador.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center text-sm text-gray-500">
-                        <div className="w-1.5 h-1.5 bg-[#CBA135] rounded-full mr-3"></div>
-                        {feature}
-                      </div>
-                    ))}
-                  </div>
+                  {verificador.features && verificador.features.length > 0 && (
+                    <div className="space-y-2">
+                      {verificador.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center text-sm text-gray-500">
+                          <div className="w-1.5 h-1.5 bg-[#CBA135] rounded-full mr-3"></div>
+                          {feature}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Action Button */}
@@ -232,6 +253,7 @@ export function VerificacionHechosSection() {
             );
           })}
         </div>
+        )}
 
         {/* Bottom Info */}
         <motion.div

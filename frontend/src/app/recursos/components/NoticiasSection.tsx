@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconCalendar, IconMapPin, IconExternalLink, IconUsers, IconMicrophone, IconClock } from "@tabler/icons-react";
-import { noticiasService, Noticia } from "@/api";
+import { noticiasService, type Noticia } from "@/api";
 
 interface NoticiaItem {
   id: number;
@@ -38,25 +38,34 @@ export function NoticiasSection() {
         setLoading(true);
         const response = await noticiasService.getAll();
         
+        // Función para mapear estados de Noticia a NoticiaItem
+        const mapStatus = (status?: string): "upcoming" | "ongoing" | "completed" => {
+          if (!status) return "upcoming";
+          if (status === "published" || status === "upcoming") return "upcoming";
+          if (status === "draft") return "ongoing";
+          if (status === "archived") return "completed";
+          return "upcoming";
+        };
+        
         // Mapear desde Noticia a NoticiaItem (los datos ya vienen en el formato correcto)
-        const mappedNoticias: NoticiaItem[] = response.data.map((noticia: any) => ({
+        const mappedNoticias: NoticiaItem[] = response.data.map((noticia: Noticia) => ({
           id: noticia.id || 0,
           title: noticia.title,
-          description: noticia.description || '',
-          type: noticia.type || 'comunicado',
-          date: noticia.date || new Date().toISOString(),
-          location: noticia.location,
-          organizer: noticia.organizer || 'Sin autor',
-          participants: noticia.participants,
-          url: noticia.url,
-          status: noticia.status || 'upcoming',
+          description: noticia.excerpt || noticia.content || '',
+          type: 'comunicado' as const, // Las noticias son comunicados
+          date: noticia.publishDate || new Date().toISOString(),
+          location: undefined,
+          organizer: noticia.author || 'Sin autor',
+          participants: undefined,
+          url: undefined,
+          status: mapStatus(noticia.status),
           featured: noticia.featured || false,
-          image: noticia.image,
+          image: noticia.imageUrl,
           slug: noticia.slug,
-          duration: noticia.duration,
-          registrationurl: noticia.registrationurl,
-          createdAt: noticia.date,
-          updatedAt: noticia.date
+          duration: undefined,
+          registrationurl: undefined,
+          createdAt: noticia.publishDate,
+          updatedAt: noticia.publishDate
         }));
         
         setNoticias(mappedNoticias);

@@ -417,7 +417,7 @@ export const EventosCMS = () => {
         </div>
         <Button
           onClick={handleCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-blue-600 hover:bg-[#CBA135] text-white"
         >
           + Nuevo Evento
         </Button>
@@ -705,7 +705,7 @@ export const EventosCMS = () => {
               <Button
                 type="submit"
                 loading={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-[#CBA135] text-white"
               >
                 {modalMode === 'create' ? 'Crear Evento' : 'Actualizar Evento'}
               </Button>

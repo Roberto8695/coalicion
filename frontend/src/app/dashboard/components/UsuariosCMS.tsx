@@ -249,9 +249,9 @@ export function UsuariosCMS() {
       case 'editor':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'lector':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
   };
 
@@ -365,7 +365,7 @@ export function UsuariosCMS() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="px-6 py-2 bg-blue-600 hover:bg-[#CBA135] disabled:bg-blue-400 text-white rounded-lg transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 >
                   {isLoading ? 'Guardando...' : editingUsuario ? 'Actualizar Usuario' : 'Crear Usuario'}
                 </button>
@@ -392,7 +392,7 @@ export function UsuariosCMS() {
         
         <button
           onClick={() => setShowForm(true)}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg 
+          className="px-6 py-3 bg-blue-600 hover:bg-[#CBA135] text-white font-semibold rounded-lg 
             transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 
             focus:ring-blue-500 focus:ring-offset-2"
         >
@@ -460,7 +460,7 @@ export function UsuariosCMS() {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-900">
+            <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800">
               <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

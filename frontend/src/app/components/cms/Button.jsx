@@ -23,7 +23,7 @@ export const Button = ({
       case 'link':
         return 'text-blue-400 underline-offset-4 hover:underline focus:ring-blue-400 hover:text-blue-300';
       default:
-        return 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-400 border border-blue-600 hover:border-blue-700';
+        return 'bg-blue-600 text-white hover:bg-[#CBA135] focus:ring-blue-400 border border-blue-600 hover:border-blue-700';
     }
   };
 

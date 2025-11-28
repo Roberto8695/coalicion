@@ -396,7 +396,7 @@ export const DocumentosElectoralesCMS = () => {
   };
 
   return (
-    <div className="space-y-6 bg-gray-900 min-h-screen p-6">
+    <div className="space-y-6 bg-gray-800 h-screen p-6">
       <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700">
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg">
@@ -434,45 +434,7 @@ export const DocumentosElectoralesCMS = () => {
           )}
 
           {/* Estadísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-blue-500/20">
-                  <IconFileDescription className="w-6 h-6 text-blue-400" />
-                </div>
-                <div className="ml-5">
-                  <p className="text-sm font-medium text-gray-300">Total Documentos</p>
-                  <p className="text-2xl font-bold text-white">{totalItems}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-green-500/20">
-                  <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div className="ml-5">
-                  <p className="text-sm font-medium text-gray-300">Publicados</p>
-                  <p className="text-2xl font-bold text-white">{documentos.filter(d => d.publicado).length}</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-gray-700 rounded-lg p-6 border border-gray-600">
-              <div className="flex items-center">
-                <div className="p-3 rounded-full bg-yellow-500/20">
-                  <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div className="ml-5">
-                  <p className="text-sm font-medium text-gray-300">Borradores</p>
-                  <p className="text-2xl font-bold text-white">{documentos.filter(d => !d.publicado).length}</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          
 
           {/* Tabla */}
       <Table

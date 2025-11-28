@@ -10,13 +10,13 @@ import {
   IconNews,
   IconPhoto,
   IconCalendar,
-  IconBook,
+ 
   IconUsers,
   IconDashboard,
   IconTrendingUp,
   IconUsersGroup,
   IconUserCog,
-  IconFiles,
+
   IconFileDescription
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
@@ -99,13 +99,7 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
         <IconCalendar className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
-    {
-      label: "Guías Electorales",
-      href: "#guias-electorales",
-      icon: (
-        <IconBook className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
-      ),
-    },
+    
     {
       label: "Documentos Electorales",
       href: "#documentos-electorales",

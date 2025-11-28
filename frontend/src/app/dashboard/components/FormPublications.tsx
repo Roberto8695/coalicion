@@ -495,7 +495,7 @@ export function FormPublications({
             className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all duration-200 
               ${isSubmitting
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
+                : "bg-blue-600 hover:bg-[#CBA135] active:bg-blue-800"
               } 
               text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
           >

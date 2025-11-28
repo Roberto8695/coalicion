@@ -9,7 +9,7 @@ import { Pagination } from './Pagination';
 import { noticiasService, categoriasService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 
-export const NoticiasCMS = () => {
+const NoticiasCMS = () => {
   // Permisos del usuario
   const permissions = usePermissions();
   
@@ -360,257 +360,270 @@ export const NoticiasCMS = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de Noticias</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Administra las noticias del sistema
-            {permissions.isReader && " (Solo lectura)"}
-            {permissions.isEditor && " (Editor: crear, editar, eliminar)"}
-            {permissions.isAdmin && " (Administrador: acceso completo)"}
-          </p>
-        </div>
-        {permissions.canCreateContent && (
-          <Button onClick={openCreateModal}>
-            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Nueva Noticia
-          </Button>
-        )}
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
-          <button 
-            onClick={() => setError('')}
-            className="float-right text-red-500 hover:text-red-700"
-          >
-            ×
-          </button>
-        </div>
-      )}
-
-      {/* Tabla */}
-      <Table
-        data={noticias}
-        columns={columns}
-        loading={loading}
-        emptyMessage="No hay noticias disponibles"
-        onView={openViewModal}
-        onEdit={permissions.canEditContent ? openEditModal : undefined}
-        onDelete={permissions.canDeleteContent ? handleDelete : undefined}
-      />
-
-      {/* Paginación */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        itemsPerPage={itemsPerPage}
-        onPageChange={setCurrentPage}
-      />
-
-      {/* Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={closeModal}
-        title={
-          modalMode === 'create' ? 'Nueva Noticia' :
-          modalMode === 'edit' ? 'Editar Noticia' :
-          'Ver Noticia'
-        }
-        size="lg"
-        onConfirm={modalMode !== 'view' ? handleSubmit : undefined}
-        onCancel={closeModal}
-        confirmText={modalMode === 'create' ? 'Crear' : 'Actualizar'}
-        isLoading={loading}
-      >
-        {modalMode === 'view' ? (
-          // Vista de solo lectura
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-400">Título</label>
-                <p className="mt-1 text-sm text-gray-300">{selectedItem?.title}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400">Tipo</label>
-                <p className="mt-1 text-sm text-gray-300">{selectedItem?.type || '-'}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400">Organizador</label>
-                <p className="mt-1 text-sm text-gray-300">{selectedItem?.organizer || '-'}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400">Fecha</label>
-                <p className="mt-1 text-sm text-gray-300">
-                  {selectedItem?.date ? new Date(selectedItem.date).toLocaleDateString() : '-'}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400">Ubicación</label>
-                <p className="mt-1 text-sm text-gray-300">{selectedItem?.location || '-'}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400">Estado</label>
-                <p className="mt-1 text-sm text-gray-300">{selectedItem?.status || 'draft'}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400">Duración</label>
-                <p className="mt-1 text-sm text-gray-300">{selectedItem?.duration || '-'}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-400">Participantes</label>
-                <p className="mt-1 text-sm text-gray-300">{selectedItem?.participants || '-'}</p>
-              </div>
-            </div>
+    <div className="h-screen bg-gray-800">
+      <div className="p-8">
+        {/* Header */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <label className="block text-sm font-bold text-gray-400">Descripción</label>
-              <p className="mt-1 text-sm text-gray-300">{selectedItem?.description || '-'}</p>
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-400">URL de Registro</label>
-              <p className="mt-1 text-sm text-gray-300">
-                {selectedItem?.registrationurl ? (
-                  <a href={selectedItem.registrationurl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
-                    {selectedItem.registrationurl}
-                  </a>
-                ) : '-'}
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Gestión de Noticias
+              </h1>
+              <p className="text-gray-300">
+                Administra las noticias y comunicados de la plataforma
+                {permissions.isReader && " (Solo lectura)"}
+                {permissions.isEditor && " (Editor: crear, editar, eliminar)"}
+                {permissions.isAdmin && " (Administrador: acceso completo)"}
               </p>
             </div>
+            {permissions.canCreateContent && (
+              <Button 
+                onClick={openCreateModal}
+                className="bg-[#CBA135] hover:bg-[#B8941F] text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Nueva Noticia
+              </Button>
+            )}
           </div>
-        ) : (
-          // Formulario
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Título"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-                placeholder="Título del evento/actividad"
-              />
-              <Input
-                label="Tipo"
-                name="type"
-                type="select"
-                value={formData.type}
-                onChange={handleInputChange}
-                required
-                placeholder="Selecciona un tipo"
-                options={typeOptions}
-              />
-              <Input
-                label="Organizador"
-                name="organizer"
-                value={formData.organizer}
-                onChange={handleInputChange}
-                placeholder="Nombre del organizador"
-              />
-              <Input
-                label="Fecha"
-                name="date"
-                type="date"
-                value={formData.date}
-                onChange={handleInputChange}
-              />
-              <Input
-                label="Ubicación"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                placeholder="Lugar del evento"
-              />
-              <Input
-                label="Duración"
-                name="duration"
-                value={formData.duration}
-                onChange={handleInputChange}
-                placeholder="Ej: 2 horas, 1 día"
-              />
-              <Input
-                label="Estado"
-                name="status"
-                type="select"
-                value={formData.status}
-                onChange={handleInputChange}
-                options={statusOptions}
-              />
-              <Input
-                label="Participantes"
-                name="participants"
-                type="number"
-                value={formData.participants}
-                onChange={handleInputChange}
-                placeholder="Número de participantes"
-                min="0"
-              />
-              <Input
-                label="Slug"
-                name="slug"
-                value={formData.slug}
-                onChange={handleInputChange}
-                placeholder="url-amigable"
-                helperText="URL amigable para el evento"
-              />
-            </div>
+        </div>
 
-            <Input
-              label="Descripción"
-              name="description"
-              type="textarea"
-              value={formData.description}
-              onChange={handleInputChange}
-              placeholder="Descripción del evento o actividad"
-            />
-
-            <Input
-              label="URL de Registro"
-              name="registrationurl"
-              value={formData.registrationurl}
-              onChange={handleInputChange}
-              placeholder="https://..."
-              helperText="URL para registro al evento"
-            />
-
-            <Input
-              label="URL de Imagen"
-              name="image"
-              value={formData.image}
-              onChange={handleInputChange}
-              placeholder="https://..."
-            />
-
-            <Input
-              label="URL del Evento"
-              name="url"
-              value={formData.url}
-              onChange={handleInputChange}
-              placeholder="https://..."
-              helperText="URL principal del evento"
-            />
-
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="featured"
-                checked={formData.featured}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-              />
-              <label className="ml-2 block text-sm text-gray-300">
-                Evento destacado
-              </label>
-            </div>
-          </form>
+        {/* Error */}
+        {error && (
+          <div className="bg-red-900/50 border border-red-700 text-red-300 px-4 py-3 rounded-lg mb-6">
+            {error}
+            <button 
+              onClick={() => setError('')}
+              className="float-right text-red-400 hover:text-red-200"
+            >
+              ×
+            </button>
+          </div>
         )}
-      </Modal>
+
+        {/* Tabla */}
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
+          <Table
+            data={noticias}
+            columns={columns}
+            loading={loading}
+            emptyMessage="No hay noticias disponibles"
+            onView={openViewModal}
+            onEdit={permissions.canEditContent ? openEditModal : undefined}
+            onDelete={permissions.canDeleteContent ? handleDelete : undefined}
+          />
+
+          {/* Paginación */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+
+        {/* Modal */}
+        <Modal
+          isOpen={showModal}
+          onClose={closeModal}
+          title={
+            modalMode === 'create' ? 'Nueva Noticia' :
+            modalMode === 'edit' ? 'Editar Noticia' :
+            'Ver Noticia'
+          }
+          size="lg"
+          onConfirm={modalMode !== 'view' ? handleSubmit : undefined}
+          onCancel={closeModal}
+          confirmText={modalMode === 'create' ? 'Crear' : 'Actualizar'}
+          isLoading={loading}
+        >
+          {modalMode === 'view' ? (
+            // Vista de solo lectura
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-400">Título</label>
+                  <p className="mt-1 text-sm text-gray-300">{selectedItem?.title}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-400">Tipo</label>
+                  <p className="mt-1 text-sm text-gray-300">{selectedItem?.type || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-400">Organizador</label>
+                  <p className="mt-1 text-sm text-gray-300">{selectedItem?.organizer || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-400">Fecha</label>
+                  <p className="mt-1 text-sm text-gray-300">
+                    {selectedItem?.date ? new Date(selectedItem.date).toLocaleDateString() : '-'}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-400">Ubicación</label>
+                  <p className="mt-1 text-sm text-gray-300">{selectedItem?.location || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-400">Estado</label>
+                  <p className="mt-1 text-sm text-gray-300">{selectedItem?.status || 'draft'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-400">Duración</label>
+                  <p className="mt-1 text-sm text-gray-300">{selectedItem?.duration || '-'}</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-400">Participantes</label>
+                  <p className="mt-1 text-sm text-gray-300">{selectedItem?.participants || '-'}</p>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-400">Descripción</label>
+                <p className="mt-1 text-sm text-gray-300">{selectedItem?.description || '-'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-400">URL de Registro</label>
+                <p className="mt-1 text-sm text-gray-300">
+                  {selectedItem?.registrationurl ? (
+                    <a href={selectedItem.registrationurl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">
+                      {selectedItem.registrationurl}
+                    </a>
+                  ) : '-'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            // Formulario
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Título"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Título del evento/actividad"
+                />
+                <Input
+                  label="Tipo"
+                  name="type"
+                  type="select"
+                  value={formData.type}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Selecciona un tipo"
+                  options={typeOptions}
+                />
+                <Input
+                  label="Organizador"
+                  name="organizer"
+                  value={formData.organizer}
+                  onChange={handleInputChange}
+                  placeholder="Nombre del organizador"
+                />
+                <Input
+                  label="Fecha"
+                  name="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                />
+                <Input
+                  label="Ubicación"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  placeholder="Lugar del evento"
+                />
+                <Input
+                  label="Duración"
+                  name="duration"
+                  value={formData.duration}
+                  onChange={handleInputChange}
+                  placeholder="Ej: 2 horas, 1 día"
+                />
+                <Input
+                  label="Estado"
+                  name="status"
+                  type="select"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  options={statusOptions}
+                />
+                <Input
+                  label="Participantes"
+                  name="participants"
+                  type="number"
+                  value={formData.participants}
+                  onChange={handleInputChange}
+                  placeholder="Número de participantes"
+                  min="0"
+                />
+                <Input
+                  label="Slug"
+                  name="slug"
+                  value={formData.slug}
+                  onChange={handleInputChange}
+                  placeholder="url-amigable"
+                  helperText="URL amigable para el evento"
+                />
+              </div>
+
+              <Input
+                label="Descripción"
+                name="description"
+                type="textarea"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Descripción del evento o actividad"
+              />
+
+              <Input
+                label="URL de Registro"
+                name="registrationurl"
+                value={formData.registrationurl}
+                onChange={handleInputChange}
+                placeholder="https://..."
+                helperText="URL para registro al evento"
+              />
+
+              <Input
+                label="URL de Imagen"
+                name="image"
+                value={formData.image}
+                onChange={handleInputChange}
+                placeholder="https://..."
+              />
+
+              <Input
+                label="URL del Evento"
+                name="url"
+                value={formData.url}
+                onChange={handleInputChange}
+                placeholder="https://..."
+                helperText="URL principal del evento"
+              />
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="featured"
+                  checked={formData.featured}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label className="ml-2 block text-sm text-gray-300">
+                  Evento destacado
+                </label>
+              </div>
+            </form>
+          )}
+        </Modal>
+      </div>
     </div>
   );
 };
+
+export default NoticiasCMS;
