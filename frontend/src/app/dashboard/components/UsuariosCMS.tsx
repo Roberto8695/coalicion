@@ -1,16 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useAuth, usePermissions } from "@/hooks/useAuth";
-
-interface Usuario {
-  id?: number;
-  nombre: string;
-  correo: string;
-  password?: string;
-  rol: 'administrador' | 'editor' | 'lector';
-  created_at?: string;
-  updated_at?: string;
-}
+import { usuariosService, Usuario } from "@/api/services";
 
 export function UsuariosCMS() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -25,36 +16,25 @@ export function UsuariosCMS() {
   const loadUsuarios = async () => {
     try {
       setIsLoading(true);
+      setError("");
       
-      // Obtener token del localStorage usando la misma clave que authService
-      const token = localStorage.getItem('authToken');
-      console.log('Loading users with token:', token ? 'EXISTS' : 'MISSING');
-      console.log('Token preview:', token ? `${token.substring(0, 20)}...` : 'NULL');
+      const result = await usuariosService.getAll();
+      console.log('API Response from service:', result);
       
-      const response = await fetch('/api/usuarios', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
-      const result = await response.json();
-      console.log('API Response:', result);
-      console.log('Data type:', typeof result.data);
-      console.log('Data content:', result.data);
-
-      if (response.ok && result.success) {
-        // El backend devuelve: { data: { data: [...], pagination: {...} } }
+      if (result && result.data) {
+        // El backend devuelve: { success: true, data: { data: [...], pagination: {...} } }
         // Necesitamos acceder a result.data.data para obtener el array de usuarios
-        let usuariosData = [];
+        let usuariosData: Usuario[] = [];
         
-        if (result.data && Array.isArray(result.data.data)) {
-          usuariosData = result.data.data;
+        // Verificar si result.data tiene la propiedad 'data' (estructura paginada)
+        const responseData = result.data as unknown;
+        if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+          const nestedData = (responseData as { data: unknown }).data;
+          if (Array.isArray(nestedData)) {
+            usuariosData = nestedData as Usuario[];
+          }
         } else if (Array.isArray(result.data)) {
-          usuariosData = result.data;
+          usuariosData = result.data as Usuario[];
         } else {
           console.log('Estructura de datos inesperada:', result.data);
           usuariosData = [];
@@ -62,17 +42,16 @@ export function UsuariosCMS() {
         
         console.log('Usuarios data final:', usuariosData);
         setUsuarios(usuariosData);
-        setError("");
       } else {
-        const errorMessage = result.message || result.error || `Error ${response.status}: ${response.statusText}`;
-        console.error('API Error:', errorMessage);
-        setError(errorMessage);
-        setUsuarios([]); // Resetear a array vacío en caso de error
+        console.error('No se recibieron datos válidos');
+        setError('No se pudieron cargar los usuarios');
+        setUsuarios([]);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error al cargar usuarios:", error);
-      setError('Error de conexión al cargar usuarios');
-      setUsuarios([]); // Resetear a array vacío en caso de error
+      const errorMessage = error instanceof Error ? error.message : 'Error de conexión al cargar usuarios';
+      setError(errorMessage);
+      setUsuarios([]);
     } finally {
       setIsLoading(false);
     }
@@ -104,34 +83,21 @@ export function UsuariosCMS() {
       setIsLoading(true);
       
       // Convertir FormData a objeto JSON
-      const userData = {
+      const userData: Partial<Usuario> = {
         nombre: formData.get('nombre') as string,
         correo: formData.get('correo') as string,
         password: formData.get('password') as string,
-        rol: formData.get('rol') as string
+        rol: formData.get('rol') as 'administrador' | 'editor' | 'lector'
       };
 
-      const response = await fetch('/api/usuarios', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setShowForm(false);
-        await loadUsuarios();
-        setError("");
-      } else {
-        setError(result.error || 'Error al crear usuario');
-      }
-    } catch (error) {
+      await usuariosService.create(userData);
+      setShowForm(false);
+      await loadUsuarios();
+      setError("");
+    } catch (error: unknown) {
       console.error("Error al crear usuario:", error);
-      setError('Error de conexión al crear usuario');
+      const errorMessage = error instanceof Error ? error.message : 'Error de conexión al crear usuario';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -156,28 +122,15 @@ export function UsuariosCMS() {
         userData.password = password;
       }
 
-      const response = await fetch(`/api/usuarios/${editingUsuario.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setEditingUsuario(null);
-        setShowForm(false);
-        await loadUsuarios();
-        setError("");
-      } else {
-        setError(result.error || 'Error al actualizar usuario');
-      }
-    } catch (error) {
+      await usuariosService.update(editingUsuario.id!, userData);
+      setEditingUsuario(null);
+      setShowForm(false);
+      await loadUsuarios();
+      setError("");
+    } catch (error: unknown) {
       console.error("Error al actualizar usuario:", error);
-      setError('Error de conexión al actualizar usuario');
+      const errorMessage = error instanceof Error ? error.message : 'Error de conexión al actualizar usuario';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -195,25 +148,13 @@ export function UsuariosCMS() {
     if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${usuario.nombre}"?`)) {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/usuarios/${usuario.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          await loadUsuarios();
-          setError("");
-        } else {
-          setError(result.error || 'Error al eliminar usuario');
-        }
-      } catch (error) {
+        await usuariosService.delete(usuario.id);
+        await loadUsuarios();
+        setError("");
+      } catch (error: unknown) {
         console.error("Error al eliminar usuario:", error);
-        setError('Error de conexión al eliminar usuario');
+        const errorMessage = error instanceof Error ? error.message : 'Error de conexión al eliminar usuario';
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -249,7 +190,7 @@ export function UsuariosCMS() {
       case 'editor':
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
       case 'lector':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+        return 'bg-green-100 text-red-800 dark:bg-green-900 dark:text-red-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
     }
@@ -414,9 +355,11 @@ export function UsuariosCMS() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-              <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            <div className="p-3 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800">
+              <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                <circle cx="18" cy="8" r="3" opacity="0.7"/>
+                <path d="M18 13c-1.21 0-2.24.39-3.41.81.59.58 1.41 1.19 1.41 1.19s1.8-.61 3-.61c1.38 0 2.63.56 2.63.56V14c0-1.39-1.46-1-1.63-1z" opacity="0.5"/>
               </svg>
             </div>
             <div className="ml-4">
@@ -428,9 +371,10 @@ export function UsuariosCMS() {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-red-100 dark:bg-red-900">
-              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <div className="p-3 rounded-full bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900 dark:to-red-800">
+              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                <path d="M10 14.5l-2.5-2.5 1.41-1.41L10 11.67l4.09-4.09L15.5 9l-5.5 5.5z" fill="white" fillOpacity="0.9"/>
               </svg>
             </div>
             <div className="ml-4">
@@ -444,9 +388,9 @@ export function UsuariosCMS() {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
-              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <div className="p-3 rounded-full bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800">
+              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M14.06 9.02l.92.92L5.92 19H5v-.92l9.06-9.06M17.66 3c-.25 0-.51.1-.7.29l-1.83 1.83 3.75 3.75 1.83-1.83c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.2-.2-.45-.29-.71-.29zm-3.6 3.19L3 17.25V21h3.75L17.81 9.94l-3.75-3.75z"/>
               </svg>
             </div>
             <div className="ml-4">
@@ -460,10 +404,11 @@ export function UsuariosCMS() {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-gray-100 dark:bg-gray-800">
-              <svg className="w-6 h-6 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            <div className="p-3 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800">
+              <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 9c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3m0-2c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5z"/>
+                <path d="M2 12C2 6.48 6.48 2 12 2s10 4.48 10 10-4.48 10-10 10S2 17.52 2 12zm10-8c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8z"/>
+                <path d="M19.14 6.86c.78.78 1.36 1.7 1.69 2.72-.78-.78-1.7-1.36-2.72-1.69.34-1.02.81-1.94 1.03-1.03z" opacity="0.6"/>
               </svg>
             </div>
             <div className="ml-4">

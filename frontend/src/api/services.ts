@@ -137,6 +137,20 @@ export interface Verificador {
   updatedAt?: string;
 }
 
+export interface Usuario {
+  id?: number;
+  nombre: string;
+  correo: string;
+  password?: string;
+  rol: 'administrador' | 'editor' | 'lector';
+  activo?: boolean;
+  isActive?: boolean; // Para compatibilidad frontend
+  created_at?: string;
+  createdAt?: string; // Para compatibilidad frontend
+  updated_at?: string;
+  updatedAt?: string; // Para compatibilidad frontend
+}
+
 // Servicios específicos
 export class PublicacionesService extends BaseService<Publicacion> {
   constructor() {
@@ -276,6 +290,33 @@ export class VerificadoresService extends BaseService<Verificador> {
   }
 }
 
+export class UsuariosService extends BaseService<Usuario> {
+  constructor() {
+    super('usuarios');
+  }
+
+  async getByRole(role: string, params?: Record<string, unknown>): Promise<ApiResponse<Usuario[]>> {
+    return await api.get(`${this.endpoint}/role/${role}`, { params });
+  }
+
+  async getActive(params?: Record<string, unknown>): Promise<ApiResponse<Usuario[]>> {
+    return await api.get(`${this.endpoint}/active`, { params });
+  }
+
+  async changePassword(id: number, oldPassword: string, newPassword: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return await api.patch(`${this.endpoint}/${id}/password`, { 
+      oldPassword, 
+      newPassword 
+    });
+  }
+
+  async resetPassword(id: number, newPassword: string): Promise<ApiResponse<{ success: boolean; message: string }>> {
+    return await api.patch(`${this.endpoint}/${id}/reset-password`, { 
+      newPassword 
+    });
+  }
+}
+
 // Servicio de uploads
 export class UploadsService {
   private baseURL: string;
@@ -411,6 +452,7 @@ export const eventosService = new EventosService();
 export const guiasElectoralesService = new GuiasElectoralesService();
 export const documentosElectoralesService = new DocumentosElectoralesService();
 export const verificadoresService = new VerificadoresService();
+export const usuariosService = new UsuariosService();
 export const uploadsService = new UploadsService();
 
 // Exportar también el servicio de publicaciones coalición

@@ -67,7 +67,7 @@ export const EventosCMS = () => {
       render: (value) => {
         const typeConfig = {
           taller: { label: 'Taller', color: 'bg-blue-500 text-white' },
-          capacitacion: { label: 'Capacitación', color: 'bg-green-500 text-white' },
+          capacitacion: { label: 'Capacitación', color: 'bg-green-600 text-white' },
           foro: { label: 'Foro', color: 'bg-purple-500 text-white' },
           debate: { label: 'Debate', color: 'bg-red-500 text-white' }
         };
