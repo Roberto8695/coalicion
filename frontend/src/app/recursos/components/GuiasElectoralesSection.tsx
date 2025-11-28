@@ -145,10 +145,9 @@ export function GuiasElectoralesSection() {
 
   const handlePreview = (url: string | undefined, title: string) => {
     if (url) {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener,noreferrer');
     } else {
-      console.log(`Vista previa: ${title}`);
-      alert(`Funcionalidad de vista previa para: ${title}`);
+      console.log(`No hay URL de vista previa para: ${title}`);
     }
   };
 

@@ -5,11 +5,36 @@ import { motion } from "motion/react";
 import { IconDownload, IconEye, IconCalendar, IconTag, IconFileText } from "@tabler/icons-react";
 import { publicacionesService, Publicacion as PublicacionAPI } from "@/api";
 
+// Función para convertir URLs de Google Drive a URLs de descarga directa
+const convertGoogleDriveUrl = (url: string): string => {
+  if (!url) return url;
+  
+  // Verificar si es una URL de Google Drive
+  const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
+  const match = url.match(driveRegex);
+  
+  if (match && match[1]) {
+    // Convertir a URL de descarga directa
+    const fileId = match[1];
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  }
+  
+  return url; // Si no es de Google Drive, devolver la URL original
+};
+
+// Interfaz extendida para manejar posibles variaciones en nombres de campos
+interface ExtendedPublicacionAPI extends Omit<PublicacionAPI, 'tags'> {
+  downloadurl?: string;
+  previewurl?: string;
+  tags?: string[] | string; // Permitir tanto array como string
+  status?: 'published' | 'draft' | 'archived'; // Asegurar que el status esté disponible
+}
+
 interface Publicacion {
   id: number;
   title: string;
   description: string;
-  type: string;
+  type: 'informe' | 'estudio' | 'monitoreo' | 'investigacion';
   category: string;
   date?: string;
   author?: string;
@@ -52,6 +77,7 @@ export function PublicacionesSection() {
   const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [conversionMessage, setConversionMessage] = useState<string | null>(null);
 
   // Load publicaciones from local API
   useEffect(() => {
@@ -60,26 +86,44 @@ export function PublicacionesSection() {
         setLoading(true);
         const response = await publicacionesService.getAll();
         
+        // Debug: ver qué campos están llegando de la API
+        console.log('Datos de API response:', response.data);
+        if (response.data.length > 0) {
+          console.log('Primer elemento:', response.data[0]);
+          console.log('Campos disponibles:', Object.keys(response.data[0]));
+        }
+        
         // Mapear desde PublicacionAPI a Publicacion local
-        const mappedPublicaciones: Publicacion[] = response.data.map((pub: PublicacionAPI) => ({
-          id: pub.id || 0,
-          title: pub.title,
-          description: pub.description || '',
-          type: pub.type || 'informe',
-          category: 'electoral', // Valor por defecto, podríamos mapear desde categoria_id
-          date: pub.date,
-          author: pub.author,
-          pages: pub.pages,
-          downloadUrl: pub.downloadUrl,
-          previewUrl: pub.previewUrl,
-          tags: pub.tags,
-          featured: pub.featured,
-          fileSize: pub.fileSize ? parseInt(pub.fileSize) : undefined,
-          fileFormat: undefined,
-          slug: pub.slug,
-          createdAt: pub.date,
-          updatedAt: pub.date
-        }));
+        const mappedPublicaciones: Publicacion[] = response.data
+          .filter((pub: ExtendedPublicacionAPI) => pub.status === 'published') // Solo mostrar publicaciones publicadas
+          .map((pub: ExtendedPublicacionAPI) => ({
+            id: pub.id || 0,
+            title: pub.title || '',
+            description: pub.description || '',
+            type: pub.type && ['informe', 'estudio', 'monitoreo', 'investigacion'].includes(pub.type) 
+              ? pub.type as 'informe' | 'estudio' | 'monitoreo' | 'investigacion' 
+              : 'informe',
+            category: 'electoral', // Valor por defecto, podríamos mapear desde categoria_id
+            date: pub.date,
+            author: pub.author,
+            pages: pub.pages,
+            downloadUrl: pub.downloadUrl || pub.downloadurl || '', // Probar ambas variantes
+            previewUrl: pub.previewUrl || pub.previewurl || '', // Probar ambas variantes
+            tags: (() => {
+              const tagData = pub.tags;
+              if (Array.isArray(tagData)) return tagData;
+              if (typeof tagData === 'string' && tagData.trim()) {
+                return tagData.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0);
+              }
+              return [];
+            })(),
+            featured: Boolean(pub.featured),
+            fileSize: pub.fileSize ? parseInt(pub.fileSize) : undefined,
+            fileFormat: undefined,
+            slug: pub.slug,
+            createdAt: pub.date,
+            updatedAt: pub.date
+          }));
         
         setPublicaciones(mappedPublicaciones);
         setError(null);
@@ -102,60 +146,64 @@ export function PublicacionesSection() {
     { id: "analisis", label: "Análisis" }
   ];
 
-  const filteredPublicaciones = selectedCategory === "all" 
-    ? publicaciones 
-    : publicaciones.filter(pub => pub.category === selectedCategory);
+  const filteredPublicaciones = (() => {
+    if (selectedCategory === "all") {
+      return publicaciones;
+    }
+    
+    switch (selectedCategory) {
+      case "electoral":
+        // Electoral: Informe, Monitoreo, Estudio
+        return publicaciones.filter(pub => 
+          pub.type === "informe" || pub.type === "monitoreo" || pub.type === "estudio"
+        );
+      case "desinformacion":
+        // Desinformación: solo Estudio
+        return publicaciones.filter(pub => pub.type === "estudio");
+      case "democracia":
+        // Democracia: solo Investigación
+        return publicaciones.filter(pub => pub.type === "investigacion");
+      case "analisis":
+        // Análisis: solo Informe
+        return publicaciones.filter(pub => pub.type === "informe");
+      default:
+        return publicaciones;
+    }
+  })();
 
-  const handleDownload = async (url: string | undefined, title: string) => {
+  const handleDownload = (url: string | undefined, title: string) => {
+    console.log('handleDownload called with:', { url, title });
     if (!url) {
-      alert('No hay archivo disponible para descargar');
+      console.log(`No hay URL de descarga para: ${title}`);
       return;
     }
     
-    try {
-      // Método más compatible: fetch + blob + ObjectURL
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Crear elemento <a> temporal para forzar descarga
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      
-      // Obtener extensión del archivo desde la URL o usar tipo por defecto
-      const extension = url.split('.').pop()?.toLowerCase() || 'pdf';
-      const fileName = `${title.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase()}.${extension}`;
-      
-      link.download = fileName;
-      link.style.display = 'none';
-        
-      // Añadir al DOM, hacer click y limpiar
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Limpiar el blob URL después de un tiempo
-      setTimeout(() => {
-        window.URL.revokeObjectURL(blobUrl);
-      }, 100);
-        
-    } catch (error) {
-      console.error('Error al descargar archivo:', error);
-      alert('Error al descargar el archivo');
+    // Convertir la URL si es necesario y mostrar mensaje
+    const originalUrl = url;
+    const convertedUrl = convertGoogleDriveUrl(url);
+    
+    if (originalUrl !== convertedUrl) {
+      setConversionMessage('URL convertida automáticamente para descarga directa');
+      setTimeout(() => setConversionMessage(null), 3000);
     }
+    
+    // Crear un elemento 'a' para descargar directamente
+    const link = document.createElement('a');
+    link.href = convertedUrl;
+    link.download = title;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handlePreview = (url: string | undefined, title: string) => {
+    console.log('handlePreview called with:', { url, title });
     if (url) {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener,noreferrer');
     } else {
-      console.log(`Vista previa: ${title}`);
-      alert(`Funcionalidad de vista previa para: ${title}`);
+      console.log(`No hay URL de vista previa para: ${title}`);
     }
   };
 
@@ -230,6 +278,24 @@ export function PublicacionesSection() {
             Informes especializados, estudios de investigación y documentos de monitoreo electoral
           </p>
         </motion.div>
+
+        {/* Mensaje de conversión de URL */}
+        {conversionMessage && (
+          <motion.div
+            className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg"
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {conversionMessage}
+            </div>
+          </motion.div>
+        )}
 
         {/* Category Filter */}
         <motion.div

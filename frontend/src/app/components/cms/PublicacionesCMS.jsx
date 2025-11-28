@@ -9,6 +9,23 @@ import { Pagination } from './Pagination';
 import { publicacionesService, categoriasService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 
+// Función para convertir URLs de Google Drive a URLs de descarga directa
+const convertGoogleDriveUrl = (url) => {
+  if (!url) return url;
+  
+  // Verificar si es una URL de Google Drive
+  const driveRegex = /drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/;
+  const match = url.match(driveRegex);
+  
+  if (match && match[1]) {
+    // Convertir a URL de descarga directa
+    const fileId = match[1];
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  }
+  
+  return url; // Si no es de Google Drive, devolver la URL original
+};
+
 export const PublicacionesCMS = () => {
   // Permisos del usuario
   const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
@@ -170,7 +187,8 @@ export const PublicacionesCMS = () => {
         ...formData,
         pages: formData.pages ? parseInt(formData.pages) : null,
         categoria_id: formData.categoria_id ? parseInt(formData.categoria_id) : null,
-        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : null
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : null,
+        downloadUrl: convertGoogleDriveUrl(formData.downloadUrl) // Convertir URL de descarga para descarga directa
       };
 
       let response;
@@ -370,6 +388,59 @@ export const PublicacionesCMS = () => {
               <label className="block text-sm font-medium text-gray-300">Descripción</label>
               <p className="mt-1 text-sm text-gray-100">{selectedItem?.description || '-'}</p>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300">URL de descarga</label>
+                <p className="mt-1 text-sm text-blue-400">
+                  {selectedItem?.downloadUrl ? (
+                    <a href={selectedItem.downloadUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {selectedItem.downloadUrl}
+                    </a>
+                  ) : '-'}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300">URL de vista previa</label>
+                <p className="mt-1 text-sm text-blue-400">
+                  {selectedItem?.previewUrl ? (
+                    <a href={selectedItem.previewUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {selectedItem.previewUrl}
+                    </a>
+                  ) : '-'}
+                </p>
+              </div>
+            </div>
+            
+            {/* Botones de acción para URLs */}
+            <div className="flex gap-4 pt-4 border-t border-gray-700">
+              {selectedItem?.downloadUrl && (
+                <a 
+                  href={selectedItem.downloadUrl}
+                  download
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Descargar
+                </a>
+              )}
+              
+              {selectedItem?.previewUrl && (
+                <a 
+                  href={selectedItem.previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Vista Previa
+                </a>
+              )}
+            </div>
           </div>
         ) : (
           // Formulario
@@ -428,6 +499,13 @@ export const PublicacionesCMS = () => {
                 label="URL de descarga"
                 name="downloadUrl"
                 value={formData.downloadUrl}
+                onChange={handleInputChange}
+                placeholder="https://..."
+              />
+              <Input
+                label="URL de vista previa"
+                name="previewUrl"
+                value={formData.previewUrl}
                 onChange={handleInputChange}
                 placeholder="https://..."
               />
