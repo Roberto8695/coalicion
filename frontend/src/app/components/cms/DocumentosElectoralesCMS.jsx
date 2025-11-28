@@ -40,7 +40,7 @@ export const DocumentosElectoralesCMS = () => {
     title: '',
     description: '',
     type: 'PDF',
-    category: 'manual',
+    category: 'Manual',
     fileUrl: '',
     previewUrl: '',
     fileSize: '',
@@ -95,18 +95,18 @@ export const DocumentosElectoralesCMS = () => {
       header: 'Categoría',
       render: (value) => {
         const categoryColors = {
-          manual: 'bg-blue-500/20 text-blue-300',
-          procedimiento: 'bg-green-500/20 text-green-300',
-          normativa: 'bg-purple-500/20 text-purple-300',
-          capacitacion: 'bg-orange-500/20 text-orange-300',
-          informe: 'bg-indigo-500/20 text-indigo-300'
+          Manual: 'bg-blue-500/20 text-blue-300',
+          Procedimiento: 'bg-green-500/20 text-green-300',
+          Normativa: 'bg-purple-500/20 text-purple-300',
+          Capacitación: 'bg-orange-500/20 text-orange-300',
+          Informe: 'bg-indigo-500/20 text-indigo-300'
         };
         const categoryLabels = {
-          manual: 'Manual',
-          procedimiento: 'Procedimiento',
-          normativa: 'Normativa',
-          capacitacion: 'Capacitación',
-          informe: 'Informe'
+          Manual: 'Manual',
+          Procedimiento: 'Procedimiento',
+          Normativa: 'Normativa',
+          Capacitación: 'Capacitación',
+          Informe: 'Informe'
         };
         return (
           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${categoryColors[value] || 'bg-gray-500/20 text-gray-300'}`}>
@@ -167,11 +167,11 @@ export const DocumentosElectoralesCMS = () => {
   ];
 
   const categoryOptions = [
-    { value: 'manual', label: 'Manual' },
-    { value: 'procedimiento', label: 'Procedimiento' },
-    { value: 'normativa', label: 'Normativa' },
-    { value: 'capacitacion', label: 'Capacitación' },
-    { value: 'informe', label: 'Informe' }
+    { value: 'Manual', label: 'Manual' },
+    { value: 'Procedimiento', label: 'Procedimiento' },
+    { value: 'Normativa', label: 'Normativa' },
+    { value: 'Capacitación', label: 'Capacitación' },
+    { value: 'Informe', label: 'Informe' }
   ];
 
   const statusOptions = [
@@ -352,7 +352,7 @@ export const DocumentosElectoralesCMS = () => {
       title: item.title || '',
       description: item.description || '',
       type: item.type || 'PDF',
-      category: item.category || 'manual',
+      category: item.category || 'Manual',
       fileUrl: item.fileUrl || '',
       previewUrl: item.previewUrl || '',
       fileSize: item.fileSize || '',
@@ -376,7 +376,7 @@ export const DocumentosElectoralesCMS = () => {
       title: '',
       description: '',
       type: 'PDF',
-      category: 'manual',
+      category: 'Manual',
       fileUrl: '',
       previewUrl: '',
       fileSize: '',

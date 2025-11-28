@@ -257,7 +257,7 @@ class PublicacionesCoalicionService {
       formData.append('imagen', publicacionData.imagen);
     }
 
-    const response = await api.post(`${this.endpoint}/upload`, formData, {
+    const response = await api.post(`${this.endpoint}/dashboard/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -299,7 +299,7 @@ class PublicacionesCoalicionService {
       formData.append('imagen', publicacionData.imagen);
     }
 
-    const response = await api.put(`${this.endpoint}/${id}/upload`, formData, {
+    const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -320,7 +320,7 @@ class PublicacionesCoalicionService {
 
   // Eliminar publicación
   async delete(id: number) {
-    const response = await api.delete(`${this.endpoint}/${id}`);
+    const response = await api.delete(`${this.endpoint}/dashboard/${id}`);
     return response;
   }
 }

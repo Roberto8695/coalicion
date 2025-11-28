@@ -7,8 +7,10 @@ import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { eventosService } from '@/api';
+import { usePermissions } from '@/hooks/useAuth';
 
 export const EventosCMS = () => {
+  const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
   // Estados principales
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -246,6 +248,10 @@ export const EventosCMS = () => {
 
   // Abrir modal para crear
   const handleCreate = () => {
+    if (!canCreateContent) {
+      setError('No tienes permisos para crear eventos');
+      return;
+    }
     resetForm();
     setModalMode('create');
     setSelectedItem(null);
@@ -254,6 +260,10 @@ export const EventosCMS = () => {
 
   // Abrir modal para editar
   const handleEdit = (item) => {
+    if (!canEditContent) {
+      setError('No tienes permisos para editar eventos');
+      return;
+    }
     console.log('Item original para editar:', item);
     
     // Mapear los datos del item a los campos correctos, ignorando campos del esquema anterior
@@ -318,6 +328,16 @@ export const EventosCMS = () => {
 
   // Guardar (crear o actualizar)
   const handleSave = async () => {
+    // Validar permisos según el modo del modal
+    if (modalMode === 'create' && !canCreateContent) {
+      setError('No tienes permisos para crear eventos');
+      return;
+    }
+    if (modalMode === 'edit' && !canEditContent) {
+      setError('No tienes permisos para editar eventos');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     
@@ -373,6 +393,10 @@ export const EventosCMS = () => {
 
   // Eliminar
   const handleDelete = async (item) => {
+    if (!canDeleteContent) {
+      setError('No tienes permisos para eliminar eventos');
+      return;
+    }
     if (!confirm('¿Estás seguro de que deseas eliminar este evento?')) {
       return;
     }
@@ -406,12 +430,14 @@ export const EventosCMS = () => {
           <h1 className="text-2xl font-bold text-white">Gestión de Eventos</h1>
           <p className="text-gray-300">Administra talleres, capacitaciones, foros y debates</p>
         </div>
-        <Button
-          onClick={handleCreate}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          + Nuevo Evento
-        </Button>
+        {canCreateContent && (
+          <Button
+            onClick={handleCreate}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            + Nuevo Evento
+          </Button>
+        )}
       </div>
 
       {/* Error */}
@@ -428,8 +454,8 @@ export const EventosCMS = () => {
           data={eventos}
           loading={loading}
           onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={canEditContent ? handleEdit : undefined}
+          onDelete={canDeleteContent ? handleDelete : undefined}
           emptyMessage="No hay eventos disponibles"
         />
         

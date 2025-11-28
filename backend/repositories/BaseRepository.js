@@ -1,12 +1,11 @@
-const { pool } = require('../config/db');
+﻿const { pool } = require('../config/db');
 
 class BaseRepository {
     constructor(tableName) {
         this.tableName = tableName;
-        this.db = pool; // Agregar referencia al pool como db
+        this.db = pool;
     }
 
-    // Obtener todos los registros con paginación opcional
     async findAll(page = 1, limit = 10, filters = {}) {
         try {
             const offset = (page - 1) * limit;
@@ -14,7 +13,6 @@ class BaseRepository {
             let values = [];
             let whereConditions = [];
 
-            // Agregar filtros dinámicos
             Object.keys(filters).forEach((key, index) => {
                 if (filters[key] !== undefined && filters[key] !== null) {
                     whereConditions.push(`${key} = $${values.length + 1}`);
@@ -31,7 +29,6 @@ class BaseRepository {
 
             const result = await pool.query(query, values);
             
-            // Obtener total de registros para paginación
             let countQuery = `SELECT COUNT(*) FROM ${this.tableName}`;
             if (whereConditions.length > 0) {
                 countQuery += ` WHERE ${whereConditions.join(' AND ')}`;
@@ -53,7 +50,6 @@ class BaseRepository {
         }
     }
 
-    // Obtener registro por ID
     async findById(id) {
         try {
             const query = `SELECT * FROM ${this.tableName} WHERE id = $1`;
@@ -64,7 +60,6 @@ class BaseRepository {
         }
     }
 
-    // Obtener registro por slug
     async findBySlug(slug) {
         try {
             const query = `SELECT * FROM ${this.tableName} WHERE slug = $1`;
@@ -75,12 +70,18 @@ class BaseRepository {
         }
     }
 
-    // Crear nuevo registro
     async create(data) {
         try {
             const columns = Object.keys(data);
             const placeholders = columns.map((_, index) => `$${index + 1}`);
-            const values = Object.values(data);
+            
+            const processedValues = Object.values(data).map(value => {
+                if (Array.isArray(value)) {
+                    console.log(' CREATE - Convirtiendo array a JSON:', value, '->', JSON.stringify(value));
+                    return JSON.stringify(value);
+                }
+                return value;
+            });
 
             const query = `
                 INSERT INTO ${this.tableName} (${columns.join(', ')})
@@ -88,19 +89,27 @@ class BaseRepository {
                 RETURNING *
             `;
 
-            const result = await pool.query(query, values);
+            const result = await pool.query(query, processedValues);
             return result.rows[0];
         } catch (error) {
             throw new Error(`Error al crear registro en ${this.tableName}: ${error.message}`);
         }
     }
 
-    // Actualizar registro
     async update(id, data) {
         try {
             const columns = Object.keys(data);
             const setClause = columns.map((col, index) => `${col} = $${index + 2}`);
-            const values = [id, ...Object.values(data)];
+            
+            const processedValues = Object.values(data).map(value => {
+                if (Array.isArray(value)) {
+                    console.log(' UPDATE - Convirtiendo array a JSON:', value, '->', JSON.stringify(value));
+                    return JSON.stringify(value);
+                }
+                return value;
+            });
+            
+            const values = [id, ...processedValues];
 
             const query = `
                 UPDATE ${this.tableName}
@@ -127,7 +136,6 @@ class BaseRepository {
         }
     }
 
-    // Eliminar registro
     async delete(id) {
         try {
             const query = `DELETE FROM ${this.tableName} WHERE id = $1 RETURNING *`;
@@ -138,7 +146,6 @@ class BaseRepository {
         }
     }
 
-    // Búsqueda por texto en campos específicos
     async search(searchTerm, searchFields = ['title'], page = 1, limit = 10) {
         try {
             const offset = (page - 1) * limit;
@@ -157,7 +164,6 @@ class BaseRepository {
             const values = [...searchValues, limit, offset];
             const result = await pool.query(query, values);
 
-            // Obtener total para paginación
             const countQuery = `
                 SELECT COUNT(*) FROM ${this.tableName}
                 WHERE ${searchConditions.join(' OR ')}
