@@ -103,7 +103,6 @@ class BaseRepository {
             
             const processedValues = Object.values(data).map(value => {
                 if (Array.isArray(value)) {
-                    console.log(' UPDATE - Convirtiendo array a JSON:', value, '->', JSON.stringify(value));
                     return JSON.stringify(value);
                 }
                 return value;
@@ -118,20 +117,9 @@ class BaseRepository {
                 RETURNING *
             `;
 
-            console.log('=== REPOSITORY UPDATE DEBUG ===');
-            console.log('Tabla:', this.tableName);
-            console.log('Columnas:', columns);
-            console.log('Query:', query);
-            console.log('Values:', values);
-            console.log('==============================');
-
             const result = await pool.query(query, values);
             return result.rows[0] || null;
         } catch (error) {
-            console.error('=== REPOSITORY ERROR ===');
-            console.error('Tabla:', this.tableName);
-            console.error('Error:', error.message);
-            console.error('=======================');
             throw new Error(`Error al actualizar registro en ${this.tableName}: ${error.message}`);
         }
     }

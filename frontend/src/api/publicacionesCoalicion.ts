@@ -278,42 +278,32 @@ class PublicacionesCoalicionService {
 
   // Actualizar publicación
   async update(id: number, publicacionData: UpdatePublicacionCoalicion) {
-    try {
-      const formData = new FormData();
-      
-      // Solo agregar campos que no sean undefined
-      if (publicacionData.titulo !== undefined) {
-        formData.append('titulo', publicacionData.titulo);
-      }
-      if (publicacionData.descripcion !== undefined) {
-        formData.append('descripcion', publicacionData.descripcion);
-      }
-      if (publicacionData.fecha_publi !== undefined) {
-        formData.append('fecha_publi', publicacionData.fecha_publi);
-      }
-      if (publicacionData.url !== undefined) {
-        formData.append('url', publicacionData.url);
-      }
-      
-      // Agregar imagen si existe
-      if (publicacionData.imagen) {
-        formData.append('imagen', publicacionData.imagen);
-      }
+    const formData = new FormData();
+    
+    // Solo agregar campos que no sean undefined
+    if (publicacionData.titulo !== undefined) {
+      formData.append('titulo', publicacionData.titulo);
+    }
+    if (publicacionData.descripcion !== undefined) {
+      formData.append('descripcion', publicacionData.descripcion);
+    }
+    if (publicacionData.fecha_publi !== undefined) {
+      formData.append('fecha_publi', publicacionData.fecha_publi);
+    }
+    if (publicacionData.url !== undefined) {
+      formData.append('url', publicacionData.url);
+    }
+    
+    // Agregar imagen si existe
+    if (publicacionData.imagen) {
+      formData.append('imagen', publicacionData.imagen);
+    }
 
-      console.log('Actualizando publicación:', id);
-      console.log('Datos a enviar:', {
-        titulo: publicacionData.titulo,
-        descripcion: publicacionData.descripcion,
-        fecha_publi: publicacionData.fecha_publi,
-        url: publicacionData.url,
-        hasImage: !!publicacionData.imagen
-      });
-
-      const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+    const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
       if (!response?.data) {
         throw new Error('Error al actualizar la publicación');

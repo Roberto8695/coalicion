@@ -19,26 +19,42 @@ class PublicacionesCoalicionController extends BaseController {
     }
 
     // Validaciones específicas para publicaciones de coalición
-    validatePublicacionData(data) {
+    validatePublicacionData(data, isUpdate = false) {
         const errors = [];
 
-        if (!data.titulo || data.titulo.trim().length === 0) {
+        // En actualizaciones, solo validar si el campo está presente
+        if (data.titulo !== undefined) {
+            if (!data.titulo || data.titulo.trim().length === 0) {
+                errors.push('El título no puede estar vacío');
+            } else if (data.titulo.length > 255) {
+                errors.push('El título no debe exceder 255 caracteres');
+            }
+        } else if (!isUpdate) {
+            // Solo requerir en creación
             errors.push('El título es requerido');
-        } else if (data.titulo.length > 255) {
-            errors.push('El título no debe exceder 255 caracteres');
         }
 
-        if (!data.descripcion || data.descripcion.trim().length === 0) {
+        if (data.descripcion !== undefined) {
+            if (!data.descripcion || data.descripcion.trim().length === 0) {
+                errors.push('La descripción no puede estar vacía');
+            }
+        } else if (!isUpdate) {
+            // Solo requerir en creación
             errors.push('La descripción es requerida');
         }
 
-        if (!data.fecha_publi) {
-            errors.push('La fecha de publicación es requerida');
-        } else {
-            const fecha = new Date(data.fecha_publi);
-            if (isNaN(fecha.getTime())) {
-                errors.push('La fecha de publicación no es válida');
+        if (data.fecha_publi !== undefined) {
+            if (!data.fecha_publi) {
+                errors.push('La fecha de publicación no puede estar vacía');
+            } else {
+                const fecha = new Date(data.fecha_publi);
+                if (isNaN(fecha.getTime())) {
+                    errors.push('La fecha de publicación no es válida');
+                }
             }
+        } else if (!isUpdate) {
+            // Solo requerir en creación
+            errors.push('La fecha de publicación es requerida');
         }
 
         if (data.url && data.url.trim().length > 0) {
@@ -101,6 +117,7 @@ class PublicacionesCoalicionController extends BaseController {
             const { id } = req.params;
             const updateData = { ...req.body };
 
+<<<<<<< HEAD
             // Verificar que existe la publicación
             const existingPublicacion = await this.repository.findById(id);
             if (!existingPublicacion) {
@@ -141,6 +158,13 @@ class PublicacionesCoalicionController extends BaseController {
                 
                 // Eliminar imagen anterior si existe
                 if (existingPublicacion.imagen) {
+=======
+            // Manejar nueva imagen si se subió
+            if (req.file) {
+                // Verificar que existe la publicación para eliminar imagen anterior
+                const existingPublicacion = await this.repository.findById(id);
+                if (existingPublicacion && existingPublicacion.imagen) {
+>>>>>>> f5ed197a2b379e86e5c9088b90e8f3c6176ca71c
                     try {
                         // Extraer solo el nombre del archivo de la ruta completa
                         const filename = existingPublicacion.imagen.split('/').pop();
@@ -156,6 +180,7 @@ class PublicacionesCoalicionController extends BaseController {
                 console.log('✅ Nueva imagen configurada:', updateData.imagen);
             }
 
+<<<<<<< HEAD
             // Actualizar la publicación
             console.log('💾 Actualizando en base de datos...');
             const publicacionActualizada = await this.repository.update(id, updateData);
@@ -166,6 +191,12 @@ class PublicacionesCoalicionController extends BaseController {
                 message: 'Publicación de coalición actualizada exitosamente',
                 data: publicacionActualizada
             });
+=======
+            // Usar el método del BaseController para la actualización
+            // Modificamos req.body para que BaseController use nuestros datos procesados
+            req.body = updateData;
+            await super.update(req, res);
+>>>>>>> f5ed197a2b379e86e5c9088b90e8f3c6176ca71c
         } catch (error) {
             console.error('❌ Error al actualizar publicación de coalición:', error);
             console.error('❌ Stack trace:', error.stack);
