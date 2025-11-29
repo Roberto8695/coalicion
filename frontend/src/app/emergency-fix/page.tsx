@@ -126,8 +126,8 @@ export default function EmergencyFixPage() {
         <div className="bg-yellow-900/20 border border-yellow-600 rounded-lg p-6">
           <h3 className="text-yellow-400 font-medium mb-2">⚠️ Instrucciones de Uso</h3>
           <ol className="text-yellow-300 space-y-2">
-            <li><strong>1.</strong> Primero haz clic en "Verificar Trigger" para ver el estado actual</li>
-            <li><strong>2.</strong> Si ves errores en la función, haz clic en "Ejecutar Fix Emergency"</li>
+            <li><strong>1.</strong> Primero haz clic en &quot;Verificar Trigger&quot; para ver el estado actual</li>
+            <li><strong>2.</strong> Si ves errores en la función, haz clic en &quot;Ejecutar Fix Emergency&quot;</li>
             <li><strong>3.</strong> Después del fix, verifica nuevamente para confirmar que funciona</li>
             <li><strong>4.</strong> Prueba actualizar una publicación en el CMS</li>
             <li><strong>5.</strong> <strong>ELIMINA esta página después de usar</strong></li>
