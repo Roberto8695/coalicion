@@ -1,7 +1,6 @@
 const BaseController = require('./BaseController');
 const PublicacionesCoalicionRepository = require('../repositories/PublicacionesCoalicionRepository');
-const path = require('path');
-const fs = require('fs').promises;
+const { deleteFromCloudinary, extractPublicIdFromUrl } = require('../utils/cloudinary');
 
 class PublicacionesCoalicionController extends BaseController {
     constructor() {
@@ -71,26 +70,35 @@ class PublicacionesCoalicionController extends BaseController {
     // Crear nueva publicación de coalición
     async create(req, res) {
         try {
+            console.log('🔄 Starting create process...');
+            console.log('📝 Request body:', req.body);
+            console.log('📷 Request file:', req.file ? req.file.filename : 'No file');
+            
             const publicacionData = { ...req.body };
 
             // Validar datos
             const errors = this.validatePublicacionData(publicacionData);
             if (errors.length > 0) {
+                console.log('❌ Errores de validación:', errors);
                 return res.status(400).json({
                     success: false,
                     message: 'Errores de validación',
                     errors
                 });
             }
+            console.log('✅ Datos validados correctamente');
 
-            // Manejar imagen si se proporciona
+            // Manejar imagen si se proporciona (Cloudinary)
             if (req.file) {
-                // Guardar la ruta relativa desde /uploads
-                publicacionData.imagen = `/uploads/infografia/jpg/${req.file.filename}`;
+                console.log('📷 Imagen subida a Cloudinary:', req.file.path);
+                // Con Cloudinary, req.file.path contiene la URL completa
+                publicacionData.imagen = req.file.path;
             }
 
             // Crear la publicación
+            console.log('💾 Creando en base de datos...');
             const nuevaPublicacion = await this.repository.create(publicacionData);
+            console.log('✅ Publicación creada exitosamente');
 
             res.status(201).json({
                 success: true,
@@ -98,7 +106,8 @@ class PublicacionesCoalicionController extends BaseController {
                 data: nuevaPublicacion
             });
         } catch (error) {
-            console.error('Error al crear publicación de coalición:', error);
+            console.error('❌ Error al crear publicación de coalición:', error);
+            console.error('❌ Stack trace:', error.stack);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor',
@@ -117,7 +126,6 @@ class PublicacionesCoalicionController extends BaseController {
             const { id } = req.params;
             const updateData = { ...req.body };
 
-<<<<<<< HEAD
             // Verificar que existe la publicación
             const existingPublicacion = await this.repository.findById(id);
             if (!existingPublicacion) {
@@ -141,46 +149,28 @@ class PublicacionesCoalicionController extends BaseController {
             }
             console.log('✅ Datos validados correctamente');
 
-            // Manejar nueva imagen
+            // Manejar nueva imagen (Cloudinary)
             if (req.file) {
-                console.log('📷 Procesando nueva imagen:', req.file.filename);
+                console.log('📷 Procesando nueva imagen en Cloudinary:', req.file.path);
                 
-                // Asegurar que el directorio de uploads existe
-                const uploadsDir = path.join(__dirname, '../uploads/infografia/jpg');
-                try {
-                    await fs.access(uploadsDir);
-                    console.log('✅ Directorio de uploads existe');
-                } catch (err) {
-                    console.log('📁 Creando directorio de uploads...');
-                    await fs.mkdir(uploadsDir, { recursive: true });
-                    console.log('✅ Directorio de uploads creado');
-                }
-                
-                // Eliminar imagen anterior si existe
+                // Eliminar imagen anterior si existe en Cloudinary
                 if (existingPublicacion.imagen) {
-=======
-            // Manejar nueva imagen si se subió
-            if (req.file) {
-                // Verificar que existe la publicación para eliminar imagen anterior
-                const existingPublicacion = await this.repository.findById(id);
-                if (existingPublicacion && existingPublicacion.imagen) {
->>>>>>> f5ed197a2b379e86e5c9088b90e8f3c6176ca71c
                     try {
-                        // Extraer solo el nombre del archivo de la ruta completa
-                        const filename = existingPublicacion.imagen.split('/').pop();
-                        const oldImagePath = path.join(__dirname, '../uploads/infografia/jpg', filename);
-                        await fs.unlink(oldImagePath);
-                        console.log('🗑️ Imagen anterior eliminada:', filename);
+                        const publicId = extractPublicIdFromUrl(existingPublicacion.imagen);
+                        if (publicId) {
+                            await deleteFromCloudinary(publicId);
+                            console.log('🗑️ Imagen anterior eliminada de Cloudinary');
+                        }
                     } catch (err) {
-                        console.log('⚠️ No se pudo eliminar la imagen anterior:', err.message);
+                        console.log('⚠️ No se pudo eliminar la imagen anterior de Cloudinary:', err.message);
                     }
                 }
-                // Guardar la ruta relativa desde /uploads
-                updateData.imagen = `/uploads/infografia/jpg/${req.file.filename}`;
+                
+                // Con Cloudinary, req.file.path contiene la URL completa
+                updateData.imagen = req.file.path;
                 console.log('✅ Nueva imagen configurada:', updateData.imagen);
             }
 
-<<<<<<< HEAD
             // Actualizar la publicación
             console.log('💾 Actualizando en base de datos...');
             const publicacionActualizada = await this.repository.update(id, updateData);
@@ -191,12 +181,6 @@ class PublicacionesCoalicionController extends BaseController {
                 message: 'Publicación de coalición actualizada exitosamente',
                 data: publicacionActualizada
             });
-=======
-            // Usar el método del BaseController para la actualización
-            // Modificamos req.body para que BaseController use nuestros datos procesados
-            req.body = updateData;
-            await super.update(req, res);
->>>>>>> f5ed197a2b379e86e5c9088b90e8f3c6176ca71c
         } catch (error) {
             console.error('❌ Error al actualizar publicación de coalición:', error);
             console.error('❌ Stack trace:', error.stack);
@@ -222,13 +206,16 @@ class PublicacionesCoalicionController extends BaseController {
                 });
             }
 
-            // Eliminar imagen si existe
+            // Eliminar imagen de Cloudinary si existe
             if (existingPublicacion.imagen) {
                 try {
-                    const imagePath = path.join(__dirname, '../uploads/infografia/jpg', existingPublicacion.imagen);
-                    await fs.unlink(imagePath);
+                    const publicId = extractPublicIdFromUrl(existingPublicacion.imagen);
+                    if (publicId) {
+                        await deleteFromCloudinary(publicId);
+                        console.log('🗑️ Imagen eliminada de Cloudinary');
+                    }
                 } catch (err) {
-                    console.log('No se pudo eliminar la imagen:', err.message);
+                    console.log('⚠️ No se pudo eliminar la imagen de Cloudinary:', err.message);
                 }
             }
 

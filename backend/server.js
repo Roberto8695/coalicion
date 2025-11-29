@@ -3,7 +3,6 @@ const { Pool } = require('pg'); // Se recomienda usar Pool para manejar conexion
 const dotenv = require('dotenv');
 const cors = require('cors'); // Para permitir CORS si es necesario
 const path = require('path');
-const fs = require('fs').promises;
 
 dotenv.config(); // Carga las variables de entorno
 const app = express();
@@ -131,53 +130,11 @@ app.use((error, req, res, next) => {
     });
 });
 
-// Función para crear directorios de uploads
-async function createUploadDirectories() {
-    const uploadDirs = [
-        'uploads/arte/jpg',
-        'uploads/arte/png', 
-        'uploads/arte/gif',
-        'uploads/arte/svg',
-        'uploads/infografia/jpg',
-        'uploads/infografia/png',
-        'uploads/infografia/pdf',
-        'uploads/infografia/svg',
-        'uploads/presentacion/pdf',
-        'uploads/presentacion/ppt',
-        'uploads/presentacion/pptx',
-        'uploads/video/mp4',
-        'uploads/video/avi',
-        'uploads/video/mov',
-        'uploads/video/mkv',
-        'uploads/thumbnails',
-        'uploads/previews',
-        'uploads/temp'
-    ];
-
-    try {
-        for (const dir of uploadDirs) {
-            const fullPath = path.join(__dirname, dir);
-            try {
-                await fs.access(fullPath);
-                console.log(`✅ Directorio existe: ${dir}`);
-            } catch (err) {
-                await fs.mkdir(fullPath, { recursive: true });
-                console.log(`📁 Directorio creado: ${dir}`);
-            }
-        }
-        console.log('✅ Todos los directorios de uploads están listos');
-    } catch (error) {
-        console.error('❌ Error creando directorios de uploads:', error);
-    }
-}
-
 // Iniciar servidor
-app.listen(port, async () => {
+app.listen(port, () => {
     console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
     console.log(`📊 Conectando a base de datos: ${process.env.DB_DATABASE}`);
     console.log(`📡 API disponible en: http://localhost:${port}/api`);
     console.log(`📖 Documentación en: http://localhost:${port}/api`);
-    
-    // Crear directorios de uploads
-    await createUploadDirectories();
+    console.log(`☁️ Cloudinary configurado: ${process.env.CLOUDINARY_CLOUD_NAME || 'No configurado'}`);
 });

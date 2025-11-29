@@ -4,17 +4,17 @@ import { api, getAssetUrl } from './config';
 const getPublicacionCoalicionImageUrl = (imagen: string | null | undefined): string | null => {
   if (!imagen) return null;
   
-  // Si ya es una URL completa, devolverla tal como está
+  // Si ya es una URL completa (incluyendo Cloudinary), devolverla tal como está
   if (imagen.startsWith('http://') || imagen.startsWith('https://')) {
     return imagen;
   }
   
-  // Si ya empieza con /uploads, usar getAssetUrl normal
+  // Si ya empieza con /uploads, usar getAssetUrl normal (para imágenes legacy)
   if (imagen.startsWith('/uploads')) {
     return getAssetUrl(imagen);
   }
   
-  // Si es solo un nombre de archivo, construir la ruta completa
+  // Si es solo un nombre de archivo, construir la ruta completa (legacy)
   return getAssetUrl(`/uploads/infografia/jpg/${imagen}`);
 };
 
@@ -278,32 +278,33 @@ class PublicacionesCoalicionService {
 
   // Actualizar publicación
   async update(id: number, publicacionData: UpdatePublicacionCoalicion) {
-    const formData = new FormData();
-    
-    // Solo agregar campos que no sean undefined
-    if (publicacionData.titulo !== undefined) {
-      formData.append('titulo', publicacionData.titulo);
-    }
-    if (publicacionData.descripcion !== undefined) {
-      formData.append('descripcion', publicacionData.descripcion);
-    }
-    if (publicacionData.fecha_publi !== undefined) {
-      formData.append('fecha_publi', publicacionData.fecha_publi);
-    }
-    if (publicacionData.url !== undefined) {
-      formData.append('url', publicacionData.url);
-    }
-    
-    // Agregar imagen si existe
-    if (publicacionData.imagen) {
-      formData.append('imagen', publicacionData.imagen);
-    }
+    try {
+      const formData = new FormData();
+      
+      // Solo agregar campos que no sean undefined
+      if (publicacionData.titulo !== undefined) {
+        formData.append('titulo', publicacionData.titulo);
+      }
+      if (publicacionData.descripcion !== undefined) {
+        formData.append('descripcion', publicacionData.descripcion);
+      }
+      if (publicacionData.fecha_publi !== undefined) {
+        formData.append('fecha_publi', publicacionData.fecha_publi);
+      }
+      if (publicacionData.url !== undefined) {
+        formData.append('url', publicacionData.url);
+      }
+      
+      // Agregar imagen si existe
+      if (publicacionData.imagen) {
+        formData.append('imagen', publicacionData.imagen);
+      }
 
-    const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+      const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       if (!response?.data) {
         throw new Error('Error al actualizar la publicación');

@@ -25,15 +25,16 @@ export const api = axios.create({
 export const getAssetUrl = (relativePath: string): string => {
   if (!relativePath) return '';
   
-  // Si ya es una URL completa, devolverla tal como está
+  // Si ya es una URL completa (incluyendo Cloudinary), devolverla tal como está
   if (relativePath.startsWith('http://') || relativePath.startsWith('https://')) {
+    console.log('🖼️ URL completa detectada:', relativePath);
     return relativePath;
   }
   
-  // Si empieza con /uploads, construir URL completa del backend
+  // Para rutas locales legacy, construir URL del backend
   if (relativePath.startsWith('/uploads')) {
     const fullUrl = `${BACKEND_BASE_URL}${relativePath}`;
-    console.log('🖼️ Asset URL built:', relativePath, '->', fullUrl);
+    console.log('🖼️ Asset URL built (legacy):', relativePath, '->', fullUrl);
     return fullUrl;
   }
   
