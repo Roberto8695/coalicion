@@ -299,8 +299,8 @@ class PublicacionesCoalicionService {
         formData.append('url', publicacionData.url);
       }
       
-      // Agregar imagen
-      formData.append('imagen', publicacionData.imagen);
+      // Agregar imagen (ya verificamos que existe con hasNewImage)
+      formData.append('imagen', publicacionData.imagen!);
 
       const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
         headers: {
@@ -321,7 +321,7 @@ class PublicacionesCoalicionService {
       };
     } else {
       // Si no hay imagen nueva, usar JSON y ruta normal
-      const updateData: any = {};
+      const updateData: Partial<UpdatePublicacionCoalicion> = {};
       
       // Solo agregar campos que no sean undefined
       if (publicacionData.titulo !== undefined) {
