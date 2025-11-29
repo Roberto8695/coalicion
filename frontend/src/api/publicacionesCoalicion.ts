@@ -1,8 +1,13 @@
 import { api, getAssetUrl } from './config';
 
 // Función específica para construir URLs de imágenes de publicaciones de coalición
-const getPublicacionCoalicionImageUrl = (imagen: string | null | undefined): string | null => {
+const getPublicacionCoalicionImageUrl = (imagen: string | File | null | undefined): string | null => {
   if (!imagen) return null;
+  
+  // Si es un File (para casos de CMS), crear URL temporal
+  if (typeof imagen !== 'string') {
+    return URL.createObjectURL(imagen);
+  }
   
   // Si ya es una URL completa (incluyendo Cloudinary), devolverla tal como está
   if (imagen.startsWith('http://') || imagen.startsWith('https://')) {
@@ -24,7 +29,7 @@ export interface PublicacionCoalicion {
   descripcion: string;
   fecha_publi: string;
   url?: string;
-  imagen?: string | null;
+  imagen?: string | File | null;
   created_at: string;
   updated_at: string;
 }

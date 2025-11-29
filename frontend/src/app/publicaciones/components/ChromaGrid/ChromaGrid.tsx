@@ -44,8 +44,13 @@ const convertPublicacionToChromaItem = (publication: PublicacionTendencia, index
   
   const colorScheme = colors[index % colors.length];
   
+  // Manejar imagen que puede ser string o File
+  const imageUrl = publication.imagen 
+    ? (typeof publication.imagen === 'string' ? publication.imagen : URL.createObjectURL(publication.imagen))
+    : '';
+  
   return {
-    image: getAssetUrl(publication.imagen || ''),
+    image: getAssetUrl(imageUrl),
     title: publication.titulo,
     subtitle: publication.descripcion || '',
     handle: publication.autor ? `@${publication.autor}` : undefined,

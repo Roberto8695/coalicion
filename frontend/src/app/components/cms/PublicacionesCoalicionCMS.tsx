@@ -264,7 +264,14 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       url: publicacion.url || ''
     });
     if (publicacion.imagen) {
-      setImagePreview(publicacion.imagen);
+      const imagen = publicacion.imagen;
+      // Simplificar la verificación de tipo
+      if (typeof imagen !== 'string' && imagen) {
+        // Asumimos que es File si no es string
+        setImagePreview(URL.createObjectURL(imagen as File));
+      } else if (typeof imagen === 'string') {
+        setImagePreview(imagen);
+      }
     }
     setShowModal(true);
   };
@@ -460,11 +467,17 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                         <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center">
                           {publicacion.imagen ? (
                             <Image
-                              src={publicacion.imagen}
+                              src={(() => {
+                                const imagen = publicacion.imagen;
+                                if (!imagen) return '';
+                                if (typeof imagen === 'string') return imagen;
+                                // Si es File, crear URL temporal
+                                return URL.createObjectURL(imagen as File);
+                              })()}
                               alt={publicacion.titulo}
                               width={64}
                               height={64}
-                              className="object-cover w-full h-full"
+                              className="w-full h-full object-cover"
                               onError={(e) => {
                                 console.error('Error loading image:', publicacion.imagen);
                                 e.currentTarget.style.display = 'none';
