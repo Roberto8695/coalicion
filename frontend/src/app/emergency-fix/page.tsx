@@ -28,21 +28,23 @@ export default function EmergencyFixPage() {
     setResult(null);
     
     try {
-      const response = await fetch('/api/emergency/fix-trigger-emergency', {
+      // Usar la URL de producción directamente
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://coalicion.onrender.com/api';
+      const response = await fetch(`${API_URL}/emergency/fix-trigger-emergency`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
       });
       
-      const data = await response.json();
-      
-      if (response.ok) {
-        setResult(data);
-      } else {
-        setError(data);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      
+      const data = await response.json();
+      setResult(data);
     } catch (err) {
+      console.error('Error completo:', err);
       setError({
         success: false,
         message: 'Error de conexión',
@@ -58,10 +60,18 @@ export default function EmergencyFixPage() {
     setVerificationResult(null);
     
     try {
-      const response = await fetch('/api/emergency/verify-trigger');
+      // Usar la URL de producción directamente
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://coalicion.onrender.com/api';
+      const response = await fetch(`${API_URL}/emergency/verify-trigger`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       setVerificationResult(data);
     } catch (err) {
+      console.error('Error completo:', err);
       setVerificationResult({
         success: false,
         message: 'Error al verificar trigger',
@@ -75,6 +85,19 @@ export default function EmergencyFixPage() {
   return (
     <div className="min-h-screen bg-gray-900 p-8">
       <div className="max-w-4xl mx-auto">
+        <div className="bg-gray-800 rounded-lg p-6 mb-8">
+          <h3 className="text-white font-medium mb-4">🔧 Información de Debug</h3>
+          <div className="text-sm text-gray-300 space-y-1">
+            <p><strong>API URL:</strong> {process.env.NEXT_PUBLIC_API_URL || 'https://coalicion.onrender.com/api'}</p>
+            <p><strong>Environment:</strong> {process.env.NODE_ENV}</p>
+            <p><strong>Endpoints:</strong></p>
+            <ul className="ml-4 space-y-1">
+              <li>• Verify: {process.env.NEXT_PUBLIC_API_URL || 'https://coalicion.onrender.com/api'}/emergency/verify-trigger</li>
+              <li>• Fix: {process.env.NEXT_PUBLIC_API_URL || 'https://coalicion.onrender.com/api'}/emergency/fix-trigger-emergency</li>
+            </ul>
+          </div>
+        </div>
+
         <div className="bg-red-900/20 border border-red-600 rounded-lg p-6 mb-8">
           <h1 className="text-2xl font-bold text-red-400 mb-4">🚨 Emergency Database Fix</h1>
           <p className="text-red-300 mb-4">
