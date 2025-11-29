@@ -278,6 +278,8 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
     console.log('Editing ID:', editingId);
     console.log('Form data:', formData);
     console.log('Selected image:', selectedImage ? selectedImage.name : 'No image');
+    console.log('Selected image type:', selectedImage ? selectedImage.type : 'No image');
+    console.log('Selected image size:', selectedImage ? selectedImage.size : 'No image');
 
     try {
       const updateData: UpdatePublicacionCoalicion = {
@@ -286,11 +288,15 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       };
 
       console.log('📤 Sending update data:', {
-        ...updateData,
-        imagen: updateData.imagen ? 'File selected' : 'No file'
+        titulo: updateData.titulo,
+        descripcion: updateData.descripcion,
+        fecha_publi: updateData.fecha_publi,
+        url: updateData.url,
+        imagen: updateData.imagen ? `File: ${updateData.imagen.name} (${updateData.imagen.size} bytes)` : 'No file'
       });
 
-      await publicacionesCoalicionService.update(editingId, updateData);
+      const result = await publicacionesCoalicionService.update(editingId, updateData);
+      console.log('✅ Update successful:', result);
       showNotification('Publicación de coalición actualizada exitosamente', 'success');
       clearForm();
       loadPublicaciones(currentPage);

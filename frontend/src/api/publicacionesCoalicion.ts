@@ -278,6 +278,15 @@ class PublicacionesCoalicionService {
 
   // Actualizar publicación
   async update(id: number, publicacionData: UpdatePublicacionCoalicion) {
+    console.log('🔧 Actualizando publicación:', id);
+    console.log('📝 Datos a enviar:', {
+      titulo: publicacionData.titulo,
+      descripcion: publicacionData.descripcion,
+      fecha_publi: publicacionData.fecha_publi,
+      url: publicacionData.url,
+      hasImage: !!publicacionData.imagen
+    });
+    
     try {
       const formData = new FormData();
       
@@ -295,11 +304,29 @@ class PublicacionesCoalicionService {
         formData.append('url', publicacionData.url);
       }
       
-      // Agregar imagen si existe
-      if (publicacionData.imagen) {
+      // Agregar imagen si existe y es un archivo válido
+      if (publicacionData.imagen && publicacionData.imagen instanceof File) {
+        console.log('📷 Agregando archivo a FormData:', {
+          name: publicacionData.imagen.name,
+          type: publicacionData.imagen.type,
+          size: publicacionData.imagen.size
+        });
         formData.append('imagen', publicacionData.imagen);
+      } else if (publicacionData.imagen) {
+        console.warn('⚠️ Imagen no es un archivo válido:', typeof publicacionData.imagen);
       }
 
+      // Debug: Mostrar contenido de FormData
+      console.log('📤 FormData contents:');
+      for (const pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(`  ${pair[0]}: File(${pair[1].name}, ${pair[1].size} bytes)`);
+        } else {
+          console.log(`  ${pair[0]}: ${pair[1]}`);
+        }
+      }
+
+      console.log('🚀 API Request: PUT', `${this.endpoint}/dashboard/${id}/upload`);
       const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -318,7 +345,7 @@ class PublicacionesCoalicionService {
         }
       };
     } catch (error) {
-      console.error('Error en update service:', error);
+      console.error('❌ Error en update service:', error);
       throw error;
     }
   }
