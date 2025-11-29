@@ -56,8 +56,6 @@ class PublicacionesCoalicionController extends BaseController {
             // Solo requerir en creación
             errors.push('La fecha de publicación es requerida');
         }
-            }
-        }
 
         if (data.url && data.url.trim().length > 0) {
             try {
