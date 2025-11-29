@@ -136,6 +136,7 @@ class PublicacionesCoalicionController extends BaseController {
                 });
             }
             console.log('✅ Publicación encontrada:', existingPublicacion.titulo);
+            console.log('🖼️ Imagen actual:', existingPublicacion.imagen);
 
             // Validar datos
             const errors = this.validatePublicacionData(updateData);
@@ -154,25 +155,33 @@ class PublicacionesCoalicionController extends BaseController {
                 console.log('📷 Procesando nueva imagen en Cloudinary:', req.file.path);
                 
                 // Eliminar imagen anterior si existe en Cloudinary
-                if (existingPublicacion.imagen) {
+                if (existingPublicacion.imagen && existingPublicacion.imagen.includes('cloudinary.com')) {
                     try {
+                        console.log('🗑️ Intentando eliminar imagen anterior:', existingPublicacion.imagen);
                         const publicId = extractPublicIdFromUrl(existingPublicacion.imagen);
                         if (publicId) {
-                            await deleteFromCloudinary(publicId);
-                            console.log('🗑️ Imagen anterior eliminada de Cloudinary');
+                            const deleteResult = await deleteFromCloudinary(publicId);
+                            console.log('✅ Imagen anterior eliminada de Cloudinary:', deleteResult);
+                        } else {
+                            console.log('⚠️ No se pudo extraer public_id de:', existingPublicacion.imagen);
                         }
                     } catch (err) {
-                        console.log('⚠️ No se pudo eliminar la imagen anterior de Cloudinary:', err.message);
+                        console.error('⚠️ Error al eliminar imagen anterior de Cloudinary:', err);
+                        // No fallar por esto, continuar con la actualización
                     }
+                } else {
+                    console.log('ℹ️ No hay imagen anterior de Cloudinary para eliminar');
                 }
                 
                 // Con Cloudinary, req.file.path contiene la URL completa
                 updateData.imagen = req.file.path;
                 console.log('✅ Nueva imagen configurada:', updateData.imagen);
+            } else {
+                console.log('ℹ️ No se proporcionó nueva imagen');
             }
 
             // Actualizar la publicación
-            console.log('💾 Actualizando en base de datos...');
+            console.log('💾 Actualizando en base de datos con datos:', updateData);
             const publicacionActualizada = await this.repository.update(id, updateData);
             console.log('✅ Publicación actualizada exitosamente');
 
@@ -182,12 +191,21 @@ class PublicacionesCoalicionController extends BaseController {
                 data: publicacionActualizada
             });
         } catch (error) {
-            console.error('❌ Error al actualizar publicación de coalición:', error);
-            console.error('❌ Stack trace:', error.stack);
+            console.error('❌ Error completo en update:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            
+            // Enviar respuesta de error más específica
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor',
-                error: error.message
+                error: process.env.NODE_ENV === 'development' ? error.message : 'Error interno del servidor',
+                details: process.env.NODE_ENV === 'development' ? {
+                    stack: error.stack,
+                    name: error.name
+                } : undefined
             });
         }
     }

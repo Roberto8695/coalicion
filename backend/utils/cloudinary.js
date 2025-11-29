@@ -42,6 +42,7 @@ const deleteFromCloudinary = async (publicId) => {
 // Función para extraer el public_id de una URL de Cloudinary
 const extractPublicIdFromUrl = (url) => {
   if (!url || !url.includes('cloudinary.com')) {
+    console.log('🔍 URL no es de Cloudinary:', url);
     return null;
   }
   
@@ -51,7 +52,10 @@ const extractPublicIdFromUrl = (url) => {
     const parts = url.split('/');
     const uploadIndex = parts.findIndex(part => part === 'upload');
     
-    if (uploadIndex === -1) return null;
+    if (uploadIndex === -1) {
+      console.log('🔍 No se encontró "upload" en la URL:', url);
+      return null;
+    }
     
     // El public_id está después de 'upload/v{version}/' o 'upload/'
     let publicIdParts = parts.slice(uploadIndex + 1);
