@@ -2,11 +2,25 @@
 
 import React, { useState } from 'react';
 
+interface ApiResponse {
+  success: boolean;
+  message: string;
+  error?: string;
+  timestamp?: string;
+  warning?: string;
+}
+
+interface VerificationResponse extends ApiResponse {
+  function_exists?: boolean;
+  function_details?: Record<string, unknown>;
+  triggers?: Record<string, unknown>[];
+}
+
 export default function EmergencyFixPage() {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
-  const [verificationResult, setVerificationResult] = useState(null);
+  const [result, setResult] = useState<ApiResponse | null>(null);
+  const [error, setError] = useState<ApiResponse | null>(null);
+  const [verificationResult, setVerificationResult] = useState<VerificationResponse | null>(null);
 
   const executeFix = async () => {
     setLoading(true);
@@ -32,7 +46,7 @@ export default function EmergencyFixPage() {
       setError({
         success: false,
         message: 'Error de conexión',
-        error: err.message
+        error: err instanceof Error ? err.message : 'Error desconocido'
       });
     } finally {
       setLoading(false);
@@ -51,7 +65,7 @@ export default function EmergencyFixPage() {
       setVerificationResult({
         success: false,
         message: 'Error al verificar trigger',
-        error: err.message
+        error: err instanceof Error ? err.message : 'Error desconocido'
       });
     } finally {
       setLoading(false);
