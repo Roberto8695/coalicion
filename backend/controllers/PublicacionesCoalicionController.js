@@ -94,30 +94,51 @@ class PublicacionesCoalicionController extends BaseController {
     // Actualizar publicación de coalición
     async update(req, res) {
         try {
+            console.log('🔄 Starting update process for ID:', req.params.id);
+            console.log('📝 Request body:', req.body);
+            console.log('📷 Request file:', req.file ? req.file.filename : 'No file');
+            
             const { id } = req.params;
             const updateData = { ...req.body };
 
             // Verificar que existe la publicación
             const existingPublicacion = await this.repository.findById(id);
             if (!existingPublicacion) {
+                console.log('❌ Publicación no encontrada para ID:', id);
                 return res.status(404).json({
                     success: false,
                     message: 'Publicación de coalición no encontrada'
                 });
             }
+            console.log('✅ Publicación encontrada:', existingPublicacion.titulo);
 
             // Validar datos
             const errors = this.validatePublicacionData(updateData);
             if (errors.length > 0) {
+                console.log('❌ Errores de validación:', errors);
                 return res.status(400).json({
                     success: false,
                     message: 'Errores de validación',
                     errors
                 });
             }
+            console.log('✅ Datos validados correctamente');
 
             // Manejar nueva imagen
             if (req.file) {
+                console.log('📷 Procesando nueva imagen:', req.file.filename);
+                
+                // Asegurar que el directorio de uploads existe
+                const uploadsDir = path.join(__dirname, '../uploads/infografia/jpg');
+                try {
+                    await fs.access(uploadsDir);
+                    console.log('✅ Directorio de uploads existe');
+                } catch (err) {
+                    console.log('📁 Creando directorio de uploads...');
+                    await fs.mkdir(uploadsDir, { recursive: true });
+                    console.log('✅ Directorio de uploads creado');
+                }
+                
                 // Eliminar imagen anterior si existe
                 if (existingPublicacion.imagen) {
                     try {
@@ -125,16 +146,20 @@ class PublicacionesCoalicionController extends BaseController {
                         const filename = existingPublicacion.imagen.split('/').pop();
                         const oldImagePath = path.join(__dirname, '../uploads/infografia/jpg', filename);
                         await fs.unlink(oldImagePath);
+                        console.log('🗑️ Imagen anterior eliminada:', filename);
                     } catch (err) {
-                        console.log('No se pudo eliminar la imagen anterior:', err.message);
+                        console.log('⚠️ No se pudo eliminar la imagen anterior:', err.message);
                     }
                 }
                 // Guardar la ruta relativa desde /uploads
                 updateData.imagen = `/uploads/infografia/jpg/${req.file.filename}`;
+                console.log('✅ Nueva imagen configurada:', updateData.imagen);
             }
 
             // Actualizar la publicación
+            console.log('💾 Actualizando en base de datos...');
             const publicacionActualizada = await this.repository.update(id, updateData);
+            console.log('✅ Publicación actualizada exitosamente');
 
             res.json({
                 success: true,
@@ -142,7 +167,8 @@ class PublicacionesCoalicionController extends BaseController {
                 data: publicacionActualizada
             });
         } catch (error) {
-            console.error('Error al actualizar publicación de coalición:', error);
+            console.error('❌ Error al actualizar publicación de coalición:', error);
+            console.error('❌ Stack trace:', error.stack);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor',
