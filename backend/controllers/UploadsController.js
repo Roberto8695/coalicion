@@ -16,22 +16,10 @@ class UploadsController {
       general: getCloudinaryStorage('general')
     };
 
-    // Filtros de archivos
+    // Filtro de archivos más permisivo - validaremos después
     const fileFilter = (req, file, cb) => {
-      const { type } = req.body;
-      
-      const allowedTypes = {
-        'infografia': ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'application/pdf'],
-        'video': ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo'],
-        'arte': ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'image/gif'],
-        'presentacion': ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']
-      };
-
-      if (type && allowedTypes[type] && allowedTypes[type].includes(file.mimetype)) {
-        cb(null, true);
-      } else {
-        cb(new Error(`Tipo de archivo no permitido para categoría: ${type}`));
-      }
+      // Permitir todos los archivos inicialmente, validaremos después
+      cb(null, true);
     };
 
     // Setup multer configs para cada tipo
@@ -49,20 +37,8 @@ class UploadsController {
   // Subir archivo principal
   uploadFile = async (req, res) => {
     try {
-      const { type = 'general' } = req.body;
-      
-      console.log('📁 Subiendo archivo tipo:', type);
-      
-      // Validar tipo
-      if (!['infografia', 'video', 'arte', 'presentacion', 'general'].includes(type)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Tipo de multimedia inválido. Tipos permitidos: infografia, video, arte, presentacion, general'
-        });
-      }
-
-      // Usar el multer config correspondiente al tipo
-      const uploadMiddleware = this[`upload_${type}`].single('file');
+      // Usar multer general primero para obtener el archivo
+      const uploadMiddleware = this.upload_general.single('file');
       
       uploadMiddleware(req, res, async (err) => {
         if (err) {
@@ -82,6 +58,48 @@ class UploadsController {
         }
 
         try {
+          // Ahora podemos acceder a req.body
+          const { type = 'general' } = req.body;
+          
+          console.log('📁 Subiendo archivo tipo:', type);
+          console.log('📄 Archivo recibido:', {
+            originalname: req.file.originalname,
+            mimetype: req.file.mimetype,
+            size: req.file.size
+          });
+          
+          // Validar tipo
+          if (!['infografia', 'video', 'arte', 'presentacion', 'general'].includes(type)) {
+            // Eliminar archivo si el tipo es inválido
+            if (req.file?.filename) {
+              await deleteFromCloudinary(req.file.filename, 'general');
+            }
+            return res.status(400).json({
+              success: false,
+              message: 'Tipo de multimedia inválido. Tipos permitidos: infografia, video, arte, presentacion, general'
+            });
+          }
+
+          // Validar tipo de archivo según categoría
+          const allowedTypes = {
+            'infografia': ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'application/pdf'],
+            'video': ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo'],
+            'arte': ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'image/gif'],
+            'presentacion': ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+            'general': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'] // Para logos y thumbnails
+          };
+
+          if (!allowedTypes[type] || !allowedTypes[type].includes(req.file.mimetype)) {
+            // Eliminar archivo si el tipo no es permitido
+            if (req.file?.filename) {
+              await deleteFromCloudinary(req.file.filename, 'general');
+            }
+            return res.status(400).json({
+              success: false,
+              message: `Tipo de archivo no permitido para ${type}. Archivo: ${req.file.mimetype}. Tipos permitidos: ${allowedTypes[type]?.join(', ') || 'ninguno'}`
+            });
+          }
+
           // El archivo ya fue subido a Cloudinary por multer-storage-cloudinary
           const fileInfo = {
             originalName: req.file.originalname,
@@ -113,7 +131,7 @@ class UploadsController {
           // Si hay error, intentar eliminar de Cloudinary
           if (req.file?.filename) {
             try {
-              await deleteFromCloudinary(req.file.filename, type);
+              await deleteFromCloudinary(req.file.filename, 'general');
               console.log('🗑️ Archivo eliminado de Cloudinary tras error');
             } catch (deleteError) {
               console.error('❌ Error al eliminar archivo de Cloudinary:', deleteError);
