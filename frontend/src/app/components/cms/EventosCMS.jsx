@@ -583,11 +583,11 @@ export const EventosCMS = () => {
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border  border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
                   {eventTypeOptions.map(option => (
-                    <option key={option.value} value={option.value}>
+                    <option className='bg-gray-800 ' key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
@@ -651,7 +651,7 @@ export const EventosCMS = () => {
                   required
                 >
                   {statusOptions.map(option => (
-                    <option key={option.value} value={option.value}>
+                    <option className='bg-gray-800' key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
