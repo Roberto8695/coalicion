@@ -113,29 +113,11 @@ class PublicacionesCoalicionController extends BaseController {
             const { id } = req.params;
             const updateData = { ...req.body };
 
-            // Verificar que existe la publicación
-            const existingPublicacion = await this.repository.findById(id);
-            if (!existingPublicacion) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Publicación de coalición no encontrada'
-                });
-            }
-
-            // Validar datos (pasando true para indicar que es una actualización)
-            const errors = this.validatePublicacionData(updateData, true);
-            if (errors.length > 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Errores de validación',
-                    errors
-                });
-            }
-
-            // Manejar nueva imagen
+            // Manejar nueva imagen si se subió
             if (req.file) {
-                // Eliminar imagen anterior si existe
-                if (existingPublicacion.imagen) {
+                // Verificar que existe la publicación para eliminar imagen anterior
+                const existingPublicacion = await this.repository.findById(id);
+                if (existingPublicacion && existingPublicacion.imagen) {
                     try {
                         // Extraer solo el nombre del archivo de la ruta completa
                         const filename = existingPublicacion.imagen.split('/').pop();
@@ -149,14 +131,10 @@ class PublicacionesCoalicionController extends BaseController {
                 updateData.imagen = `/uploads/infografia/jpg/${req.file.filename}`;
             }
 
-            // Actualizar la publicación
-            const publicacionActualizada = await this.repository.update(id, updateData);
-
-            res.json({
-                success: true,
-                message: 'Publicación de coalición actualizada exitosamente',
-                data: publicacionActualizada
-            });
+            // Usar el método del BaseController para la actualización
+            // Modificamos req.body para que BaseController use nuestros datos procesados
+            req.body = updateData;
+            await super.update(req, res);
         } catch (error) {
             console.error('Error al actualizar publicación de coalición:', error);
             res.status(500).json({
