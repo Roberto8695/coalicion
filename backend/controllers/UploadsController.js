@@ -13,7 +13,8 @@ class UploadsController {
       video: getCloudinaryStorage('video'), 
       arte: getCloudinaryStorage('arte'),
       presentacion: getCloudinaryStorage('presentacion'),
-      general: getCloudinaryStorage('general')
+      general: getCloudinaryStorage('general'),
+      logos: getCloudinaryStorage('logos')
     };
 
     // Filtro de archivos más permisivo - validaremos después
@@ -37,7 +38,8 @@ class UploadsController {
   // Subir archivo principal
   uploadFile = async (req, res) => {
     try {
-      // Usar multer general primero para obtener el archivo
+      // Primero necesitamos determinar el tipo desde el query o form data
+      // Para esto usaremos multer general inicialmente
       const uploadMiddleware = this.upload_general.single('file');
       
       uploadMiddleware(req, res, async (err) => {
@@ -69,14 +71,14 @@ class UploadsController {
           });
           
           // Validar tipo
-          if (!['infografia', 'video', 'arte', 'presentacion', 'general'].includes(type)) {
+          if (!['infografia', 'video', 'arte', 'presentacion', 'general', 'logos'].includes(type)) {
             // Eliminar archivo si el tipo es inválido
             if (req.file?.filename) {
               await deleteFromCloudinary(req.file.filename, 'general');
             }
             return res.status(400).json({
               success: false,
-              message: 'Tipo de multimedia inválido. Tipos permitidos: infografia, video, arte, presentacion, general'
+              message: 'Tipo de multimedia inválido. Tipos permitidos: infografia, video, arte, presentacion, general, logos'
             });
           }
 
@@ -86,7 +88,8 @@ class UploadsController {
             'video': ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo'],
             'arte': ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'image/gif'],
             'presentacion': ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
-            'general': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'] // Para logos y thumbnails
+            'general': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'], // Para logos y thumbnails
+            'logos': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'] // Para logos de verificadores
           };
 
           if (!allowedTypes[type] || !allowedTypes[type].includes(req.file.mimetype)) {
