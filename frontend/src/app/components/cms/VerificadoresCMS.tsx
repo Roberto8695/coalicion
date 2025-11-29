@@ -18,14 +18,17 @@ import {
 import { verificadoresService, uploadsService } from '@/api/services';
 import type { Verificador } from '@/api/services';
 import { Pagination } from './Pagination';
+import { usePermissions } from '@/hooks/useAuth';
 
 interface VerificadoresCMSProps {
   onClose?: () => void;
 }
 
 export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
+  const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
   const [verificadores, setVerificadores] = useState<Verificador[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -93,6 +96,18 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
   // Manejar envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar permisos según si es creación o edición
+    if (!editingId && !canCreateContent) {
+      setError('No tienes permisos para crear verificadores');
+      return;
+    }
+    if (editingId && !canEditContent) {
+      setError('No tienes permisos para editar verificadores');
+      return;
+    }
+    
+    setError('');
     try {
       let logoUrl = formData.logo;
       
@@ -159,6 +174,12 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
 
   // Editar verificador
   const handleEdit = (verificador: Verificador) => {
+    if (!canEditContent) {
+      setError('No tienes permisos para editar verificadores');
+      return;
+    }
+    
+    setError('');
     setFormData({
       ...verificador,
       features: verificador.features || [],
@@ -176,6 +197,11 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
 
   // Eliminar verificador
   const handleDelete = async (id: number) => {
+    if (!canDeleteContent) {
+      setError('No tienes permisos para eliminar verificadores');
+      return;
+    }
+    
     if (confirm('¿Estás seguro de que deseas eliminar este verificador?')) {
       try {
         await verificadoresService.delete(id);
@@ -276,13 +302,22 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
             </div>
             
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowForm(true)}
-                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
-              >
-                <IconPlus className="w-5 h-5" />
-                Nuevo Verificador
-              </button>
+              {canCreateContent && (
+                <button
+                  onClick={() => {
+                    if (!canCreateContent) {
+                      setError('No tienes permisos para crear verificadores');
+                      return;
+                    }
+                    setError('');
+                    setShowForm(true);
+                  }}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  <IconPlus className="w-5 h-5" />
+                  Nuevo Verificador
+                </button>
+              )}
               {onClose && (
                 <button
                   onClick={onClose}
@@ -294,6 +329,13 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
             </div>
           </div>
         </div>
+
+        {/* Mensaje de error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
 
         {/* Filtros y búsqueda */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 mb-6">
@@ -480,20 +522,24 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
                       {/* Acciones */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleEdit(verificador)}
-                            className="p-2 bg-[#CBA135] hover:bg-[#E5B935] text-white rounded-lg transition-colors"
-                            title="Editar verificador"
-                          >
-                            <IconEdit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => verificador.id && handleDelete(verificador.id)}
-                            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                            title="Eliminar verificador"
-                          >
-                            <IconTrash className="w-4 h-4" />
-                          </button>
+                          {canEditContent && (
+                            <button
+                              onClick={() => handleEdit(verificador)}
+                              className="p-2 bg-[#CBA135] hover:bg-[#E5B935] text-white rounded-lg transition-colors"
+                              title="Editar verificador"
+                            >
+                              <IconEdit className="w-4 h-4" />
+                            </button>
+                          )}
+                          {canDeleteContent && (
+                            <button
+                              onClick={() => verificador.id && handleDelete(verificador.id)}
+                              className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                              title="Eliminar verificador"
+                            >
+                              <IconTrash className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
