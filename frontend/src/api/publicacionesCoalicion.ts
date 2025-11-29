@@ -278,68 +278,42 @@ class PublicacionesCoalicionService {
 
   // Actualizar publicación
   async update(id: number, publicacionData: UpdatePublicacionCoalicion) {
-    // Decidir si usar ruta con upload o sin upload según si hay imagen nueva
-    const hasNewImage = publicacionData.imagen instanceof File;
+    // Para evitar problemas con multer en producción, siempre usar la ruta sin /upload
+    // TODO: En el futuro, implementar upload de imágenes por separado
     
-    if (hasNewImage) {
-      // Si hay imagen nueva, usar FormData y ruta /upload
+    const updateData: Partial<UpdatePublicacionCoalicion> = {};
+    
+    // Solo agregar campos que no sean undefined (excluyendo imagen por ahora)
+    if (publicacionData.titulo !== undefined) {
+      updateData.titulo = publicacionData.titulo;
+    }
+    if (publicacionData.descripcion !== undefined) {
+      updateData.descripcion = publicacionData.descripcion;
+    }
+    if (publicacionData.fecha_publi !== undefined) {
+      updateData.fecha_publi = publicacionData.fecha_publi;
+    }
+    if (publicacionData.url !== undefined) {
+      updateData.url = publicacionData.url;
+    }
+    
+    // Si hay imagen, usar FormData para el upload
+    if (publicacionData.imagen) {
       const formData = new FormData();
       
-      // Solo agregar campos que no sean undefined
-      if (publicacionData.titulo !== undefined) {
-        formData.append('titulo', publicacionData.titulo);
-      }
-      if (publicacionData.descripcion !== undefined) {
-        formData.append('descripcion', publicacionData.descripcion);
-      }
-      if (publicacionData.fecha_publi !== undefined) {
-        formData.append('fecha_publi', publicacionData.fecha_publi);
-      }
-      if (publicacionData.url !== undefined) {
-        formData.append('url', publicacionData.url);
-      }
+      // Agregar campos de texto
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof UpdatePublicacionCoalicion] !== undefined) {
+          formData.append(key, updateData[key as keyof UpdatePublicacionCoalicion] as string);
+        }
+      });
       
-      // Agregar imagen (ya verificamos que existe con hasNewImage)
-      formData.append('imagen', publicacionData.imagen!);
+      // Agregar imagen
+      formData.append('imagen', publicacionData.imagen);
 
-      const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
+      const response = await api.put(`${this.endpoint}/dashboard/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      if (!response?.data) {
-        throw new Error('Error al actualizar la publicación con imagen');
-      }
-
-      return {
-        ...response,
-        data: {
-          ...response.data,
-          imagen: getPublicacionCoalicionImageUrl(response.data.imagen)
-        }
-      };
-    } else {
-      // Si no hay imagen nueva, usar JSON y ruta normal
-      const updateData: Partial<UpdatePublicacionCoalicion> = {};
-      
-      // Solo agregar campos que no sean undefined
-      if (publicacionData.titulo !== undefined) {
-        updateData.titulo = publicacionData.titulo;
-      }
-      if (publicacionData.descripcion !== undefined) {
-        updateData.descripcion = publicacionData.descripcion;
-      }
-      if (publicacionData.fecha_publi !== undefined) {
-        updateData.fecha_publi = publicacionData.fecha_publi;
-      }
-      if (publicacionData.url !== undefined) {
-        updateData.url = publicacionData.url;
-      }
-
-      const response = await api.put(`${this.endpoint}/dashboard/${id}`, updateData, {
-        headers: {
-          'Content-Type': 'application/json',
         },
       });
 
@@ -355,6 +329,25 @@ class PublicacionesCoalicionService {
         }
       };
     }
+
+    // Si no hay imagen, usar JSON normal
+    const response = await api.put(`${this.endpoint}/dashboard/${id}`, updateData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response?.data) {
+      throw new Error('Error al actualizar la publicación');
+    }
+
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        imagen: getPublicacionCoalicionImageUrl(response.data.imagen)
+      }
+    };
   }
 
   // Eliminar publicación

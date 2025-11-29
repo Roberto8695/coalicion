@@ -176,23 +176,23 @@ class PublicacionesTendenciasController extends BaseController {
         try {
             const data = req.body;
             
-            // Validaciones específicas
-            if (data.titulo === '') {
+            // Validaciones específicas - solo validar si el campo está presente
+            if (data.titulo !== undefined && data.titulo === '') {
                 return res.status(400).json({
                     success: false,
                     message: 'El título no puede estar vacío'
                 });
             }
 
-            if (data.descripcion === '') {
+            if (data.descripcion !== undefined && data.descripcion === '') {
                 return res.status(400).json({
                     success: false,
                     message: 'La descripción no puede estar vacía'
                 });
             }
 
-            // Validar URL si se proporciona
-            if (data.url && data.url !== '') {
+            // Validar URL si se proporciona y no está vacía
+            if (data.url !== undefined && data.url && data.url !== '') {
                 try {
                     new URL(data.url);
                 } catch {

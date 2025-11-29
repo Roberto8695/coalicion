@@ -19,25 +19,43 @@ class PublicacionesCoalicionController extends BaseController {
     }
 
     // Validaciones específicas para publicaciones de coalición
-    validatePublicacionData(data) {
+    validatePublicacionData(data, isUpdate = false) {
         const errors = [];
 
-        if (!data.titulo || data.titulo.trim().length === 0) {
+        // En actualizaciones, solo validar si el campo está presente
+        if (data.titulo !== undefined) {
+            if (!data.titulo || data.titulo.trim().length === 0) {
+                errors.push('El título no puede estar vacío');
+            } else if (data.titulo.length > 255) {
+                errors.push('El título no debe exceder 255 caracteres');
+            }
+        } else if (!isUpdate) {
+            // Solo requerir en creación
             errors.push('El título es requerido');
-        } else if (data.titulo.length > 255) {
-            errors.push('El título no debe exceder 255 caracteres');
         }
 
-        if (!data.descripcion || data.descripcion.trim().length === 0) {
+        if (data.descripcion !== undefined) {
+            if (!data.descripcion || data.descripcion.trim().length === 0) {
+                errors.push('La descripción no puede estar vacía');
+            }
+        } else if (!isUpdate) {
+            // Solo requerir en creación
             errors.push('La descripción es requerida');
         }
 
-        if (!data.fecha_publi) {
+        if (data.fecha_publi !== undefined) {
+            if (!data.fecha_publi) {
+                errors.push('La fecha de publicación no puede estar vacía');
+            } else {
+                const fecha = new Date(data.fecha_publi);
+                if (isNaN(fecha.getTime())) {
+                    errors.push('La fecha de publicación no es válida');
+                }
+            }
+        } else if (!isUpdate) {
+            // Solo requerir en creación
             errors.push('La fecha de publicación es requerida');
-        } else {
-            const fecha = new Date(data.fecha_publi);
-            if (isNaN(fecha.getTime())) {
-                errors.push('La fecha de publicación no es válida');
+        }
             }
         }
 
@@ -106,8 +124,8 @@ class PublicacionesCoalicionController extends BaseController {
                 });
             }
 
-            // Validar datos
-            const errors = this.validatePublicacionData(updateData);
+            // Validar datos (pasando true para indicar que es una actualización)
+            const errors = this.validatePublicacionData(updateData, true);
             if (errors.length > 0) {
                 return res.status(400).json({
                     success: false,
