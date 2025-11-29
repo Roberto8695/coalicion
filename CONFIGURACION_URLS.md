@@ -1,17 +1,20 @@
 # Configuración de URLs para Producción
 
 ## Problema
-El error 404 ocurre porque el frontend desplegado en Vercel está intentando conectar al backend usando URLs relativas (`/api/usuarios`), que funcionan en local pero no en producción donde el frontend y backend están en dominios diferentes.
+El error 404 y 500 ocurre porque el frontend desplegado en Vercel está teniendo problemas de configuración con el backend en Render.
+
+## Errores identificados:
+
+1. **Error 404 en imagen**: `GET https://coalicion-two.vercel.app/_next/image?url=https%3A%2F%2Fcoalicion.onrender.com%2Fuploads%2F... 404`
+2. **Error 500**: `PUT https://coalicion.onrender.com/api/publicaciones-coalicion/dashboard/7/upload 500`
+3. **Runtime errors**: Extensiones del navegador interfiriendo
 
 ## Solución
-Configurar correctamente las variables de entorno para que el frontend use la URL absoluta del backend.
-
-## Pasos para Configurar
 
 ### 1. Obtener la URL del Backend en Render
 - Ve a tu dashboard de Render
 - Busca tu servicio de backend
-- Copia la URL (ej: `https://coalicion-backend-abc123.onrender.com`)
+- Copia la URL exacta (ej: `https://coalicion-backend-abc123.onrender.com`)
 
 ### 2. Configurar Variables de Entorno en Vercel
 - Ve a tu dashboard de Vercel
@@ -19,30 +22,50 @@ Configurar correctamente las variables de entorno para que el frontend use la UR
 - Ve a Settings > Environment Variables
 - Agrega una nueva variable:
   - **Name**: `NEXT_PUBLIC_API_URL`
-  - **Value**: `https://tu-backend-render-url.onrender.com/api` (reemplaza con tu URL real)
+  - **Value**: `https://TU-BACKEND-RENDER-URL.onrender.com/api`
   - **Environment**: Selecciona Production, Preview y Development
 
-### 3. Re-desplegar
-Después de configurar las variables de entorno, re-despliega tu aplicación en Vercel para que tome los nuevos valores.
+### 3. Ejemplo de configuración correcta:
+```
+NEXT_PUBLIC_API_URL=https://coalicion.onrender.com/api
+```
 
-## Verificar la Configuración
-Una vez desplegado, puedes verificar que la variable esté correcta:
-- Abre las herramientas de desarrollador en tu sitio desplegado
-- En la consola, ejecuta: `console.log(process.env.NEXT_PUBLIC_API_URL)`
-- Debería mostrar la URL correcta de tu backend
+### 4. Re-desplegar
+Después de configurar las variables de entorno:
+1. Ve a tu proyecto en Vercel
+2. Ve a la pestaña "Deployments"
+3. Haz clic en "Redeploy" en el último deployment
 
-## Estructura de URLs
-- **Frontend (Vercel)**: `https://tu-app.vercel.app`
-- **Backend (Render)**: `https://tu-backend.onrender.com`
-- **API URL**: `https://tu-backend.onrender.com/api`
+### 5. Verificar la Configuración
+Una vez desplegado, puedes verificar:
+1. Abre las herramientas de desarrollador en tu sitio desplegado
+2. En la consola, deberías ver logs como:
+   ```
+   🔧 API Configuration Debug:
+   API_BASE_URL: https://coalicion.onrender.com/api
+   BACKEND_BASE_URL: https://coalicion.onrender.com
+   NEXT_PUBLIC_API_URL: https://coalicion.onrender.com/api
+   ```
 
-## Cambios Realizados en el Código
-1. ✅ Creado servicio `UsuariosService` en `/src/api/services.ts`
-2. ✅ Actualizado `UsuariosCMS.tsx` para usar el servicio en lugar de fetch directo
-3. ✅ Configurado interceptor de autenticación en `/src/api/config.ts`
-4. ✅ El servicio automáticamente usa `NEXT_PUBLIC_API_URL` para las llamadas al API
+## Debugging adicional
 
-## Próximos Pasos
-1. Configurar la variable `NEXT_PUBLIC_API_URL` en Vercel con tu URL real de Render
-2. Re-desplegar la aplicación
-3. Verificar que la gestión de usuarios funciona correctamente
+### Para verificar las URLs:
+- Los logs de la consola mostrarán las URLs que se están construyendo
+- Busca mensajes que empiecen con 🔧, 🚀, ✅, ❌, 🖼️
+
+### Problemas comunes:
+1. **Variable no configurada**: Verás `undefined` en los logs
+2. **URL incorrecta**: Verás la URL mal formada en los logs
+3. **CORS**: Si el backend no permite requests desde tu dominio de Vercel
+
+### Next Steps después de configurar:
+1. ✅ Configurar `NEXT_PUBLIC_API_URL` en Vercel
+2. ✅ Re-desplegar la aplicación  
+3. ✅ Verificar logs en la consola
+4. ✅ Probar actualización de publicaciones
+
+## Estado actual del código:
+- ✅ Logging mejorado para debugging
+- ✅ Manejo de errores de imágenes
+- ✅ Interceptors de Axios con debugging
+- ✅ URLs de assets corregidas

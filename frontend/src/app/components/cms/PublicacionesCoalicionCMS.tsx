@@ -274,19 +274,30 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
     e.preventDefault();
     if (!editingId) return;
 
+    console.log('🔄 Starting update process...');
+    console.log('Editing ID:', editingId);
+    console.log('Form data:', formData);
+    console.log('Selected image:', selectedImage ? selectedImage.name : 'No image');
+
     try {
       const updateData: UpdatePublicacionCoalicion = {
         ...formData,
         ...(selectedImage && { imagen: selectedImage })
       };
 
+      console.log('📤 Sending update data:', {
+        ...updateData,
+        imagen: updateData.imagen ? 'File selected' : 'No file'
+      });
+
       await publicacionesCoalicionService.update(editingId, updateData);
       showNotification('Publicación de coalición actualizada exitosamente', 'success');
       clearForm();
       loadPublicaciones(currentPage);
     } catch (error) {
-      console.error('Error al actualizar publicación:', error);
-      showNotification('Error al actualizar la publicación de coalición', 'error');
+      console.error('❌ Error al actualizar publicación:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al actualizar la publicación de coalición';
+      showNotification(errorMessage, 'error');
     }
   };
 
@@ -448,12 +459,29 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                               width={64}
                               height={64}
                               className="object-cover w-full h-full"
+                              onError={(e) => {
+                                console.error('Error loading image:', publicacion.imagen);
+                                e.currentTarget.style.display = 'none';
+                                if (e.currentTarget.nextElementSibling) {
+                                  (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                                }
+                              }}
                             />
                           ) : (
                             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                           )}
+                          {/* Fallback icon for image errors */}
+                          <svg 
+                            className="w-8 h-8 text-gray-400" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            viewBox="0 0 24 24"
+                            style={{ display: 'none' }}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
                         </div>
                       </td>
                       
