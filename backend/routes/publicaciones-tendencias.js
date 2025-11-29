@@ -2,6 +2,9 @@ const express = require('express');
 const createBaseRoutes = require('./baseRoutes');
 const { PublicacionesTendenciasController } = require('../controllers');
 const { authenticateToken, requirePublicationAccess } = require('../middleware/auth');
+const { 
+    cloudinaryStoragePublicacionesTendencias
+} = require('../utils/cloudinary');
 
 const router = express.Router();
 const controller = new PublicacionesTendenciasController();
@@ -35,18 +38,51 @@ router.use('/', createBaseRoutes(PublicacionesTendenciasController));
 // ===========================================
 
 // POST /api/publicaciones-tendencias/dashboard - Crear nueva publicación (solo administradores)
-router.post('/dashboard', authenticateToken, requirePublicationAccess('create'), (req, res) => controller.create(req, res));
+router.post('/dashboard', 
+    authenticateToken, 
+    requirePublicationAccess('create'),
+    cloudinaryStoragePublicacionesTendencias.single('imagen'),
+    (req, res) => controller.create(req, res)
+);
 
 // PUT /api/publicaciones-tendencias/dashboard/:id - Actualizar publicación (solo administradores)
-router.put('/dashboard/:id', authenticateToken, requirePublicationAccess('update'), (req, res) => {
-    if (!/^\d+$/.test(req.params.id)) {
-        return res.status(400).json({
-            success: false,
-            message: 'ID debe ser un número válido'
-        });
+router.put('/dashboard/:id', 
+    authenticateToken, 
+    requirePublicationAccess('update'),
+    (req, res, next) => {
+        // Validar ID
+        if (!/^\d+$/.test(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'ID debe ser un número válido'
+            });
+        }
+        
+        // Solo usar multer si hay archivo
+        if (req.headers['content-type']?.includes('multipart/form-data')) {
+            cloudinaryStoragePublicacionesTendencias.single('imagen')(req, res, next);
+        } else {
+            next();
+        }
+    },
+    (req, res) => controller.update(req, res)
+);
+
+// PUT /api/publicaciones-tendencias/dashboard/:id/upload - Actualizar con imagen (solo administradores)
+router.put('/dashboard/:id/upload',
+    authenticateToken,
+    requirePublicationAccess('update'),
+    cloudinaryStoragePublicacionesTendencias.single('imagen'),
+    (req, res) => {
+        if (!/^\d+$/.test(req.params.id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'ID debe ser un número válido'
+            });
+        }
+        controller.update(req, res);
     }
-    controller.update(req, res);
-});
+);
 
 // DELETE /api/publicaciones-tendencias/dashboard/:id - Eliminar publicación (solo administradores)
 router.delete('/dashboard/:id', authenticateToken, requirePublicationAccess('delete'), (req, res) => {

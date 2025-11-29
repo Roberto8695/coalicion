@@ -81,6 +81,9 @@ const storageConfigs = {
   // Imágenes para publicaciones de coalición
   publicacionesCoalicion: getCloudinaryStorage('infografia'),
   
+  // Imágenes para publicaciones de tendencias
+  publicacionesTendencias: getCloudinaryStorage('publicaciones-tendencias'),
+  
   // Multimedia general
   multimedia: getCloudinaryStorage('multimedia'),
   
@@ -97,10 +100,18 @@ const storageConfigs = {
   general: getCloudinaryStorage('general')
 };
 
+// Configuraciones específicas para cada tipo de contenido
+const cloudinaryStoragePublicacionesCoalicion = getCloudinaryStorage('infografia');
+const cloudinaryStoragePublicacionesTendencias = getCloudinaryStorage('publicaciones-tendencias');
+const cloudinaryStorageMultimedia = getCloudinaryStorage('multimedia');
+
 module.exports = {
   cloudinary,
   getCloudinaryStorage,
   deleteFromCloudinary,
   extractPublicIdFromUrl,
-  storageConfigs
+  storageConfigs,
+  cloudinaryStoragePublicacionesCoalicion,
+  cloudinaryStoragePublicacionesTendencias,
+  cloudinaryStorageMultimedia
 };
