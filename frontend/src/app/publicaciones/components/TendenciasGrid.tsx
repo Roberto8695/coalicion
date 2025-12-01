@@ -191,11 +191,7 @@ export const TendenciasGrid: React.FC<TendenciasGridProps> = ({ limit }) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent z-10"></div>
                   
                   <Image
-                    src={getAssetUrl(
-                      publicacion.imagen 
-                        ? (typeof publicacion.imagen === 'string' ? publicacion.imagen : URL.createObjectURL(publicacion.imagen))
-                        : ''
-                    )}
+                    src={getAssetUrl(publicacion.imagen || '')}
                     alt={publicacion.titulo}
                     width={400}
                     height={256}

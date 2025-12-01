@@ -143,11 +143,7 @@ export function LatestNewsSection() {
                 {/* Image */}
                 <div className="relative h-48 overflow-hidden">
                   <Image
-                    src={getAssetUrl(
-                      publication.imagen 
-                        ? (typeof publication.imagen === 'string' ? publication.imagen : URL.createObjectURL(publication.imagen))
-                        : ""
-                    )}
+                    src={getAssetUrl(publication.imagen || "")}
                     alt={publication.titulo}
                     width={400}
                     height={250}

@@ -136,5 +136,4 @@ app.listen(port, () => {
     console.log(`📊 Conectando a base de datos: ${process.env.DB_DATABASE}`);
     console.log(`📡 API disponible en: http://localhost:${port}/api`);
     console.log(`📖 Documentación en: http://localhost:${port}/api`);
-    console.log(`☁️ Cloudinary configurado: ${process.env.CLOUDINARY_CLOUD_NAME || 'No configurado'}`);
 });

@@ -26,7 +26,7 @@ export interface PublicacionTendencia {
   titulo: string;
   descripcion?: string;
   autor?: string;
-  imagen?: string | File;
+  imagen?: string;
   url?: string;
   created_at?: string;
   updated_at?: string;
@@ -176,101 +176,6 @@ export class PublicacionesService extends BaseService<Publicacion> {
 export class PublicacionesTendenciasService extends BaseService<PublicacionTendencia> {
   constructor() {
     super('publicaciones-tendencias');
-  }
-
-  // Sobrescribir métodos CRUD para usar rutas dashboard
-  async create(data: Partial<PublicacionTendencia & { imagen?: string | File }>): Promise<ApiResponse<PublicacionTendencia>> {
-    console.log('🔄 PublicacionesTendenciasService.create called with:', data);
-    
-    // Si hay archivo de imagen, usar FormData
-    if (data.imagen && data.imagen instanceof File) {
-      console.log('📷 Archivo de imagen detectado, usando FormData');
-      const formData = new FormData();
-      
-      // Añadir todos los campos excepto imagen
-      Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'imagen' && value !== null && value !== undefined) {
-          if (typeof value === 'object') {
-            formData.append(key, JSON.stringify(value));
-          } else {
-            formData.append(key, String(value));
-          }
-        }
-      });
-      
-      // Añadir la imagen
-      formData.append('imagen', data.imagen);
-      
-      console.log('📤 Enviando FormData para creación');
-      return await api.post(`${this.endpoint}/dashboard`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    }
-    
-    // Para creación sin imagen o con URL de imagen
-    console.log('📝 Creando sin archivo de imagen');
-    return await api.post(`${this.endpoint}/dashboard`, data);
-  }
-
-  async update(id: number | string, data: Partial<PublicacionTendencia & { imagen?: string | File }>): Promise<ApiResponse<PublicacionTendencia>> {
-    console.log('🔄 PublicacionesTendenciasService.update called with:', { id, data });
-    
-    // Si hay archivo de imagen, usar FormData y la ruta específica de upload
-    if (data.imagen && data.imagen instanceof File) {
-      console.log('📷 Archivo de imagen detectado, usando FormData');
-      const formData = new FormData();
-      
-      // Añadir todos los campos excepto imagen
-      Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'imagen' && value !== null && value !== undefined) {
-          if (typeof value === 'object') {
-            formData.append(key, JSON.stringify(value));
-          } else {
-            formData.append(key, String(value));
-          }
-        }
-      });
-      
-      // Añadir la imagen
-      formData.append('imagen', data.imagen);
-      
-      console.log('📤 Enviando FormData a la ruta de upload');
-      return await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    } 
-    
-    // Si hay URL de imagen (string), manejar casos especiales
-    if (data.imagen && typeof data.imagen === 'string') {
-      // Si es una URL de Cloudinary o una URL completa, mantenerla
-      if (data.imagen.includes('cloudinary.com') || data.imagen.startsWith('http')) {
-        console.log('🔗 URL de imagen válida detectada, enviando JSON normal');
-        return await api.put(`${this.endpoint}/dashboard/${id}`, data);
-      }
-      
-      // Si es una ruta local, convertir a URL completa del asset
-      if (data.imagen.startsWith('/assets/') || data.imagen.startsWith('assets/')) {
-        const fullUrl = data.imagen.startsWith('/') ? 
-          `${window.location.origin}${data.imagen}` : 
-          `${window.location.origin}/${data.imagen}`;
-        
-        console.log('🔗 Convirtiendo ruta local a URL completa:', fullUrl);
-        const updatedData = { ...data, imagen: fullUrl };
-        return await api.put(`${this.endpoint}/dashboard/${id}`, updatedData);
-      }
-    }
-    
-    // Para actualizaciones sin cambios en la imagen
-    console.log('📝 Actualizando sin cambios de imagen');
-    return await api.put(`${this.endpoint}/dashboard/${id}`, data);
-  }
-
-  async delete(id: number | string): Promise<ApiResponse<PublicacionTendencia>> {
-    return await api.delete(`${this.endpoint}/dashboard/${id}`);
   }
 
   // Métodos específicos para publicaciones de tendencias

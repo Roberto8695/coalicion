@@ -3,14 +3,24 @@ const createBaseRoutes = require('./baseRoutes');
 const PublicacionesCoalicionController = require('../controllers/PublicacionesCoalicionController');
 const { authenticateToken, requirePublicationAccess } = require('../middleware/auth');
 const multer = require('multer');
-const { storageConfigs } = require('../utils/cloudinary');
+const path = require('path');
 
 const router = express.Router();
 const controller = new PublicacionesCoalicionController();
 
-// Configuración de multer con Cloudinary
+// Configuración de multer para upload de imágenes
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, '../uploads/infografia/jpg'));
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
 const upload = multer({ 
-    storage: storageConfigs.publicacionesCoalicion,
+    storage: storage,
     fileFilter: (req, file, cb) => {
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
         if (allowedTypes.includes(file.mimetype)) {
@@ -20,7 +30,7 @@ const upload = multer({
         }
     },
     limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB máximo
+        fileSize: 5 * 1024 * 1024 // 5MB máximo
     }
 });
 

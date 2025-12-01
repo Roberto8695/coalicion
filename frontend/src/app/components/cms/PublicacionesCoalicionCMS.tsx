@@ -264,14 +264,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       url: publicacion.url || ''
     });
     if (publicacion.imagen) {
-      const imagen = publicacion.imagen;
-      // Simplificar la verificación de tipo
-      if (typeof imagen !== 'string' && imagen) {
-        // Asumimos que es File si no es string
-        setImagePreview(URL.createObjectURL(imagen as File));
-      } else if (typeof imagen === 'string') {
-        setImagePreview(imagen);
-      }
+      setImagePreview(publicacion.imagen);
     }
     setShowModal(true);
   };
@@ -285,8 +278,6 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
     console.log('Editing ID:', editingId);
     console.log('Form data:', formData);
     console.log('Selected image:', selectedImage ? selectedImage.name : 'No image');
-    console.log('Selected image type:', selectedImage ? selectedImage.type : 'No image');
-    console.log('Selected image size:', selectedImage ? selectedImage.size : 'No image');
 
     try {
       const updateData: UpdatePublicacionCoalicion = {
@@ -295,15 +286,11 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       };
 
       console.log('📤 Sending update data:', {
-        titulo: updateData.titulo,
-        descripcion: updateData.descripcion,
-        fecha_publi: updateData.fecha_publi,
-        url: updateData.url,
-        imagen: updateData.imagen ? `File: ${updateData.imagen.name} (${updateData.imagen.size} bytes)` : 'No file'
+        ...updateData,
+        imagen: updateData.imagen ? 'File selected' : 'No file'
       });
 
-      const result = await publicacionesCoalicionService.update(editingId, updateData);
-      console.log('✅ Update successful:', result);
+      await publicacionesCoalicionService.update(editingId, updateData);
       showNotification('Publicación de coalición actualizada exitosamente', 'success');
       clearForm();
       loadPublicaciones(currentPage);
@@ -467,17 +454,11 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                         <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-700 flex items-center justify-center">
                           {publicacion.imagen ? (
                             <Image
-                              src={(() => {
-                                const imagen = publicacion.imagen;
-                                if (!imagen) return '';
-                                if (typeof imagen === 'string') return imagen;
-                                // Si es File, crear URL temporal
-                                return URL.createObjectURL(imagen as File);
-                              })()}
+                              src={publicacion.imagen}
                               alt={publicacion.titulo}
                               width={64}
                               height={64}
-                              className="w-full h-full object-cover"
+                              className="object-cover w-full h-full"
                               onError={(e) => {
                                 console.error('Error loading image:', publicacion.imagen);
                                 e.currentTarget.style.display = 'none';

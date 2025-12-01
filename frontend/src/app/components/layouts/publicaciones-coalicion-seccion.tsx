@@ -112,11 +112,7 @@ export function PublicacionesCoalicionSeccion() {
               >
                 <div className="relative h-48 overflow-hidden">
                   <Image
-                    src={
-                      publicacion.imagen 
-                        ? (typeof publicacion.imagen === 'string' ? publicacion.imagen : URL.createObjectURL(publicacion.imagen))
-                        : "/api/placeholder/400/250"
-                    }
+                    src={publicacion.imagen || "/api/placeholder/400/250"}
                     alt={publicacion.titulo}
                     width={400}
                     height={250}

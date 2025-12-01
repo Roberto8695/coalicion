@@ -38,7 +38,7 @@ class PublicacionesCoalicionRepository extends BaseRepository {
                 query += ` WHERE ${whereConditions.join(' AND ')}`;
             }
 
-            query += ` ORDER BY fecha_publi DESC, created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+            query += ` ORDER BY fecha_publi DESC, createdat DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
             values.push(limit, offset);
 
             const result = await pool.query(query, values);
@@ -70,7 +70,7 @@ class PublicacionesCoalicionRepository extends BaseRepository {
         try {
             const query = `
                 SELECT * FROM ${this.tableName}
-                ORDER BY fecha_publi DESC, created_at DESC
+                ORDER BY fecha_publi DESC, createdat DESC
                 LIMIT $1
             `;
             const result = await pool.query(query, [limit]);
@@ -87,7 +87,7 @@ class PublicacionesCoalicionRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE titulo ILIKE $1 OR descripcion ILIKE $1
-                ORDER BY fecha_publi DESC, created_at DESC
+                ORDER BY fecha_publi DESC, createdat DESC
                 LIMIT $2 OFFSET $3
             `;
             const values = [`%${searchTerm}%`, limit, offset];
@@ -122,7 +122,7 @@ class PublicacionesCoalicionRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE fecha_publi BETWEEN $1 AND $2
-                ORDER BY fecha_publi DESC, created_at DESC
+                ORDER BY fecha_publi DESC, createdat DESC
                 LIMIT $3 OFFSET $4
             `;
             const values = [fechaDesde, fechaHasta, limit, offset];
@@ -157,7 +157,7 @@ class PublicacionesCoalicionRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE EXTRACT(YEAR FROM fecha_publi) = $1
-                ORDER BY fecha_publi DESC, created_at DESC
+                ORDER BY fecha_publi DESC, createdat DESC
                 LIMIT $2 OFFSET $3
             `;
             const values = [year, limit, offset];
@@ -182,7 +182,7 @@ class PublicacionesCoalicionRepository extends BaseRepository {
             const totalQuery = `SELECT COUNT(*) as total FROM ${this.tableName}`;
             const recentQuery = `
                 SELECT COUNT(*) as recent FROM ${this.tableName} 
-                WHERE created_at >= NOW() - INTERVAL '30 days'
+                WHERE createdat >= NOW() - INTERVAL '30 days'
             `;
             const withImageQuery = `SELECT COUNT(*) as with_image FROM ${this.tableName} WHERE imagen IS NOT NULL AND imagen != ''`;
             const withUrlQuery = `SELECT COUNT(*) as with_url FROM ${this.tableName} WHERE url IS NOT NULL AND url != ''`;

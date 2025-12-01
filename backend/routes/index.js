@@ -13,7 +13,6 @@ const verificadoresRoutes = require('./verificadores');
 const categoriasRoutes = require('./categorias');
 const uploadsRoutes = require('./uploads');
 const usuariosRoutes = require('./usuarios');
-const emergencyRoutes = require('./emergency'); // TEMPORAL - ELIMINAR DESPUÉS DE USAR
 
 const router = express.Router();
 
@@ -30,7 +29,6 @@ router.use('/verificadores', verificadoresRoutes);
 router.use('/categorias', categoriasRoutes);
 router.use('/uploads', uploadsRoutes);
 router.use('/usuarios', usuariosRoutes);
-router.use('/emergency', emergencyRoutes); // TEMPORAL - ELIMINAR DESPUÉS DE USAR
 
 // Ruta de información de la API
 router.get('/', (req, res) => {
@@ -49,8 +47,7 @@ router.get('/', (req, res) => {
             'documentos-electorales': '/api/documentos-electorales',
             verificadores: '/api/verificadores',
             categorias: '/api/categorias',
-            usuarios: '/api/usuarios',
-            emergency: '/api/emergency' // TEMPORAL - SOLO PARA FIX DE TRIGGER
+            usuarios: '/api/usuarios'
         },
         documentation: {
             crud: {
