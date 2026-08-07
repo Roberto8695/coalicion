@@ -1,5 +1,40 @@
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinarySdk = require('cloudinary');
+const cloudinary = cloudinarySdk.v2;
+const CloudinaryStorage = require('multer-storage-cloudinary');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+
+const storageProvider = (process.env.STORAGE_PROVIDER || 'local').toLowerCase();
+const isLocalStorage = ['local', 'filesystem', 'disk'].includes(storageProvider);
+
+const uploadsRoot = path.resolve(
+  __dirname,
+  '..',
+  process.env.UPLOADS_DIR || 'uploads'
+);
+
+const aliasMap = {
+  thumbnail: 'general',
+  thumbnails: 'general',
+  preview: 'general'
+  ,previews: 'general'
+};
+
+const ensureDirectory = (directoryPath) => {
+  fs.mkdirSync(directoryPath, { recursive: true });
+  return directoryPath;
+};
+
+const resolveStorageType = (folder = 'uploads') => {
+  const normalized = String(folder || 'uploads').toLowerCase();
+  return aliasMap[normalized] || normalized;
+};
+
+const getFileFormat = (file) => {
+  const extension = path.extname(file.originalname || '').replace('.', '').toLowerCase();
+  return extension || 'bin';
+};
 
 // Configurar Cloudinary
 cloudinary.config({
@@ -8,33 +43,132 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const getLocalStorage = (folder = 'uploads') => multer.diskStorage({
+  destination: (req, file, cb) => {
+    try {
+      const resolvedType = resolveStorageType(req.body?.type || folder);
+      const format = getFileFormat(file);
+      const destination = ensureDirectory(path.join(uploadsRoot, resolvedType, format));
+      cb(null, destination);
+    } catch (error) {
+      cb(error);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const extension = path.extname(file.originalname || '').toLowerCase();
+    cb(null, `${file.fieldname}-${uniqueSuffix}${extension}`);
+  }
+});
+
 // Función para obtener la configuración de storage según el tipo de archivo
 const getCloudinaryStorage = (folder = 'uploads') => {
+  if (isLocalStorage) {
+    return getLocalStorage(folder);
+  }
+
+  const resolvedType = resolveStorageType(folder);
+
   return new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary: cloudinarySdk,
     params: {
-      folder: `coalicion/${folder}`, // Organizamos por carpetas
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'pdf', 'mp4', 'avi', 'mov', 'mkv', 'ppt', 'pptx'],
-      resource_type: 'auto', // Detecta automáticamente si es imagen, video, etc.
+      folder: `coalicion/${resolvedType}`,
+      allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'pdf', 'mp4', 'avi', 'mov', 'mkv', 'ppt', 'pptx'],
+      resource_type: 'auto',
       public_id: (req, file) => {
-        // Generar un ID único para el archivo
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const extension = file.originalname.split('.').pop();
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
         return `${file.fieldname}-${uniqueSuffix}`;
       },
     },
   });
 };
 
-// Función para eliminar un archivo de Cloudinary
-const deleteFromCloudinary = async (publicId) => {
+const buildLocalFileUrl = (file) => {
+  if (!file) {
+    return null;
+  }
+
+  const destination = file.destination || path.dirname(file.path || '');
+  const relativeDirectory = path.relative(uploadsRoot, destination).split(path.sep).filter(Boolean).join('/');
+  const fileName = file.filename || path.basename(file.path || '');
+  const relativePath = relativeDirectory ? `${relativeDirectory}/${fileName}` : fileName;
+
+  return `/uploads/${relativePath}`;
+};
+
+const buildPublicFileUrl = (file) => {
+  if (!file) {
+    return null;
+  }
+
+  if (isLocalStorage) {
+    return buildLocalFileUrl(file);
+  }
+
+  return file.path || null;
+};
+
+const resolveLocalFilePath = (identifier) => {
+  if (!identifier) {
+    return null;
+  }
+
+  if (path.isAbsolute(identifier)) {
+    return identifier;
+  }
+
   try {
+    if (/^https?:\/\//i.test(identifier)) {
+      const parsedUrl = new URL(identifier);
+      const uploadsIndex = parsedUrl.pathname.indexOf('/uploads/');
+
+      if (uploadsIndex !== -1) {
+        return path.join(uploadsRoot, parsedUrl.pathname.slice(uploadsIndex + '/uploads/'.length));
+      }
+    }
+  } catch (error) {
+    // Si no es una URL válida, seguimos con el resto de resoluciones.
+  }
+
+  if (identifier.startsWith('/uploads/')) {
+    return path.join(uploadsRoot, identifier.slice('/uploads/'.length));
+  }
+
+  if (identifier.startsWith('uploads/')) {
+    return path.join(uploadsRoot, identifier.slice('uploads/'.length));
+  }
+
+  return path.join(uploadsRoot, identifier);
+};
+
+const deleteLocalFile = async (identifier) => {
+  const filePath = resolveLocalFilePath(identifier);
+
+  if (!filePath || !fs.existsSync(filePath)) {
+    return { result: 'not_found', path: filePath || null };
+  }
+
+  fs.unlinkSync(filePath);
+  return { result: 'ok', path: filePath };
+};
+
+// Función para eliminar un archivo de almacenamiento
+const deleteFromCloudinary = async (identifier) => {
+  try {
+    if (isLocalStorage) {
+      console.log(`🗑️ Eliminando archivo local: ${identifier}`);
+      const result = await deleteLocalFile(identifier);
+      console.log('✅ Archivo local eliminado:', result);
+      return result;
+    }
+
+    const publicId = extractPublicIdFromUrl(identifier) || identifier;
     console.log(`🗑️ Eliminando archivo de Cloudinary: ${publicId}`);
     const result = await cloudinary.uploader.destroy(publicId);
     console.log(`✅ Archivo eliminado de Cloudinary:`, result);
     return result;
   } catch (error) {
-    console.error('❌ Error al eliminar archivo de Cloudinary:', error);
+    console.error('❌ Error al eliminar archivo:', error);
     throw error;
   }
 };
@@ -42,34 +176,24 @@ const deleteFromCloudinary = async (publicId) => {
 // Función para extraer el public_id de una URL de Cloudinary
 const extractPublicIdFromUrl = (url) => {
   if (!url || !url.includes('cloudinary.com')) {
-    console.log('🔍 URL no es de Cloudinary:', url);
     return null;
   }
   
   try {
-    // Extraer el public_id de la URL de Cloudinary
-    // Ejemplo: https://res.cloudinary.com/cloud-name/image/upload/v1234567890/coalicion/infografia/imagen-123456789.jpg
     const parts = url.split('/');
     const uploadIndex = parts.findIndex(part => part === 'upload');
     
     if (uploadIndex === -1) {
-      console.log('🔍 No se encontró "upload" en la URL:', url);
       return null;
     }
     
-    // El public_id está después de 'upload/v{version}/' o 'upload/'
     let publicIdParts = parts.slice(uploadIndex + 1);
     
-    // Si hay versión, omitirla
     if (publicIdParts[0] && publicIdParts[0].startsWith('v') && /^\d+$/.test(publicIdParts[0].substring(1))) {
       publicIdParts = publicIdParts.slice(1);
     }
     
-    // Unir las partes y remover la extensión
-    const publicId = publicIdParts.join('/').replace(/\.[^/.]+$/, '');
-    
-    console.log(`🔍 Public ID extraído: ${publicId} de URL: ${url}`);
-    return publicId;
+    return publicIdParts.join('/').replace(/\.[^/.]+$/, '');
   } catch (error) {
     console.error('❌ Error al extraer public_id:', error);
     return null;
@@ -78,28 +202,22 @@ const extractPublicIdFromUrl = (url) => {
 
 // Configuraciones específicas para diferentes tipos de archivos
 const storageConfigs = {
-  // Imágenes para publicaciones de coalición
   publicacionesCoalicion: getCloudinaryStorage('infografia'),
-  
-  // Multimedia general
   multimedia: getCloudinaryStorage('multimedia'),
-  
-  // Arte
   arte: getCloudinaryStorage('arte'),
-  
-  // Presentaciones
   presentaciones: getCloudinaryStorage('presentaciones'),
-  
-  // Videos
   videos: getCloudinaryStorage('videos'),
-  
-  // General
   general: getCloudinaryStorage('general')
 };
 
 module.exports = {
+  cloudinarySdk,
   cloudinary,
+  uploadsRoot,
+  isLocalStorage,
+  resolveStorageType,
   getCloudinaryStorage,
+  buildPublicFileUrl,
   deleteFromCloudinary,
   extractPublicIdFromUrl,
   storageConfigs

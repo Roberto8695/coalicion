@@ -8,7 +8,7 @@ const { storageConfigs } = require('../utils/cloudinary');
 const router = express.Router();
 const controller = new PublicacionesCoalicionController();
 
-// Configuración de multer con Cloudinary
+// Configuración de multer adaptable al proveedor de archivos activo
 const upload = multer({ 
     storage: storageConfigs.publicacionesCoalicion,
     fileFilter: (req, file, cb) => {

@@ -2,6 +2,7 @@
 import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { Publication } from "@/data/publications";
+import { uploadsService } from "@/api";
 
 // Tipo para el formulario sin el ID (se genera automáticamente)
 type PublicationFormData = Omit<Publication, 'id'>;
@@ -76,25 +77,17 @@ export function FormPublications({
     setErrors(prev => ({ ...prev, image: "" }));
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
+      const result = await uploadsService.uploadThumbnail(file, 'thumbnail');
 
       if (result.success) {
         setFormData(prev => ({
           ...prev,
-          image: result.url
+          image: result.data.url
         }));
       } else {
         setErrors(prev => ({
           ...prev,
-          image: result.error || 'Error al subir el archivo'
+          image: result.message || result.error || 'Error al subir el archivo'
         }));
       }
     } catch (error) {

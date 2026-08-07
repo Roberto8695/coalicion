@@ -1,5 +1,14 @@
 const multer = require('multer');
-const { getCloudinaryStorage, deleteFromCloudinary } = require('../utils/cloudinary');
+const fs = require('fs');
+const path = require('path');
+const {
+  getCloudinaryStorage,
+  deleteFromCloudinary,
+  buildPublicFileUrl,
+  uploadsRoot,
+  isLocalStorage,
+  resolveStorageType
+} = require('../utils/cloudinary');
 
 class UploadsController {
   constructor() {
@@ -7,7 +16,7 @@ class UploadsController {
   }
 
   setupMulter() {
-    // Configuración de multer con Cloudinary para diferentes tipos
+    // Configuración de multer para diferentes tipos
     this.uploadConfigs = {
       infografia: getCloudinaryStorage('infografia'),
       video: getCloudinaryStorage('video'), 
@@ -71,14 +80,14 @@ class UploadsController {
           });
           
           // Validar tipo
-          if (!['infografia', 'video', 'arte', 'presentacion', 'general', 'logos'].includes(type)) {
+          if (!['infografia', 'video', 'arte', 'presentacion', 'general', 'logos', 'thumbnail', 'thumbnails', 'preview', 'previews'].includes(type)) {
             // Eliminar archivo si el tipo es inválido
-            if (req.file?.filename) {
-              await deleteFromCloudinary(req.file.filename, 'general');
-            }
+              if (req.file?.filename) {
+                await deleteFromCloudinary(req.file.path || req.file.filename);
+              }
             return res.status(400).json({
               success: false,
-              message: 'Tipo de multimedia inválido. Tipos permitidos: infografia, video, arte, presentacion, general, logos'
+              message: 'Tipo de multimedia inválido. Tipos permitidos: infografia, video, arte, presentacion, general, logos, thumbnail, preview'
             });
           }
 
@@ -89,13 +98,17 @@ class UploadsController {
             'arte': ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'image/gif'],
             'presentacion': ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
             'general': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'], // Para logos y thumbnails
-            'logos': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'] // Para logos de verificadores
+            'logos': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'], // Para logos de verificadores
+            'thumbnail': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+            'thumbnails': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+            'preview': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+            'previews': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
           };
 
           if (!allowedTypes[type] || !allowedTypes[type].includes(req.file.mimetype)) {
             // Eliminar archivo si el tipo no es permitido
             if (req.file?.filename) {
-              await deleteFromCloudinary(req.file.filename, 'general');
+              await deleteFromCloudinary(req.file.path || req.file.filename);
             }
             return res.status(400).json({
               success: false,
@@ -103,19 +116,20 @@ class UploadsController {
             });
           }
 
-          // El archivo ya fue subido a Cloudinary por multer-storage-cloudinary
+          const fileUrl = buildPublicFileUrl(req.file);
           const fileInfo = {
             originalName: req.file.originalname,
             filename: req.file.filename,
-            path: req.file.path, // URL de Cloudinary
+            path: fileUrl,
             size: req.file.size,
             mimetype: req.file.mimetype,
             type: type,
-            cloudinaryPublicId: req.file.filename, // El public_id en Cloudinary
-            url: req.file.path
+            cloudinaryPublicId: isLocalStorage ? null : req.file.filename,
+            url: fileUrl,
+            storage: isLocalStorage ? 'local' : 'cloudinary'
           };
 
-          console.log('✅ Archivo subido a Cloudinary:', {
+          console.log(`✅ Archivo subido a ${isLocalStorage ? 'storage local' : 'Cloudinary'}:`, {
             filename: fileInfo.filename,
             type: fileInfo.type,
             size: this.formatFileSize(fileInfo.size),
@@ -131,13 +145,13 @@ class UploadsController {
         } catch (error) {
           console.error('❌ Error al procesar archivo:', error);
           
-          // Si hay error, intentar eliminar de Cloudinary
+          // Si hay error, intentar eliminar el archivo subido
           if (req.file?.filename) {
             try {
-              await deleteFromCloudinary(req.file.filename, 'general');
-              console.log('🗑️ Archivo eliminado de Cloudinary tras error');
+              await deleteFromCloudinary(req.file.path || req.file.filename);
+              console.log('🗑️ Archivo eliminado tras error');
             } catch (deleteError) {
-              console.error('❌ Error al eliminar archivo de Cloudinary:', deleteError);
+              console.error('❌ Error al eliminar archivo tras error:', deleteError);
             }
           }
 
@@ -159,15 +173,53 @@ class UploadsController {
     }
   };
 
-  // Listar archivos (nota: con Cloudinary esto requiere API calls)
+  // Listar archivos locales o indicar que se usa almacenamiento externo
   listFiles = async (req, res) => {
     try {
-      // Con Cloudinary, esto requiere llamadas a la API
-      // Por simplicidad, devolvemos mensaje informativo
+      if (!isLocalStorage) {
+        res.json({
+          success: true,
+          message: 'Los archivos están almacenados en Cloudinary. Use el dashboard de Cloudinary para gestionarlos.',
+          data: []
+        });
+        return;
+      }
+
+      const requestedType = resolveStorageType(req.query.type || 'general');
+      const baseDir = path.join(uploadsRoot, requestedType);
+      const items = [];
+
+      if (fs.existsSync(baseDir)) {
+        const formats = fs.readdirSync(baseDir, { withFileTypes: true })
+          .filter((entry) => entry.isDirectory());
+
+        for (const formatDir of formats) {
+          const formatPath = path.join(baseDir, formatDir.name);
+          const files = fs.readdirSync(formatPath, { withFileTypes: true }).filter((entry) => entry.isFile());
+
+          items.push({
+            name: formatDir.name,
+            type: 'directory',
+            path: `${requestedType}/${formatDir.name}`,
+            children: files.map((file) => {
+              const filePath = `${requestedType}/${formatDir.name}/${file.name}`;
+              return {
+                name: file.name,
+                type: 'file',
+                path: filePath,
+                url: `/uploads/${filePath}`,
+                format: formatDir.name.toUpperCase(),
+                size: this.formatFileSize(fs.statSync(path.join(formatPath, file.name)).size)
+              };
+            })
+          });
+        }
+      }
+
       res.json({
         success: true,
-        message: 'Los archivos están almacenados en Cloudinary. Use el dashboard de Cloudinary para gestionar archivos.',
-        data: []
+        message: 'Archivos locales obtenidos exitosamente',
+        data: items
       });
     } catch (error) {
       console.error('❌ Error en listFiles:', error);
@@ -179,28 +231,19 @@ class UploadsController {
     }
   };
 
-  // Eliminar archivo de Cloudinary
+  // Eliminar archivo local o de Cloudinary
   deleteFile = async (req, res) => {
     try {
       const { filepath } = req.params;
-      
-      // El filepath contiene el public_id de Cloudinary
-      const publicId = decodeURIComponent(filepath);
-      
-      // Determinar el tipo basado en el public_id
-      let type = 'general';
-      if (publicId.includes('infografia/')) type = 'infografia';
-      else if (publicId.includes('video/')) type = 'video';
-      else if (publicId.includes('arte/')) type = 'arte';
-      else if (publicId.includes('presentacion/')) type = 'presentacion';
-      
-      console.log('🗑️ Eliminando archivo de Cloudinary:', { publicId, type });
-      
-      const result = await deleteFromCloudinary(publicId, type);
+      const identifier = decodeURIComponent(filepath);
+
+      console.log('🗑️ Eliminando archivo:', { identifier, storage: isLocalStorage ? 'local' : 'cloudinary' });
+
+      const result = await deleteFromCloudinary(identifier);
       
       res.json({
         success: true,
-        message: 'Archivo eliminado correctamente de Cloudinary',
+        message: 'Archivo eliminado correctamente',
         data: result
       });
 

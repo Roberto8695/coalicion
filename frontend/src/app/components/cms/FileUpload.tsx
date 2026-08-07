@@ -234,14 +234,11 @@ export const FileUpload = ({
             {/* Preview para imágenes */}
             {preview && selectedFile.type.startsWith('image/') && (
               <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-                <div className="relative max-w-xs max-h-32 mx-auto">
-                  <Image
+                <div className="relative max-w-xs mx-auto">
+                  <img
                     src={URL.createObjectURL(selectedFile)}
                     alt="Preview"
-                    width={200}
-                    height={128}
-                    className="rounded-lg object-contain"
-                    style={{ maxWidth: '100%', height: 'auto' }}
+                    className="rounded-lg object-contain max-w-full h-auto"
                   />
                 </div>
               </div>

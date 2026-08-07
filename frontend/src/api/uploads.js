@@ -5,8 +5,8 @@ export const uploadsService = {
   uploadFile: async (file, type) => {
     try {
       const formData = new FormData();
-      formData.append('file', file);
       formData.append('type', type);
+      formData.append('file', file);
 
       const response = await fetch(`${api.baseURL}/uploads/file`, {
         method: 'POST',
@@ -23,8 +23,8 @@ export const uploadsService = {
   uploadThumbnail: async (file, type = 'thumbnail') => {
     try {
       const formData = new FormData();
-      formData.append('file', file);
       formData.append('type', type);
+      formData.append('file', file);
 
       const response = await fetch(`${api.baseURL}/uploads/thumbnail`, {
         method: 'POST',

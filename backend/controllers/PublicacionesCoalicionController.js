@@ -1,6 +1,11 @@
 const BaseController = require('./BaseController');
 const PublicacionesCoalicionRepository = require('../repositories/PublicacionesCoalicionRepository');
-const { deleteFromCloudinary, extractPublicIdFromUrl } = require('../utils/cloudinary');
+const {
+    deleteFromCloudinary,
+    extractPublicIdFromUrl,
+    buildPublicFileUrl,
+    isLocalStorage
+} = require('../utils/cloudinary');
 
 class PublicacionesCoalicionController extends BaseController {
     constructor() {
@@ -90,9 +95,9 @@ class PublicacionesCoalicionController extends BaseController {
 
             // Manejar imagen si se proporciona (Cloudinary)
             if (req.file) {
-                console.log('📷 Imagen subida a Cloudinary:', req.file.path);
-                // Con Cloudinary, req.file.path contiene la URL completa
-                publicacionData.imagen = req.file.path;
+                const imageUrl = buildPublicFileUrl(req.file);
+                console.log(`📷 Imagen subida a ${isLocalStorage ? 'storage local' : 'Cloudinary'}:`, imageUrl);
+                publicacionData.imagen = imageUrl;
             }
 
             // Crear la publicación
@@ -152,29 +157,25 @@ class PublicacionesCoalicionController extends BaseController {
 
             // Manejar nueva imagen (Cloudinary)
             if (req.file) {
-                console.log('📷 Procesando nueva imagen en Cloudinary:', req.file.path);
+                const imageUrl = buildPublicFileUrl(req.file);
+                console.log(`📷 Procesando nueva imagen en ${isLocalStorage ? 'storage local' : 'Cloudinary'}:`, imageUrl);
                 
-                // Eliminar imagen anterior si existe en Cloudinary
-                if (existingPublicacion.imagen && existingPublicacion.imagen.includes('cloudinary.com')) {
+                // Eliminar imagen anterior si existe
+                if (existingPublicacion.imagen) {
                     try {
                         console.log('🗑️ Intentando eliminar imagen anterior:', existingPublicacion.imagen);
-                        const publicId = extractPublicIdFromUrl(existingPublicacion.imagen);
-                        if (publicId) {
-                            const deleteResult = await deleteFromCloudinary(publicId);
-                            console.log('✅ Imagen anterior eliminada de Cloudinary:', deleteResult);
-                        } else {
-                            console.log('⚠️ No se pudo extraer public_id de:', existingPublicacion.imagen);
-                        }
+                        const identifier = extractPublicIdFromUrl(existingPublicacion.imagen) || existingPublicacion.imagen;
+                        const deleteResult = await deleteFromCloudinary(identifier);
+                        console.log('✅ Imagen anterior eliminada:', deleteResult);
                     } catch (err) {
-                        console.error('⚠️ Error al eliminar imagen anterior de Cloudinary:', err);
+                        console.error('⚠️ Error al eliminar imagen anterior:', err);
                         // No fallar por esto, continuar con la actualización
                     }
                 } else {
-                    console.log('ℹ️ No hay imagen anterior de Cloudinary para eliminar');
+                    console.log('ℹ️ No hay imagen anterior para eliminar');
                 }
                 
-                // Con Cloudinary, req.file.path contiene la URL completa
-                updateData.imagen = req.file.path;
+                updateData.imagen = imageUrl;
                 console.log('✅ Nueva imagen configurada:', updateData.imagen);
             } else {
                 console.log('ℹ️ No se proporcionó nueva imagen');
@@ -224,16 +225,14 @@ class PublicacionesCoalicionController extends BaseController {
                 });
             }
 
-            // Eliminar imagen de Cloudinary si existe
+            // Eliminar imagen previa si existe
             if (existingPublicacion.imagen) {
                 try {
-                    const publicId = extractPublicIdFromUrl(existingPublicacion.imagen);
-                    if (publicId) {
-                        await deleteFromCloudinary(publicId);
-                        console.log('🗑️ Imagen eliminada de Cloudinary');
-                    }
+                    const identifier = extractPublicIdFromUrl(existingPublicacion.imagen) || existingPublicacion.imagen;
+                    await deleteFromCloudinary(identifier);
+                    console.log('🗑️ Imagen eliminada');
                 } catch (err) {
-                    console.log('⚠️ No se pudo eliminar la imagen de Cloudinary:', err.message);
+                    console.log('⚠️ No se pudo eliminar la imagen:', err.message);
                 }
             }
 

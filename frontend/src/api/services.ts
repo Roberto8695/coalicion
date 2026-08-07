@@ -342,8 +342,8 @@ export class UploadsService {
   async uploadFile(file: File, type: string) {
     try {
       const formData = new FormData();
-      formData.append('file', file);
       formData.append('type', type);
+      formData.append('file', file);
 
       const response = await fetch(`${this.baseURL}/uploads/dashboard/file`, {
         method: 'POST',
@@ -364,8 +364,8 @@ export class UploadsService {
   async uploadThumbnail(file: File, type: 'thumbnail' | 'preview' = 'thumbnail') {
     try {
       const formData = new FormData();
-      formData.append('file', file);
       formData.append('type', type);
+      formData.append('file', file);
 
       const response = await fetch(`${this.baseURL}/uploads/dashboard/thumbnail`, {
         method: 'POST',

@@ -20,15 +20,21 @@ NODE_ENV=production
 
 # Frontend URL para CORS
 FRONTEND_URL=https://tu-frontend-url.com
+
+# Almacenamiento de archivos
+# Usa "local" para guardar en el VPS con Coolify
+STORAGE_PROVIDER=local
+UPLOADS_DIR=uploads
 ```
 
-### 📦 Despliegue en Render
+### 📦 Despliegue en Coolify
 
-1. **Conecta tu repositorio** a Render
-2. **Configura las variables de entorno** en el dashboard de Render
-3. **Configura la base de datos PostgreSQL** en Render
-4. **Build Command**: `npm install`
-5. **Start Command**: `npm start`
+1. **Conecta tu repositorio** a Coolify
+2. **Configura las variables de entorno** en el servicio del backend
+3. **Monta un volumen persistente** para la carpeta `uploads`
+4. **Apunta `UPLOADS_DIR` al volumen** si usas una ruta distinta
+5. **Build Command**: `npm install`
+6. **Start Command**: `npm start`
 
 ### 🛠️ Scripts Disponibles
 
@@ -49,7 +55,7 @@ backend/
 ├── controllers/     # Controladores de la API
 ├── repositories/    # Capa de acceso a datos
 ├── routes/          # Definición de rutas
-├── uploads/         # Archivos subidos (no versionado)
+├── uploads/         # Archivos subidos (idealmente montado como volumen)
 ├── server.js        # Punto de entrada
 └── package.json     # Dependencias y scripts
 ```
@@ -67,6 +73,7 @@ El backend utiliza PostgreSQL. Asegúrate de:
 - Variables de entorno para datos sensibles
 - CORS configurado para frontend específico
 - Validación de archivos en uploads
+- Compatible con almacenamiento local en VPS o Cloudinary
 
 ### 📝 API Endpoints
 
