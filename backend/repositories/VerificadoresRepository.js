@@ -25,7 +25,7 @@ class VerificadoresRepository extends BaseRepository {
     async update(id, data) {
         const filteredData = this.filterValidFields(data);
         // Agregar timestamps
-        filteredData.updated_at = new Date();
+        filteredData.updatedat = new Date();
         return await super.update(id, filteredData);
     }
 
@@ -33,8 +33,8 @@ class VerificadoresRepository extends BaseRepository {
     async create(data) {
         const filteredData = this.filterValidFields(data);
         // Agregar timestamps
-        filteredData.created_at = new Date();
-        filteredData.updated_at = new Date();
+        filteredData.createdat = new Date();
+        filteredData.updatedat = new Date();
         return await super.create(filteredData);
     }
 

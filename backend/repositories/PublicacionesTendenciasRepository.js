@@ -32,7 +32,7 @@ class PublicacionesTendenciasRepository extends BaseRepository {
                 query += ` WHERE ${whereConditions.join(' AND ')}`;
             }
 
-            query += ` ORDER BY created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+            query += ` ORDER BY createdat DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
             values.push(limit, offset);
 
             const result = await pool.query(query, values);
@@ -64,7 +64,7 @@ class PublicacionesTendenciasRepository extends BaseRepository {
         try {
             const query = `
                 SELECT * FROM ${this.tableName}
-                ORDER BY created_at DESC
+                ORDER BY createdat DESC
                 LIMIT $1
             `;
             const result = await pool.query(query, [limit]);
@@ -81,7 +81,7 @@ class PublicacionesTendenciasRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE titulo ILIKE $1 OR descripcion ILIKE $1 OR autor ILIKE $1
-                ORDER BY created_at DESC
+                ORDER BY createdat DESC
                 LIMIT $2 OFFSET $3
             `;
             const values = [`%${searchTerm}%`, limit, offset];
@@ -116,7 +116,7 @@ class PublicacionesTendenciasRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE autor ILIKE $1
-                ORDER BY created_at DESC
+                ORDER BY createdat DESC
                 LIMIT $2 OFFSET $3
             `;
             const values = [`%${autor}%`, limit, offset];

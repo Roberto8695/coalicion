@@ -1,11 +1,16 @@
 const BaseController = require('./BaseController');
 const PublicacionesCoalicionRepository = require('../repositories/PublicacionesCoalicionRepository');
+<<<<<<< HEAD
 const {
     deleteFromCloudinary,
     extractPublicIdFromUrl,
     buildPublicFileUrl,
     isLocalStorage
 } = require('../utils/cloudinary');
+=======
+const path = require('path');
+const fs = require('fs').promises;
+>>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
 
 class PublicacionesCoalicionController extends BaseController {
     constructor() {
@@ -23,42 +28,26 @@ class PublicacionesCoalicionController extends BaseController {
     }
 
     // Validaciones específicas para publicaciones de coalición
-    validatePublicacionData(data, isUpdate = false) {
+    validatePublicacionData(data) {
         const errors = [];
 
-        // En actualizaciones, solo validar si el campo está presente
-        if (data.titulo !== undefined) {
-            if (!data.titulo || data.titulo.trim().length === 0) {
-                errors.push('El título no puede estar vacío');
-            } else if (data.titulo.length > 255) {
-                errors.push('El título no debe exceder 255 caracteres');
-            }
-        } else if (!isUpdate) {
-            // Solo requerir en creación
+        if (!data.titulo || data.titulo.trim().length === 0) {
             errors.push('El título es requerido');
+        } else if (data.titulo.length > 255) {
+            errors.push('El título no debe exceder 255 caracteres');
         }
 
-        if (data.descripcion !== undefined) {
-            if (!data.descripcion || data.descripcion.trim().length === 0) {
-                errors.push('La descripción no puede estar vacía');
-            }
-        } else if (!isUpdate) {
-            // Solo requerir en creación
+        if (!data.descripcion || data.descripcion.trim().length === 0) {
             errors.push('La descripción es requerida');
         }
 
-        if (data.fecha_publi !== undefined) {
-            if (!data.fecha_publi) {
-                errors.push('La fecha de publicación no puede estar vacía');
-            } else {
-                const fecha = new Date(data.fecha_publi);
-                if (isNaN(fecha.getTime())) {
-                    errors.push('La fecha de publicación no es válida');
-                }
-            }
-        } else if (!isUpdate) {
-            // Solo requerir en creación
+        if (!data.fecha_publi) {
             errors.push('La fecha de publicación es requerida');
+        } else {
+            const fecha = new Date(data.fecha_publi);
+            if (isNaN(fecha.getTime())) {
+                errors.push('La fecha de publicación no es válida');
+            }
         }
 
         if (data.url && data.url.trim().length > 0) {
@@ -75,35 +64,32 @@ class PublicacionesCoalicionController extends BaseController {
     // Crear nueva publicación de coalición
     async create(req, res) {
         try {
-            console.log('🔄 Starting create process...');
-            console.log('📝 Request body:', req.body);
-            console.log('📷 Request file:', req.file ? req.file.filename : 'No file');
-            
             const publicacionData = { ...req.body };
 
             // Validar datos
             const errors = this.validatePublicacionData(publicacionData);
             if (errors.length > 0) {
-                console.log('❌ Errores de validación:', errors);
                 return res.status(400).json({
                     success: false,
                     message: 'Errores de validación',
                     errors
                 });
             }
-            console.log('✅ Datos validados correctamente');
 
-            // Manejar imagen si se proporciona (Cloudinary)
+            // Manejar imagen si se proporciona
             if (req.file) {
+<<<<<<< HEAD
                 const imageUrl = buildPublicFileUrl(req.file);
                 console.log(`📷 Imagen subida a ${isLocalStorage ? 'storage local' : 'Cloudinary'}:`, imageUrl);
                 publicacionData.imagen = imageUrl;
+=======
+                // Guardar la ruta relativa desde /uploads
+                publicacionData.imagen = `/uploads/infografia/jpg/${req.file.filename}`;
+>>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
             }
 
             // Crear la publicación
-            console.log('💾 Creando en base de datos...');
             const nuevaPublicacion = await this.repository.create(publicacionData);
-            console.log('✅ Publicación creada exitosamente');
 
             res.status(201).json({
                 success: true,
@@ -111,8 +97,7 @@ class PublicacionesCoalicionController extends BaseController {
                 data: nuevaPublicacion
             });
         } catch (error) {
-            console.error('❌ Error al crear publicación de coalición:', error);
-            console.error('❌ Stack trace:', error.stack);
+            console.error('Error al crear publicación de coalición:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor',
@@ -124,39 +109,31 @@ class PublicacionesCoalicionController extends BaseController {
     // Actualizar publicación de coalición
     async update(req, res) {
         try {
-            console.log('🔄 Starting update process for ID:', req.params.id);
-            console.log('📝 Request body:', req.body);
-            console.log('📷 Request file:', req.file ? req.file.filename : 'No file');
-            
             const { id } = req.params;
             const updateData = { ...req.body };
 
             // Verificar que existe la publicación
             const existingPublicacion = await this.repository.findById(id);
             if (!existingPublicacion) {
-                console.log('❌ Publicación no encontrada para ID:', id);
                 return res.status(404).json({
                     success: false,
                     message: 'Publicación de coalición no encontrada'
                 });
             }
-            console.log('✅ Publicación encontrada:', existingPublicacion.titulo);
-            console.log('🖼️ Imagen actual:', existingPublicacion.imagen);
 
             // Validar datos
             const errors = this.validatePublicacionData(updateData);
             if (errors.length > 0) {
-                console.log('❌ Errores de validación:', errors);
                 return res.status(400).json({
                     success: false,
                     message: 'Errores de validación',
                     errors
                 });
             }
-            console.log('✅ Datos validados correctamente');
 
-            // Manejar nueva imagen (Cloudinary)
+            // Manejar nueva imagen
             if (req.file) {
+<<<<<<< HEAD
                 const imageUrl = buildPublicFileUrl(req.file);
                 console.log(`📷 Procesando nueva imagen en ${isLocalStorage ? 'storage local' : 'Cloudinary'}:`, imageUrl);
                 
@@ -179,12 +156,25 @@ class PublicacionesCoalicionController extends BaseController {
                 console.log('✅ Nueva imagen configurada:', updateData.imagen);
             } else {
                 console.log('ℹ️ No se proporcionó nueva imagen');
+=======
+                // Eliminar imagen anterior si existe
+                if (existingPublicacion.imagen) {
+                    try {
+                        // Extraer solo el nombre del archivo de la ruta completa
+                        const filename = existingPublicacion.imagen.split('/').pop();
+                        const oldImagePath = path.join(__dirname, '../uploads/infografia/jpg', filename);
+                        await fs.unlink(oldImagePath);
+                    } catch (err) {
+                        console.log('No se pudo eliminar la imagen anterior:', err.message);
+                    }
+                }
+                // Guardar la ruta relativa desde /uploads
+                updateData.imagen = `/uploads/infografia/jpg/${req.file.filename}`;
+>>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
             }
 
             // Actualizar la publicación
-            console.log('💾 Actualizando en base de datos con datos:', updateData);
             const publicacionActualizada = await this.repository.update(id, updateData);
-            console.log('✅ Publicación actualizada exitosamente');
 
             res.json({
                 success: true,
@@ -192,21 +182,11 @@ class PublicacionesCoalicionController extends BaseController {
                 data: publicacionActualizada
             });
         } catch (error) {
-            console.error('❌ Error completo en update:', {
-                message: error.message,
-                stack: error.stack,
-                name: error.name
-            });
-            
-            // Enviar respuesta de error más específica
+            console.error('Error al actualizar publicación de coalición:', error);
             res.status(500).json({
                 success: false,
                 message: 'Error interno del servidor',
-                error: process.env.NODE_ENV === 'development' ? error.message : 'Error interno del servidor',
-                details: process.env.NODE_ENV === 'development' ? {
-                    stack: error.stack,
-                    name: error.name
-                } : undefined
+                error: error.message
             });
         }
     }
@@ -225,6 +205,7 @@ class PublicacionesCoalicionController extends BaseController {
                 });
             }
 
+<<<<<<< HEAD
             // Eliminar imagen previa si existe
             if (existingPublicacion.imagen) {
                 try {
@@ -233,6 +214,15 @@ class PublicacionesCoalicionController extends BaseController {
                     console.log('🗑️ Imagen eliminada');
                 } catch (err) {
                     console.log('⚠️ No se pudo eliminar la imagen:', err.message);
+=======
+            // Eliminar imagen si existe
+            if (existingPublicacion.imagen) {
+                try {
+                    const imagePath = path.join(__dirname, '../uploads/infografia/jpg', existingPublicacion.imagen);
+                    await fs.unlink(imagePath);
+                } catch (err) {
+                    console.log('No se pudo eliminar la imagen:', err.message);
+>>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
                 }
             }
 

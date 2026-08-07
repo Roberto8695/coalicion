@@ -171,11 +171,39 @@ class PublicacionesTendenciasController extends BaseController {
         }
     }
 
-    // Actualizar publicación de tendencia
+    // Validaciones específicas para actualizar
     async update(req, res) {
         try {
-            // Usar directamente el método del BaseController sin validaciones adicionales
-            // Las validaciones básicas las maneja BaseController
+            const data = req.body;
+            
+            // Validaciones específicas
+            if (data.titulo === '') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El título no puede estar vacío'
+                });
+            }
+
+            if (data.descripcion === '') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'La descripción no puede estar vacía'
+                });
+            }
+
+            // Validar URL si se proporciona
+            if (data.url && data.url !== '') {
+                try {
+                    new URL(data.url);
+                } catch {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'URL inválida'
+                    });
+                }
+            }
+
+            // Llamar al método padre
             await super.update(req, res);
         } catch (error) {
             console.error('Error en update publicación de tendencia:', error);

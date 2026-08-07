@@ -4,17 +4,17 @@ import { api, getAssetUrl } from './config';
 const getPublicacionCoalicionImageUrl = (imagen: string | null | undefined): string | null => {
   if (!imagen) return null;
   
-  // Si ya es una URL completa (incluyendo Cloudinary), devolverla tal como está
+  // Si ya es una URL completa, devolverla tal como está
   if (imagen.startsWith('http://') || imagen.startsWith('https://')) {
     return imagen;
   }
   
-  // Si ya empieza con /uploads, usar getAssetUrl normal (para imágenes legacy)
+  // Si ya empieza con /uploads, usar getAssetUrl normal
   if (imagen.startsWith('/uploads')) {
     return getAssetUrl(imagen);
   }
   
-  // Si es solo un nombre de archivo, construir la ruta completa (legacy)
+  // Si es solo un nombre de archivo, construir la ruta completa
   return getAssetUrl(`/uploads/infografia/jpg/${imagen}`);
 };
 
@@ -278,15 +278,6 @@ class PublicacionesCoalicionService {
 
   // Actualizar publicación
   async update(id: number, publicacionData: UpdatePublicacionCoalicion) {
-    console.log('🔧 Actualizando publicación:', id);
-    console.log('📝 Datos a enviar:', {
-      titulo: publicacionData.titulo,
-      descripcion: publicacionData.descripcion,
-      fecha_publi: publicacionData.fecha_publi,
-      url: publicacionData.url,
-      hasImage: !!publicacionData.imagen
-    });
-    
     try {
       const formData = new FormData();
       
@@ -304,29 +295,20 @@ class PublicacionesCoalicionService {
         formData.append('url', publicacionData.url);
       }
       
-      // Agregar imagen si existe y es un archivo válido
-      if (publicacionData.imagen && publicacionData.imagen instanceof File) {
-        console.log('📷 Agregando archivo a FormData:', {
-          name: publicacionData.imagen.name,
-          type: publicacionData.imagen.type,
-          size: publicacionData.imagen.size
-        });
+      // Agregar imagen si existe
+      if (publicacionData.imagen) {
         formData.append('imagen', publicacionData.imagen);
-      } else if (publicacionData.imagen) {
-        console.warn('⚠️ Imagen no es un archivo válido:', typeof publicacionData.imagen);
       }
 
-      // Debug: Mostrar contenido de FormData
-      console.log('📤 FormData contents:');
-      for (const pair of formData.entries()) {
-        if (pair[1] instanceof File) {
-          console.log(`  ${pair[0]}: File(${pair[1].name}, ${pair[1].size} bytes)`);
-        } else {
-          console.log(`  ${pair[0]}: ${pair[1]}`);
-        }
-      }
+      console.log('Actualizando publicación:', id);
+      console.log('Datos a enviar:', {
+        titulo: publicacionData.titulo,
+        descripcion: publicacionData.descripcion,
+        fecha_publi: publicacionData.fecha_publi,
+        url: publicacionData.url,
+        hasImage: !!publicacionData.imagen
+      });
 
-      console.log('🚀 API Request: PUT', `${this.endpoint}/dashboard/${id}/upload`);
       const response = await api.put(`${this.endpoint}/dashboard/${id}/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -345,7 +327,7 @@ class PublicacionesCoalicionService {
         }
       };
     } catch (error) {
-      console.error('❌ Error en update service:', error);
+      console.error('Error en update service:', error);
       throw error;
     }
   }

@@ -24,8 +24,8 @@ class DocumentosElectoralesRepository extends BaseRepository {
             tags: dbRow.tags,
             authorName: dbRow.autor,
             version: dbRow.version,
-            createdAt: dbRow.created_at,
-            updatedAt: dbRow.updated_at
+            createdAt: dbRow.createdat,
+            updatedAt: dbRow.updatedat
         };
     }
 
@@ -80,7 +80,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 ${whereClause}
-                ORDER BY fecha_publicacion DESC, created_at DESC
+                ORDER BY fecha_publicacion DESC, createdat DESC
                 LIMIT $1 OFFSET $2
             `;
 
@@ -149,7 +149,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
     async update(id, data) {
         try {
             const dbData = this.mapApiToDb(data);
-            dbData.updated_at = new Date();
+            dbData.updatedat = new Date();
 
             const columns = Object.keys(dbData);
             const values = Object.values(dbData);
@@ -192,7 +192,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE estado = 'publicado'
-                ORDER BY fecha_publicacion DESC, created_at DESC
+                ORDER BY fecha_publicacion DESC, createdat DESC
                 LIMIT $1 OFFSET $2
             `;
             
@@ -231,7 +231,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE estado = 'publicado'
-                ORDER BY fecha_publicacion DESC, created_at DESC
+                ORDER BY fecha_publicacion DESC, createdat DESC
                 LIMIT $1
             `;
             const result = await pool.query(query, [limit]);
@@ -255,7 +255,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
                     LOWER(tags) LIKE $1 OR
                     LOWER(autor) LIKE $1
                 )
-                ORDER BY fecha_publicacion DESC, created_at DESC
+                ORDER BY fecha_publicacion DESC, createdat DESC
                 LIMIT $2 OFFSET $3
             `;
 

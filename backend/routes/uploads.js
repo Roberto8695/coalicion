@@ -52,8 +52,8 @@ router.get('/download/:type/:format/:filename', (req, res) => {
 // Subir archivo principal (solo administradores)
 router.post('/dashboard/file', authenticateToken, requirePublicationAccess('create'), uploadsController.uploadFile);
 
-// Subir miniatura o vista previa (solo administradores) - usa el mismo método uploadFile
-router.post('/dashboard/thumbnail', authenticateToken, requirePublicationAccess('create'), uploadsController.uploadFile);
+// Subir miniatura o vista previa (solo administradores)
+router.post('/dashboard/thumbnail', authenticateToken, requirePublicationAccess('create'), uploadsController.uploadThumbnail);
 
 // Listar archivos disponibles (solo administradores)
 router.get('/dashboard/files', authenticateToken, requirePublicationAccess('read'), uploadsController.listFiles);

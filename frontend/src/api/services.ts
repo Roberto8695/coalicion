@@ -178,19 +178,6 @@ export class PublicacionesTendenciasService extends BaseService<PublicacionTende
     super('publicaciones-tendencias');
   }
 
-  // Sobrescribir métodos CRUD para usar rutas dashboard
-  async create(data: Partial<PublicacionTendencia>): Promise<ApiResponse<PublicacionTendencia>> {
-    return await api.post(`${this.endpoint}/dashboard`, data);
-  }
-
-  async update(id: number | string, data: Partial<PublicacionTendencia>): Promise<ApiResponse<PublicacionTendencia>> {
-    return await api.put(`${this.endpoint}/dashboard/${id}`, data);
-  }
-
-  async delete(id: number | string): Promise<ApiResponse<PublicacionTendencia>> {
-    return await api.delete(`${this.endpoint}/dashboard/${id}`);
-  }
-
   // Métodos específicos para publicaciones de tendencias
   async getAllWithFilters(params?: Record<string, unknown>) {
     return await api.get(`${this.endpoint}/with-filters`, { params });
