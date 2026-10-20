@@ -191,23 +191,7 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
               </button>
             </div>
           </div>
-          <div>
-            <SidebarLink
-              link={{
-                label: "Coalicion",
-                href: "#",
-                icon: (
-                  <Image
-                    src="https://assets.aceternity.com/manu.png"
-                    className="h-7 w-7 shrink-0 rounded-full"
-                    width={28}
-                    height={28}
-                    alt="Avatar"
-                  />
-                ),
-              }}
-            />
-          </div>
+          
         </SidebarBody>
       </Sidebar>
       {children ? <CustomContent>{children}</CustomContent> : <Dashboard />}
