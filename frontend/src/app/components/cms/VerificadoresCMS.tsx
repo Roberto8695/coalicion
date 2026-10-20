@@ -19,12 +19,14 @@ import { verificadoresService, uploadsService } from '@/api/services';
 import type { Verificador } from '@/api/services';
 import { Pagination } from './Pagination';
 import { usePermissions } from '@/hooks/useAuth';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 interface VerificadoresCMSProps {
   onClose?: () => void;
 }
 
 export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
+  const { confirmAction, notify } = useDashboardFeedback();
   const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
   const [verificadores, setVerificadores] = useState<Verificador[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,11 +147,19 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
         setCurrentPage(1);
       }
 
+      notify({
+        title: editingId ? 'Verificador actualizado' : 'Verificador añadido',
+        message: editingId ? 'Los cambios se guardaron correctamente.' : 'El verificador se creó correctamente.'
+      });
       await loadVerificadores();
       resetForm();
     } catch (error) {
       console.error('Error guardando verificador:', error);
-      alert('Error al guardar el verificador. Por favor, inténtalo de nuevo.');
+      notify({
+        title: 'No se pudo guardar',
+        message: 'Ocurrió un error al guardar el verificador. Inténtalo nuevamente.',
+        type: 'error'
+      });
     }
   };
 
@@ -202,9 +212,14 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
       return;
     }
     
-    if (confirm('¿Estás seguro de que deseas eliminar este verificador?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar verificador',
+      message: '¿Deseas eliminar este verificador? Esta acción no se puede deshacer.'
+    });
+    if (accepted) {
       try {
         await verificadoresService.delete(id);
+        notify({ title: 'Verificador eliminado', message: 'El verificador se eliminó correctamente.' });
         // Si estamos en una página que se vacía, ir a la página anterior
         const remainingItems = totalItems - 1;
         const maxPage = Math.ceil(remainingItems / itemsPerPage) || 1;
@@ -229,7 +244,11 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
       };
       reader.readAsDataURL(file);
     } else {
-      alert('Por favor selecciona solo archivos de imagen');
+      notify({
+        title: 'Archivo no válido',
+        message: 'Selecciona un archivo de imagen.',
+        type: 'error'
+      });
     }
   };
 

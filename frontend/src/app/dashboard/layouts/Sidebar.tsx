@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { Sidebar, SidebarBody, SidebarLink } from "@/app/components/ui/sidebar";
+import { Sidebar, SidebarBody } from "@/app/components/ui/sidebar";
 import { useAuth, usePermissions } from "@/hooks/useAuth";
 import {
   IconArrowLeft,

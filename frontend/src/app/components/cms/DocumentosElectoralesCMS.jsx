@@ -9,8 +9,10 @@ import { Pagination } from './Pagination';
 import { IconFileDescription, IconPlus } from '@tabler/icons-react';
 import { documentosElectoralesService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 export const DocumentosElectoralesCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   // Permisos del usuario
   const permissions = usePermissions();
   
@@ -297,6 +299,10 @@ export const DocumentosElectoralesCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Documento añadido' : 'Documento actualizado',
+          message: modalMode === 'create' ? 'El documento electoral se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         setShowModal(false);
         resetForm();
         loadDocumentos();
@@ -315,11 +321,16 @@ export const DocumentosElectoralesCMS = () => {
       return;
     }
 
-    if (window.confirm('¿Estás seguro de que quieres eliminar este documento?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar documento electoral',
+      message: `¿Deseas eliminar "${item.title || 'este documento'}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setLoading(true);
         const response = await documentosElectoralesService.delete(item.id);
         if (response.success) {
+          notify({ title: 'Documento eliminado', message: 'El documento electoral se eliminó correctamente.' });
           loadDocumentos();
         }
       } catch (err) {

@@ -61,13 +61,21 @@ export interface Multimedia {
   id?: number;
   title: string;
   description?: string;
-  type: 'video' | 'audio' | 'imagen' | 'documento';
-  url: string;
+  type: 'infografia' | 'video' | 'arte' | 'presentacion';
+  url?: string;
+  downloadurl?: string;
+  previewurl?: string;
+  thumbnail?: string;
   thumbnailUrl?: string;
   duration?: string;
+  format?: string;
+  size?: string;
   fileSize?: string;
   uploadDate?: string;
-  tags?: string[];
+  tags?: string[] | string;
+  featured?: boolean;
+  slug?: string;
+  mediafile?: string;
   categoria_id?: number;
 }
 

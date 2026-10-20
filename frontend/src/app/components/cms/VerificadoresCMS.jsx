@@ -7,8 +7,10 @@ import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { verificadoresService } from '@/api';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 export const VerificadoresCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   // Estados principales
   const [verificadores, setVerificadores] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -194,6 +196,10 @@ export const VerificadoresCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Verificador añadido' : 'Verificador actualizado',
+          message: modalMode === 'create' ? 'El verificador se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         setShowModal(false);
         resetForm();
         loadVerificadores();
@@ -206,11 +212,16 @@ export const VerificadoresCMS = () => {
   };
 
   const handleDelete = async (item) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar este verificador?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar verificador',
+      message: `¿Deseas eliminar "${item.name || 'este verificador'}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setLoading(true);
         const response = await verificadoresService.delete(item.id);
         if (response.success) {
+          notify({ title: 'Verificador eliminado', message: 'El verificador se eliminó correctamente.' });
           loadVerificadores();
         }
       } catch (err) {

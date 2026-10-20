@@ -3,8 +3,10 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { FormPublications } from "./FormPublications";
 import { Publication } from "@/data/publications";
+import { useDashboardFeedback } from "./DashboardFeedback";
 
 export function PublicationsManager() {
+  const { confirmAction, notify } = useDashboardFeedback();
   const [publications, setPublications] = useState<Publication[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingPublication, setEditingPublication] = useState<Publication | null>(null);
@@ -16,6 +18,7 @@ export function PublicationsManager() {
       
       // Recargar publicaciones desde la API
       await loadPublications();
+      notify({ title: "Publicación añadida", message: "La publicación se creó correctamente." });
       
       console.log("Nueva publicación creada:", newPublication);
     } catch (error) {
@@ -31,6 +34,7 @@ export function PublicationsManager() {
       
       // Recargar publicaciones desde la API
       await loadPublications();
+      notify({ title: "Publicación actualizada", message: "Los cambios se guardaron correctamente." });
       
       console.log("Publicación actualizada:", updatedPublication);
     } catch (error) {
@@ -39,7 +43,11 @@ export function PublicationsManager() {
   };
 
   const handleDeletePublication = async (publicationToDelete: Publication) => {
-    if (window.confirm("¿Estás seguro de que quieres eliminar esta publicación?")) {
+    const accepted = await confirmAction({
+      title: "Eliminar publicación",
+      message: `¿Deseas eliminar "${publicationToDelete.title}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         const response = await fetch(`/api/publications?id=${encodeURIComponent(publicationToDelete.id || '')}`, {
           method: 'DELETE',
@@ -50,13 +58,14 @@ export function PublicationsManager() {
         if (result.success) {
           // Recargar publicaciones desde la API
           await loadPublications();
+          notify({ title: "Publicación eliminada", message: "La publicación se eliminó correctamente." });
           console.log("Publicación eliminada:", result.data);
         } else {
-          alert(`Error al eliminar: ${result.error}`);
+          notify({ title: "No se pudo eliminar", message: result.error || "Ocurrió un error al eliminar la publicación.", type: "error" });
         }
       } catch (error) {
         console.error("Error al eliminar publicación:", error);
-        alert("Error de conexión al eliminar la publicación");
+        notify({ title: "Error de conexión", message: "No se pudo eliminar la publicación.", type: "error" });
       }
     }
   };

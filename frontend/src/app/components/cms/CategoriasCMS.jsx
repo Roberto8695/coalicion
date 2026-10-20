@@ -7,8 +7,10 @@ import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { categoriasService } from '@/api';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 const CategoriasCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   // Estados principales
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -151,6 +153,10 @@ const CategoriasCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Categoría añadida' : 'Categoría actualizada',
+          message: modalMode === 'create' ? 'La categoría se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         setShowModal(false);
         resetForm();
         loadCategorias();
@@ -163,11 +169,16 @@ const CategoriasCMS = () => {
   };
 
   const handleDelete = async (item) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta categoría?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar categoría',
+      message: `¿Deseas eliminar "${item.name || 'esta categoría'}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setLoading(true);
         const response = await categoriasService.delete(item.id);
         if (response.success) {
+          notify({ title: 'Categoría eliminada', message: 'La categoría se eliminó correctamente.' });
           loadCategorias();
         }
       } catch (err) {

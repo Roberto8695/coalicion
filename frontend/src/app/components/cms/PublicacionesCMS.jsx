@@ -8,6 +8,7 @@ import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { publicacionesService, categoriasService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 // Función para convertir URLs de Google Drive a URLs de descarga directa
 const convertGoogleDriveUrl = (url) => {
@@ -27,6 +28,7 @@ const convertGoogleDriveUrl = (url) => {
 };
 
 export const PublicacionesCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   // Permisos del usuario
   const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
   
@@ -199,6 +201,10 @@ export const PublicacionesCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Publicación añadida' : 'Publicación actualizada',
+          message: modalMode === 'create' ? 'La publicación se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         setShowModal(false);
         resetForm();
         loadPublicaciones();
@@ -211,11 +217,16 @@ export const PublicacionesCMS = () => {
   };
 
   const handleDelete = async (item) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta publicación?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar publicación',
+      message: `¿Deseas eliminar "${item.title || 'esta publicación'}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setLoading(true);
         const response = await publicacionesService.delete(item.id);
         if (response.success) {
+          notify({ title: 'Publicación eliminada', message: 'La publicación se eliminó correctamente.' });
           loadPublicaciones();
         }
       } catch (err) {

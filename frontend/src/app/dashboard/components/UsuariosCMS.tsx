@@ -3,8 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useAuth, usePermissions } from "@/hooks/useAuth";
 import { usuariosService, Usuario } from "@/api/services";
 import { Pagination } from "@/app/components/cms/Pagination";
+import { useDashboardFeedback } from "./DashboardFeedback";
 
 export function UsuariosCMS() {
+  const { confirmAction, notify } = useDashboardFeedback();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
@@ -110,6 +112,7 @@ export function UsuariosCMS() {
       };
 
       await usuariosService.create(userData);
+      notify({ title: "Usuario añadido", message: "El usuario se creó correctamente." });
       setShowForm(false);
       setCurrentPage(1);
       await loadUsuarios(1);
@@ -143,6 +146,7 @@ export function UsuariosCMS() {
       }
 
       await usuariosService.update(editingUsuario.id!, userData);
+      notify({ title: "Usuario actualizado", message: "Los cambios se guardaron correctamente." });
       setEditingUsuario(null);
       setShowForm(false);
       await loadUsuarios(currentPage);
@@ -161,14 +165,23 @@ export function UsuariosCMS() {
 
     // Prevenir que un admin se elimine a sí mismo
     if (usuario.id === user?.id) {
-      alert("No puedes eliminar tu propia cuenta de administrador.");
+      notify({
+        title: "Acción no permitida",
+        message: "No puedes eliminar tu propia cuenta de administrador.",
+        type: "error"
+      });
       return;
     }
 
-    if (window.confirm(`¿Estás seguro de que quieres eliminar al usuario "${usuario.nombre}"?`)) {
+    const accepted = await confirmAction({
+      title: "Eliminar usuario",
+      message: `¿Deseas eliminar a "${usuario.nombre}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setIsLoading(true);
         await usuariosService.delete(usuario.id);
+        notify({ title: "Usuario eliminado", message: "El usuario se eliminó correctamente." });
         const targetPage = usuarios.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
         if (targetPage !== currentPage) {
           setCurrentPage(targetPage);

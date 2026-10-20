@@ -8,8 +8,10 @@ import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { publicacionesTendenciasService, uploadsService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 export const PublicacionesTendenciasCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   // Permisos del usuario
   const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
   
@@ -227,6 +229,10 @@ export const PublicacionesTendenciasCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Publicación añadida' : 'Publicación actualizada',
+          message: modalMode === 'create' ? 'La publicación de tendencia se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         setShowModal(false);
         resetForm();
         loadPublicaciones();
@@ -239,11 +245,16 @@ export const PublicacionesTendenciasCMS = () => {
   };
 
   const handleDelete = async (item) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta publicación de tendencia?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar publicación de tendencia',
+      message: `¿Deseas eliminar "${item.titulo || 'esta publicación'}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setLoading(true);
         const response = await publicacionesTendenciasService.delete(item.id);
         if (response.success) {
+          notify({ title: 'Publicación eliminada', message: 'La publicación de tendencia se eliminó correctamente.' });
           loadPublicaciones();
         }
       } catch (err) {

@@ -8,8 +8,10 @@ import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { eventosService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 export const EventosCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
   // Estados principales
   const [eventos, setEventos] = useState([]);
@@ -378,6 +380,10 @@ export const EventosCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Evento añadido' : 'Evento actualizado',
+          message: modalMode === 'create' ? 'El evento se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         handleCloseModal();
         loadEventos(currentPage);
       } else {
@@ -397,7 +403,11 @@ export const EventosCMS = () => {
       setError('No tienes permisos para eliminar eventos');
       return;
     }
-    if (!confirm('¿Estás seguro de que deseas eliminar este evento?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar evento',
+      message: `¿Deseas eliminar "${item.title || 'este evento'}"? Esta acción no se puede deshacer.`
+    });
+    if (!accepted) {
       return;
     }
 
@@ -405,6 +415,7 @@ export const EventosCMS = () => {
     try {
       const response = await eventosService.delete(item.id);
       if (response.success) {
+        notify({ title: 'Evento eliminado', message: 'El evento se eliminó correctamente.' });
         loadEventos(currentPage);
       } else {
         setError(response.message || 'Error al eliminar evento');

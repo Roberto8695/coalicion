@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { publicacionesCoalicionService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 import { Pagination } from './Pagination';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 // Tipos para las publicaciones de coalición
 interface PublicacionCoalicion {
@@ -41,11 +42,6 @@ interface FormData {
   url: string;
 }
 
-interface Notification {
-  message: string;
-  type: 'success' | 'error' | 'info';
-}
-
 interface PublicacionesCoalicionCMSProps {
   className?: string;
 }
@@ -55,6 +51,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
 }) => {
   // Permisos del usuario
   const { canCreateContent, canEditContent, canDeleteContent } = usePermissions();
+  const { confirmAction, notify } = useDashboardFeedback();
   
   // Estados principales
   const [publicaciones, setPublicaciones] = useState<PublicacionCoalicion[]>([]);
@@ -85,14 +82,16 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
   const itemsPerPage = 5;
 
   // Estados para notificaciones
-  const [notification, setNotification] = useState<Notification | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
 
   // Función para mostrar notificaciones
   const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 5000);
-  }, []);
+    notify({
+      title: type === 'success' ? 'Operación completada' : type === 'error' ? 'Ocurrió un error' : 'Información',
+      message,
+      type
+    });
+  }, [notify]);
 
   // Cargar publicaciones
   const loadPublicaciones = useCallback(async (page = 1) => {
@@ -305,7 +304,11 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
 
   // Eliminar publicación
   const handleDelete = async (id: number) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar esta publicación de coalición?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar publicación de coalición',
+      message: '¿Deseas eliminar esta publicación? Esta acción no se puede deshacer.'
+    });
+    if (!accepted) {
       return;
     }
 
@@ -330,25 +333,6 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
 
   return (
     <div className={`min-h-full min-w-0 bg-gray-800 ${className}`}>
-      {/* Notificación */}
-      {notification && (
-        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg backdrop-blur-sm ${
-          notification.type === 'success' ? 'bg-green-500/90 text-white' :
-          notification.type === 'error' ? 'bg-red-500/90 text-white' :
-          'bg-blue-500/90 text-white'
-        }`}>
-          <div className="flex items-center">
-            <span>{notification.message}</span>
-            <button
-              onClick={() => setNotification(null)}
-              className="ml-4 text-white hover:text-gray-200"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="p-4 lg:p-6">
         {/* Header */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 mb-8">

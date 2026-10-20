@@ -7,8 +7,10 @@ import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { guiasElectoralesService } from '@/api';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 export const GuiasElectoralesCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   // Estados principales
   const [guias, setGuias] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -191,6 +193,10 @@ export const GuiasElectoralesCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Guía añadida' : 'Guía actualizada',
+          message: modalMode === 'create' ? 'La guía electoral se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         setShowModal(false);
         resetForm();
         loadGuias();
@@ -203,11 +209,16 @@ export const GuiasElectoralesCMS = () => {
   };
 
   const handleDelete = async (item) => {
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta guía electoral?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar guía electoral',
+      message: `¿Deseas eliminar "${item.title || 'esta guía'}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setLoading(true);
         const response = await guiasElectoralesService.delete(item.id);
         if (response.success) {
+          notify({ title: 'Guía eliminada', message: 'La guía electoral se eliminó correctamente.' });
           loadGuias();
         }
       } catch (err) {

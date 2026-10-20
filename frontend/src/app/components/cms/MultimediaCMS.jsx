@@ -6,12 +6,13 @@ import { Modal } from './Modal';
 import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
-import { FileUpload } from './FileUpload';
-import { FilePicker } from './FilePicker';
-import { multimediaService, categoriasService, uploadsService } from '@/api';
+import { multimediaService, categoriasService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
+import { ExternalMediaPreview, isValidExternalUrl } from '@/app/components/media/ExternalMediaPreview';
 
 export const MultimediaCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   // Permisos del usuario
   const permissions = usePermissions();
   
@@ -44,10 +45,6 @@ export const MultimediaCMS = () => {
     categoria_id: ''
   });
 
-  // Estados para subida de archivos
-  const [uploadingFile, setUploadingFile] = useState(false);
-  const [selectedMainFile, setSelectedMainFile] = useState(null);
-
   // Estados de paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -63,51 +60,19 @@ export const MultimediaCMS = () => {
     return `${baseUrl.replace('/api', '')}${url}`;
   };
 
-  // Función para forzar descarga de archivos
-  const handleForceDownload = (url) => {
+  const handleOpenResource = (url) => {
     if (!url) {
-      alert('URL de descarga no válida o no disponible');
+      notify({ title: 'Enlace no disponible', message: 'Este recurso no tiene una URL configurada.', type: 'error' });
       return;
     }
 
-    try {
-      // Construir URL de descarga forzada
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      
-      // Extraer la ruta relativa del archivo
-      let filePath = url;
-      if (url.startsWith('/uploads/')) {
-        filePath = url.replace('/uploads/', '');
-      } else if (url.includes('/uploads/')) {
-        filePath = url.split('/uploads/')[1];
-      }
-      
-      // Parsear el path para obtener tipo, formato y nombre
-      const pathParts = filePath.split('/');
-      if (pathParts.length >= 3) {
-        const type = pathParts[0];
-        const format = pathParts[1];
-        const filename = pathParts[2];
-        
-        const downloadUrl = `${baseUrl.replace('/api', '')}/api/uploads/download/${type}/${format}/${filename}`;
-        
-        // Crear enlace de descarga
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = filename;
-        link.style.display = 'none';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        alert('URL de archivo no válida');
-      }
-      
-    } catch (error) {
-      console.error('Error al descargar archivo:', error);
-      alert('Error al descargar el archivo');
+    const fullUrl = getFullUrl(url);
+    if (!isValidExternalUrl(fullUrl)) {
+      notify({ title: 'Enlace inválido', message: 'Ingresa una URL pública que comience con http:// o https://.', type: 'error' });
+      return;
     }
+
+    window.open(fullUrl, '_blank', 'noopener,noreferrer');
   };
 
   // Configuración de columnas
@@ -165,13 +130,14 @@ export const MultimediaCMS = () => {
     },
     {
       key: 'downloadurl',
-      header: 'Archivo',
+      header: 'Enlace',
       render: (value) => value ? (
         <button
-          onClick={() => handleForceDownload(value)}
+          type="button"
+          onClick={() => handleOpenResource(value)}
           className="text-blue-400 hover:text-blue-300 underline cursor-pointer bg-none border-none p-0"
         >
-          Descargar
+          Ver recurso
         </button>
       ) : '-'
     }
@@ -184,17 +150,6 @@ export const MultimediaCMS = () => {
     { value: 'arte', label: 'Arte' },
     { value: 'presentacion', label: 'Presentación' }
   ];
-
-  // Obtener tipos de archivos aceptados según el tipo
-  const getAcceptedFiles = (type) => {
-    const acceptedTypes = {
-      'infografia': 'image/jpeg,image/jpg,image/png,image/svg+xml,application/pdf',
-      'video': 'video/mp4,video/avi,video/quicktime,video/x-msvideo',
-      'arte': 'image/jpeg,image/jpg,image/png,image/svg+xml,image/gif',
-      'presentacion': 'application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'
-    };
-    return acceptedTypes[type] || '*/*';
-  };
 
   // Cargar datos
   useEffect(() => {
@@ -239,114 +194,6 @@ export const MultimediaCMS = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Manejar selección de archivo principal
-  const handleMainFileSelect = (file) => {
-    setSelectedMainFile(file);
-    
-    // Auto-completar campos basados en el archivo
-    const extension = uploadsService.getFileExtension(file.name);
-    const slug = uploadsService.generateSlug(file.name);
-    const size = uploadsService.formatFileSize(file.size);
-    
-    // Determinar si el archivo es una imagen
-    const isImage = file.type.startsWith('image/') || 
-                   ['infografia', 'arte'].includes(formData.type);
-    
-    setFormData(prev => ({
-      ...prev,
-      format: extension.toUpperCase(),
-      size: size,
-      slug: slug,
-      mediafile: file.name,
-      // Si es imagen, preparar para usar como vista previa y miniatura
-      ...(isImage && {
-        thumbnail: '[Se asignará automáticamente al subir]',
-        previewurl: '[Se asignará automáticamente al subir]'
-      })
-    }));
-  };
-
-  // Subir archivo principal
-  const handleMainFileUpload = async (file) => {
-    if (!formData.type) {
-      setError('Selecciona primero el tipo de multimedia');
-      return;
-    }
-
-    try {
-      setUploadingFile(true);
-      const response = await uploadsService.uploadFile(file, formData.type);
-      
-      if (response.success) {
-        // Determinar si el archivo es una imagen para auto-asignar como vista previa y miniatura
-        const isImage = file.type.startsWith('image/') || 
-                       ['infografia', 'arte'].includes(formData.type) ||
-                       ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp'].includes(response.data.format?.toLowerCase());
-
-        setFormData(prev => ({
-          ...prev,
-          downloadurl: response.data.url,
-          mediafile: response.data.filename,
-          format: response.data.format,
-          size: response.data.size,
-          duration: response.data.duration || prev.duration,
-          // Auto-asignar como vista previa y miniatura si es imagen
-          thumbnail: isImage ? response.data.url : prev.thumbnail,
-          previewurl: isImage ? response.data.url : prev.previewurl
-        }));
-        return response;
-      } else {
-        throw new Error(response.message);
-      }
-    } catch (error) {
-      throw new Error(`Error subiendo archivo: ${error.message}`);
-    } finally {
-      setUploadingFile(false);
-    }
-  };
-
-  // Manejar selección de miniatura desde picker
-  const handleThumbnailSelect = (fileUrl, fileName) => {
-    setFormData(prev => ({ ...prev, thumbnail: fileUrl }));
-  };
-
-  // Manejar selección de vista previa desde picker
-  const handlePreviewSelect = (fileUrl, fileName) => {
-    setFormData(prev => ({ ...prev, previewurl: fileUrl }));
-  };
-
-  // Subir miniatura
-  const handleThumbnailUpload = async (file) => {
-    try {
-      const response = await uploadsService.uploadThumbnail(file, 'thumbnail');
-      
-      if (response.success) {
-        setFormData(prev => ({ ...prev, thumbnail: response.data.url }));
-        return response;
-      } else {
-        throw new Error(response.message);
-      }
-    } catch (error) {
-      throw new Error(`Error subiendo miniatura: ${error.message}`);
-    }
-  };
-
-  // Subir vista previa
-  const handlePreviewUpload = async (file) => {
-    try {
-      const response = await uploadsService.uploadThumbnail(file, 'preview');
-      
-      if (response.success) {
-        setFormData(prev => ({ ...prev, previewurl: response.data.url }));
-        return response;
-      } else {
-        throw new Error(response.message);
-      }
-    } catch (error) {
-      throw new Error(`Error subiendo vista previa: ${error.message}`);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -360,12 +207,25 @@ export const MultimediaCMS = () => {
       setError('No tienes permisos para editar multimedia');
       return;
     }
+
+    const isLegacyUpload = formData.downloadurl.startsWith('/uploads/');
+    if (!isLegacyUpload && !isValidExternalUrl(formData.downloadurl)) {
+      notify({
+        title: 'URL del recurso inválida',
+        message: 'Ingresa una URL pública que comience con http:// o https://.',
+        type: 'error'
+      });
+      return;
+    }
     
     try {
       setLoading(true);
       
       const dataToSend = {
         ...formData,
+        previewurl: formData.previewurl || formData.downloadurl,
+        thumbnail: formData.thumbnail || (['infografia', 'arte'].includes(formData.type) ? formData.downloadurl : ''),
+        format: formData.format || 'En línea',
         categoria_id: formData.categoria_id ? parseInt(formData.categoria_id) : null,
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()) : null
       };
@@ -378,6 +238,10 @@ export const MultimediaCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Archivo añadido' : 'Archivo actualizado',
+          message: modalMode === 'create' ? 'El archivo multimedia se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         setShowModal(false);
         resetForm();
         loadMultimedia();
@@ -396,11 +260,16 @@ export const MultimediaCMS = () => {
       return;
     }
     
-    if (window.confirm('¿Estás seguro de que quieres eliminar este archivo multimedia?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar archivo multimedia',
+      message: `¿Deseas eliminar "${item.title || item.name || 'este archivo'}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setLoading(true);
         const response = await multimediaService.delete(item.id);
         if (response.success) {
+          notify({ title: 'Archivo eliminado', message: 'El archivo multimedia se eliminó correctamente.' });
           loadMultimedia();
         }
       } catch (err) {
@@ -472,8 +341,6 @@ export const MultimediaCMS = () => {
       categoria_id: ''
     });
     setSelectedItem(null);
-    setSelectedMainFile(null);
-    setUploadingFile(false);
   };
 
   const closeModal = () => {
@@ -622,78 +489,14 @@ export const MultimediaCMS = () => {
             {/* Vista previa del archivo */}
             {selectedItem?.downloadurl && (
               <div className="bg-gray-700 p-4 rounded-lg">
-                <label className="block text-sm font-medium text-gray-300 mb-3">Vista Previa del Archivo</label>
-                <div className="bg-gray-800 p-4 rounded-lg">
-                  {selectedItem.type === 'infografia' || selectedItem.type === 'arte' ? (
-                    // Vista previa para imágenes
-                    <div className="flex justify-center">
-                      <img
-                        src={getFullUrl(selectedItem.downloadurl)}
-                        alt={selectedItem.title}
-                        className="max-w-full max-h-96 object-contain rounded-lg shadow-lg"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'block';
-                        }}
-                      />
-                      <div className="hidden text-center text-gray-400 py-8">
-                        <svg className="w-16 h-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p>No se pudo cargar la imagen</p>
-                      </div>
-                    </div>
-                  ) : selectedItem.type === 'video' ? (
-                    // Vista previa para videos
-                    <div className="flex justify-center">
-                      <video
-                        controls
-                        className="max-w-full max-h-96 rounded-lg shadow-lg"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'block';
-                        }}
-                      >
-                        <source src={getFullUrl(selectedItem.downloadurl)} />
-                        Tu navegador no soporta el elemento de video.
-                      </video>
-                      <div className="hidden text-center text-gray-400 py-8">
-                        <svg className="w-16 h-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <p>No se pudo cargar el video</p>
-                      </div>
-                    </div>
-                  ) : selectedItem.type === 'presentacion' && selectedItem.format?.toLowerCase() === 'pdf' ? (
-                    // Vista previa para PDFs
-                    <div className="space-y-4">
-                      <iframe
-                        src={`${getFullUrl(selectedItem.downloadurl)}#view=FitH`}
-                        className="w-full h-96 rounded-lg border border-gray-600"
-                        title={selectedItem.title}
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'block';
-                        }}
-                      />
-                      <div className="hidden text-center text-gray-400 py-8">
-                        <svg className="w-16 h-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <p>No se pudo cargar el PDF</p>
-                      </div>
-                    </div>
-                  ) : (
-                    // Vista previa genérica para otros tipos de archivo
-                    <div className="text-center text-gray-400 py-8">
-                      <svg className="w-16 h-16 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <p className="mb-2">Vista previa no disponible para este tipo de archivo</p>
-                      <p className="text-sm">Archivo: {selectedItem.mediafile}</p>
-                      <p className="text-sm">Formato: {selectedItem.format}</p>
-                    </div>
-                  )}
+                <label className="block text-sm font-medium text-gray-300 mb-3">Vista previa en línea</label>
+                <div className="h-96 overflow-hidden rounded-lg bg-gray-800">
+                  <ExternalMediaPreview
+                    url={getFullUrl(selectedItem.previewurl || selectedItem.downloadurl)}
+                    type={selectedItem.type}
+                    title={selectedItem.title}
+                    thumbnail={getFullUrl(selectedItem.thumbnail)}
+                  />
                 </div>
               </div>
             )}
@@ -724,15 +527,16 @@ export const MultimediaCMS = () => {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-gray-700 p-4 rounded-lg">
-                <label className="block text-sm font-medium text-gray-300 mb-2">URL de Descarga</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">URL del recurso</label>
                 <div className="text-white">
                   {selectedItem?.downloadurl ? (
                     <div className="space-y-2">
                       <button
-                        onClick={() => handleForceDownload(selectedItem.downloadurl)}
+                        type="button"
+                        onClick={() => handleOpenResource(selectedItem.downloadurl)}
                         className="text-blue-400 hover:text-blue-300 underline cursor-pointer bg-none border-none p-0 block"
                       >
-                        Descargar archivo
+                        Abrir enlace
                       </button>
                       <p className="text-xs text-gray-400 break-all">{selectedItem.downloadurl}</p>
                     </div>
@@ -791,50 +595,39 @@ export const MultimediaCMS = () => {
               />
             </div>
 
-            {/* Subida de archivo principal */}
+            {/* Recurso alojado externamente */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-300 border-b border-gray-700 pb-2">
-                Archivo Principal
+                Enlace público
               </h3>
-              
-              <FileUpload
-                label="Subir Archivo"
-                accept={getAcceptedFiles(formData.type)}
-                maxSize={100}
-                onFileSelect={handleMainFileSelect}
-                onUpload={handleMainFileUpload}
-                disabled={!formData.type}
-                helperText={!formData.type ? "Primero selecciona el tipo de multimedia" : "Arrastra o selecciona el archivo principal"}
-              />
-
-              {/* URL manual como alternativa */}
               <Input
-                label="URL de Descarga (alternativa)"
+                label="URL pública del recurso"
                 name="downloadurl"
                 value={formData.downloadurl}
                 onChange={handleInputChange}
-                placeholder="https://... (opcional si subes archivo)"
-                helperText="Puedes subir un archivo o ingresar una URL manualmente"
+                required
+                placeholder="https://youtube.com/... o https://drive.google.com/..."
+                helperText="Enlace público de YouTube, Vimeo, Google Drive/Slides, Canva, PDF, imagen o video directo. No se subirá ningún archivo al servidor."
               />
             </div>
 
-            {/* Metadatos auto-completados */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Metadatos opcionales */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Input
                 label="Tamaño del Archivo"
                 name="size"
                 value={formData.size}
                 onChange={handleInputChange}
-                placeholder="Se detecta automáticamente"
-                helperText="Se completa automáticamente al subir archivo"
+                placeholder="Ej. 25 MB"
+                helperText="Opcional"
               />
               <Input
                 label="Formato"
                 name="format"
                 value={formData.format}
                 onChange={handleInputChange}
-                placeholder="Se detecta automáticamente"
-                helperText="Se completa automáticamente al subir archivo"
+                placeholder="Ej. MP4, PDF o En línea"
+                helperText="Opcional"
               />
               <Input
                 label="Duración"

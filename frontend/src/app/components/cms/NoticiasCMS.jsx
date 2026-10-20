@@ -8,8 +8,10 @@ import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { noticiasService, categoriasService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
+import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
 const NoticiasCMS = () => {
+  const { confirmAction, notify } = useDashboardFeedback();
   // Permisos del usuario
   const permissions = usePermissions();
   
@@ -257,6 +259,10 @@ const NoticiasCMS = () => {
       }
 
       if (response.success) {
+        notify({
+          title: modalMode === 'create' ? 'Noticia añadida' : 'Noticia actualizada',
+          message: modalMode === 'create' ? 'La noticia se creó correctamente.' : 'Los cambios se guardaron correctamente.'
+        });
         setShowModal(false);
         resetForm();
         loadNoticias();
@@ -275,11 +281,16 @@ const NoticiasCMS = () => {
       return;
     }
 
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta noticia?')) {
+    const accepted = await confirmAction({
+      title: 'Eliminar noticia',
+      message: `¿Deseas eliminar "${item.title || 'esta noticia'}"? Esta acción no se puede deshacer.`
+    });
+    if (accepted) {
       try {
         setLoading(true);
         const response = await noticiasService.delete(item.id);
         if (response.success) {
+          notify({ title: 'Noticia eliminada', message: 'La noticia se eliminó correctamente.' });
           loadNoticias();
         }
       } catch (err) {
