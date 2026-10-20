@@ -1,16 +1,11 @@
 const BaseController = require('./BaseController');
 const PublicacionesCoalicionRepository = require('../repositories/PublicacionesCoalicionRepository');
-<<<<<<< HEAD
 const {
     deleteFromCloudinary,
     extractPublicIdFromUrl,
     buildPublicFileUrl,
     isLocalStorage
 } = require('../utils/cloudinary');
-=======
-const path = require('path');
-const fs = require('fs').promises;
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
 
 class PublicacionesCoalicionController extends BaseController {
     constructor() {
@@ -78,14 +73,9 @@ class PublicacionesCoalicionController extends BaseController {
 
             // Manejar imagen si se proporciona
             if (req.file) {
-<<<<<<< HEAD
                 const imageUrl = buildPublicFileUrl(req.file);
                 console.log(`📷 Imagen subida a ${isLocalStorage ? 'storage local' : 'Cloudinary'}:`, imageUrl);
                 publicacionData.imagen = imageUrl;
-=======
-                // Guardar la ruta relativa desde /uploads
-                publicacionData.imagen = `/uploads/infografia/jpg/${req.file.filename}`;
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
             }
 
             // Crear la publicación
@@ -133,7 +123,6 @@ class PublicacionesCoalicionController extends BaseController {
 
             // Manejar nueva imagen
             if (req.file) {
-<<<<<<< HEAD
                 const imageUrl = buildPublicFileUrl(req.file);
                 console.log(`📷 Procesando nueva imagen en ${isLocalStorage ? 'storage local' : 'Cloudinary'}:`, imageUrl);
                 
@@ -156,21 +145,6 @@ class PublicacionesCoalicionController extends BaseController {
                 console.log('✅ Nueva imagen configurada:', updateData.imagen);
             } else {
                 console.log('ℹ️ No se proporcionó nueva imagen');
-=======
-                // Eliminar imagen anterior si existe
-                if (existingPublicacion.imagen) {
-                    try {
-                        // Extraer solo el nombre del archivo de la ruta completa
-                        const filename = existingPublicacion.imagen.split('/').pop();
-                        const oldImagePath = path.join(__dirname, '../uploads/infografia/jpg', filename);
-                        await fs.unlink(oldImagePath);
-                    } catch (err) {
-                        console.log('No se pudo eliminar la imagen anterior:', err.message);
-                    }
-                }
-                // Guardar la ruta relativa desde /uploads
-                updateData.imagen = `/uploads/infografia/jpg/${req.file.filename}`;
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
             }
 
             // Actualizar la publicación
@@ -205,7 +179,6 @@ class PublicacionesCoalicionController extends BaseController {
                 });
             }
 
-<<<<<<< HEAD
             // Eliminar imagen previa si existe
             if (existingPublicacion.imagen) {
                 try {
@@ -214,15 +187,6 @@ class PublicacionesCoalicionController extends BaseController {
                     console.log('🗑️ Imagen eliminada');
                 } catch (err) {
                     console.log('⚠️ No se pudo eliminar la imagen:', err.message);
-=======
-            // Eliminar imagen si existe
-            if (existingPublicacion.imagen) {
-                try {
-                    const imagePath = path.join(__dirname, '../uploads/infografia/jpg', existingPublicacion.imagen);
-                    await fs.unlink(imagePath);
-                } catch (err) {
-                    console.log('No se pudo eliminar la imagen:', err.message);
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
                 }
             }
 

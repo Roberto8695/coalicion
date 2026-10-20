@@ -39,7 +39,7 @@ export const VerificadoresCMS = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage] = useState(10);
+  const itemsPerPage = 5;
 
   // Configuración de columnas
   const columns = [
@@ -279,9 +279,9 @@ export const VerificadoresCMS = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 p-4 lg:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Verificadores</h1>
           <p className="mt-1 text-sm text-gray-500">

@@ -144,7 +144,15 @@ const resolveLocalFilePath = (identifier) => {
 const deleteLocalFile = async (identifier) => {
   const filePath = resolveLocalFilePath(identifier);
 
-  if (!filePath || !fs.existsSync(filePath)) {
+  const isInsideUploads = filePath && (
+    filePath === uploadsRoot || filePath.startsWith(`${uploadsRoot}${path.sep}`)
+  );
+
+  if (!isInsideUploads) {
+    throw new Error('Ruta de archivo fuera del directorio de uploads');
+  }
+
+  if (!fs.existsSync(filePath)) {
     return { result: 'not_found', path: filePath || null };
   }
 

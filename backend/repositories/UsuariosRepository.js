@@ -17,7 +17,8 @@ class UsuariosRepository extends BaseRepository {
     const query = `
       INSERT INTO usuarios (nombre, correo, password, rol)
       VALUES ($1, $2, $3, $4)
-      RETURNING id, nombre, correo, rol, activo, createdat, updatedat
+      RETURNING id, nombre, correo, rol, activo,
+                created_at AS createdat, updated_at AS updatedat
     `;
     
     const values = [nombre, correo, hashedPassword, rol];
@@ -28,7 +29,8 @@ class UsuariosRepository extends BaseRepository {
   // Obtener usuario por correo (para login)
   async findByEmail(correo) {
     const query = `
-      SELECT id, nombre, correo, password, rol, activo, createdat, updatedat
+      SELECT id, nombre, correo, password, rol, activo,
+             created_at AS createdat, updated_at AS updatedat
       FROM usuarios 
       WHERE correo = $1 AND activo = true
     `;
@@ -40,7 +42,8 @@ class UsuariosRepository extends BaseRepository {
   // Obtener usuario por ID (sin password)
   async findById(id) {
     const query = `
-      SELECT id, nombre, correo, rol, activo, createdat, updatedat
+      SELECT id, nombre, correo, rol, activo,
+             created_at AS createdat, updated_at AS updatedat
       FROM usuarios 
       WHERE id = $1
     `;
@@ -55,7 +58,8 @@ class UsuariosRepository extends BaseRepository {
     const offset = (page - 1) * limit;
     
     let query = `
-      SELECT id, nombre, correo, rol, activo, createdat, updatedat
+      SELECT id, nombre, correo, rol, activo,
+             created_at AS createdat, updated_at AS updatedat
       FROM usuarios 
       WHERE 1=1
     `;
@@ -86,14 +90,14 @@ class UsuariosRepository extends BaseRepository {
 
     // Contar total de registros
     const countQuery = query.replace(
-      'SELECT id, nombre, correo, rol, activo, createdat, updatedat',
+      'SELECT id, nombre, correo, rol, activo,\n             created_at AS createdat, updated_at AS updatedat',
       'SELECT COUNT(*)'
     );
     const countResult = await this.db.query(countQuery, values);
     const total = parseInt(countResult.rows[0].count);
 
     // Agregar ordenamiento y paginación
-    query += ` ORDER BY createdat DESC`;
+    query += ` ORDER BY created_at DESC`;
     
     if (limit && limit !== -1) {
       paramCount++;
@@ -129,7 +133,7 @@ class UsuariosRepository extends BaseRepository {
       hashedPassword = await bcrypt.hash(userData.password, saltRounds);
     }
     
-    let query = `UPDATE usuarios SET updatedat = CURRENT_TIMESTAMP`;
+    let query = `UPDATE usuarios SET updated_at = CURRENT_TIMESTAMP`;
     const values = [];
     let paramCount = 0;
 
@@ -164,7 +168,9 @@ class UsuariosRepository extends BaseRepository {
     }
 
     paramCount++;
-    query += ` WHERE id = $${paramCount} RETURNING id, nombre, correo, rol, activo, createdat, updatedat`;
+    query += ` WHERE id = $${paramCount}
+      RETURNING id, nombre, correo, rol, activo,
+                created_at AS createdat, updated_at AS updatedat`;
     values.push(id);
 
     const result = await this.db.query(query, values);
@@ -183,9 +189,9 @@ class UsuariosRepository extends BaseRepository {
     
     const query = `
       UPDATE usuarios 
-      SET password = $1, updatedat = CURRENT_TIMESTAMP 
-      WHERE id = $2 
-      RETURNING id, nombre, correo, rol, activo, updatedat
+      SET password = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING id, nombre, correo, rol, activo, updated_at AS updatedat
     `;
     
     const result = await this.db.query(query, [hashedPassword, id]);
@@ -196,9 +202,9 @@ class UsuariosRepository extends BaseRepository {
   async toggleActive(id) {
     const query = `
       UPDATE usuarios 
-      SET activo = NOT activo, updatedat = CURRENT_TIMESTAMP 
-      WHERE id = $1 
-      RETURNING id, nombre, correo, rol, activo, updatedat
+      SET activo = NOT activo, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING id, nombre, correo, rol, activo, updated_at AS updatedat
     `;
     
     const result = await this.db.query(query, [id]);
@@ -214,7 +220,7 @@ class UsuariosRepository extends BaseRepository {
         COUNT(*) FILTER (WHERE rol = 'administrador') as administradores,
         COUNT(*) FILTER (WHERE rol = 'editor') as editores,
         COUNT(*) FILTER (WHERE rol = 'lector') as lectores,
-        COUNT(*) FILTER (WHERE createdat >= CURRENT_DATE - INTERVAL '30 days') as nuevos_ultimo_mes
+        COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as nuevos_ultimo_mes
       FROM usuarios
     `;
     
@@ -240,9 +246,9 @@ class UsuariosRepository extends BaseRepository {
   async softDelete(id) {
     const query = `
       UPDATE usuarios 
-      SET activo = false, updatedat = CURRENT_TIMESTAMP 
-      WHERE id = $1 
-      RETURNING id, nombre, correo, rol, activo, updatedat
+      SET activo = false, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING id, nombre, correo, rol, activo, updated_at AS updatedat
     `;
     
     const result = await this.db.query(query, [id]);

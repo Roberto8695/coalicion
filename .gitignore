@@ -1,0 +1,6 @@
+.env
+.env.*
+!.env.example
+!.env.production.example
+!.env.coolify.example
+*.log

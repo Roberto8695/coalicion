@@ -41,7 +41,7 @@ export const PublicacionesTendenciasCMS = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage] = useState(10);
+  const itemsPerPage = 5;
 
   // Configuración de columnas para la tabla
   const columns = [
@@ -304,11 +304,11 @@ export const PublicacionesTendenciasCMS = () => {
   };
 
   return (
-    <div className="space-y-6 bg-gray-800 h-screen p-6">
+    <div className="min-h-full min-w-0 space-y-4 bg-gray-800 p-4 lg:p-6">
       <div className="bg-gray-800 rounded-lg shadow-2xl border border-gray-700">
         {/* Header */}
-        <div className="px-8 py-6 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg">
-          <div className="flex items-center justify-between">
+        <div className="px-4 py-5 border-b border-gray-700 bg-gradient-to-r from-gray-800 to-gray-700 rounded-t-lg lg:px-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Gestión de Publicaciones Tendencias E.</h1>
               <p className="mt-1 text-sm text-gray-300">
@@ -326,7 +326,7 @@ export const PublicacionesTendenciasCMS = () => {
           </div>
         </div>
 
-        <div className="p-8">
+        <div className="min-w-0 p-4 lg:p-6">
           {/* Error */}
           {error && (
             <div className="bg-red-800 border border-red-600 text-red-200 px-4 py-3 rounded mb-6">

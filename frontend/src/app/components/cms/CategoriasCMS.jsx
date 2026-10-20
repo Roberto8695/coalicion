@@ -33,7 +33,7 @@ const CategoriasCMS = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [itemsPerPage] = useState(10);
+  const itemsPerPage = 5;
 
   // Configuración de columnas
   const columns = [
@@ -230,13 +230,13 @@ const CategoriasCMS = () => {
   ];
 
   return (
-    <div className="h-screen bg-gray-800">
-      <div className="p-8">
+    <div className="min-h-full min-w-0 bg-gray-800">
+      <div className="p-4 lg:p-6">
         {/* Header */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-2xl font-bold text-white mb-2 lg:text-3xl">
                 Gestión de Categorías
               </h1>
               <p className="text-gray-300">

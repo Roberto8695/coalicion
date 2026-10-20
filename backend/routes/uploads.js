@@ -18,7 +18,12 @@ router.get('/download/:type/:format/:filename', (req, res) => {
         // Obtener parámetros de la ruta
         const { type, format, filename } = req.params;
         const filePath = `${type}/${format}/${filename}`;
-        const fullPath = path.join(__dirname, '../uploads', filePath);
+        const uploadsRoot = path.resolve(__dirname, '../uploads');
+        const fullPath = path.resolve(uploadsRoot, filePath);
+
+        if (!fullPath.startsWith(`${uploadsRoot}${path.sep}`)) {
+            return res.status(400).json({ success: false, message: 'Ruta de archivo invalida' });
+        }
         
         // Verificar que el archivo existe
         if (!fs.existsSync(fullPath)) {

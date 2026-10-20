@@ -39,7 +39,7 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
   
   const [formData, setFormData] = useState<Partial<Verificador>>({
     name: '',
@@ -275,7 +275,7 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
 
   if (loading) {
     return (
-      <div className="h-screen bg-gray-800">
+      <div className="min-h-full bg-gray-800">
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#CBA135] mx-auto mb-4"></div>
@@ -287,13 +287,13 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
   }
 
   return (
-    <div className="h-screen bg-gray-800">
-      <div className="p-8">
+    <div className="min-h-full min-w-0 bg-gray-800">
+      <div className="p-4 lg:p-6">
         {/* Header */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-2xl font-bold text-white mb-2 lg:text-3xl">
                 Gestión de Verificadores
               </h1>
               <p className="text-gray-300">
@@ -391,29 +391,29 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
               <p className="text-gray-300">No se encontraron verificadores</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="w-full overflow-x-auto overscroll-x-contain">
+              <table className="w-full min-w-[860px]">
                 <thead className="bg-gray-700/50">
                   <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider lg:px-4">
                       Logo
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider lg:px-4">
                       Nombre
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider lg:px-4">
                       Descripción
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider lg:px-4">
                       Tipo
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider lg:px-4">
                       Estado
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider lg:px-4">
                       Características
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="sticky right-0 z-10 bg-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider lg:px-4">
                       Acciones
                     </th>
                   </tr>
@@ -520,7 +520,7 @@ export function VerificadoresCMS({ onClose }: VerificadoresCMSProps) {
                       </td>
 
                       {/* Acciones */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="sticky right-0 bg-gray-800 px-3 py-3 whitespace-nowrap shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.8)] lg:px-4">
                         <div className="flex items-center space-x-2">
                           {canEditContent && (
                             <button

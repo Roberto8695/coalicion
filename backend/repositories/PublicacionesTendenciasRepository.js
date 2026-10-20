@@ -15,13 +15,14 @@ class PublicacionesTendenciasRepository extends BaseRepository {
             let whereConditions = [];
 
             // Agregar filtros
+            const allowedFilterColumns = new Set(['autor']);
             Object.keys(filters).forEach((key) => {
                 if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
                     if (key === 'search') {
                         // Búsqueda en título, descripción y autor
                         whereConditions.push(`(titulo ILIKE $${values.length + 1} OR descripcion ILIKE $${values.length + 1} OR autor ILIKE $${values.length + 1})`);
                         values.push(`%${filters[key]}%`);
-                    } else {
+                    } else if (allowedFilterColumns.has(key)) {
                         whereConditions.push(`${key} = $${values.length + 1}`);
                         values.push(filters[key]);
                     }
@@ -32,7 +33,7 @@ class PublicacionesTendenciasRepository extends BaseRepository {
                 query += ` WHERE ${whereConditions.join(' AND ')}`;
             }
 
-            query += ` ORDER BY createdat DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+            query += ` ORDER BY created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
             values.push(limit, offset);
 
             const result = await pool.query(query, values);
@@ -64,7 +65,7 @@ class PublicacionesTendenciasRepository extends BaseRepository {
         try {
             const query = `
                 SELECT * FROM ${this.tableName}
-                ORDER BY createdat DESC
+                ORDER BY created_at DESC
                 LIMIT $1
             `;
             const result = await pool.query(query, [limit]);
@@ -81,7 +82,7 @@ class PublicacionesTendenciasRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE titulo ILIKE $1 OR descripcion ILIKE $1 OR autor ILIKE $1
-                ORDER BY createdat DESC
+                ORDER BY created_at DESC
                 LIMIT $2 OFFSET $3
             `;
             const values = [`%${searchTerm}%`, limit, offset];
@@ -116,7 +117,7 @@ class PublicacionesTendenciasRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE autor ILIKE $1
-                ORDER BY createdat DESC
+                ORDER BY created_at DESC
                 LIMIT $2 OFFSET $3
             `;
             const values = [`%${autor}%`, limit, offset];

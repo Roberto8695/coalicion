@@ -166,7 +166,7 @@ export const CMSDashboard = () => {
       </div>
 
       {/* Tarjetas de estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {statCards.map((card) => (
           <div key={card.name} className="bg-gray-800 border border-gray-700 overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-200">
             <div className="p-6">

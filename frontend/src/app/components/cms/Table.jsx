@@ -34,21 +34,22 @@ export const Table = ({
   }
 
   return (
-    <div className={`overflow-hidden shadow-2xl ring-1 ring-gray-700 md:rounded-lg bg-gray-800 ${className}`}>
-      <table className="min-w-full divide-y divide-gray-700">
+    <div className={`min-w-0 overflow-hidden shadow-2xl ring-1 ring-gray-700 rounded-lg bg-gray-800 ${className}`}>
+      <div className="w-full overflow-x-auto overscroll-x-contain">
+      <table className="w-full min-w-[720px] divide-y divide-gray-700">
         <thead className="bg-gray-800">
           <tr>
             {columns.map((column, index) => (
               <th
                 key={index}
                 scope="col"
-                className="px-6 py-4 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider bg-gradient-to-r from-gray-900 to-gray-800"
+                className="px-3 py-3 text-left text-xs font-semibold text-gray-300 uppercase tracking-wider bg-gradient-to-r from-gray-900 to-gray-800 lg:px-4"
               >
                 {column.header}
               </th>
             ))}
             {(onEdit || onDelete || onView) && (
-              <th scope="col" className="relative px-6 py-4 bg-gradient-to-r from-gray-900 to-gray-800">
+              <th scope="col" className="sticky right-0 z-10 px-3 py-3 bg-gray-800 lg:px-4">
                 <span className="sr-only">Acciones</span>
               </th>
             )}
@@ -56,14 +57,14 @@ export const Table = ({
         </thead>
         <tbody className="bg-gray-800 divide-y divide-gray-700">
           {data.map((row, rowIndex) => (
-            <tr key={rowIndex} className="hover:bg-gray-700 transition-colors duration-150">
+            <tr key={rowIndex} className="group hover:bg-gray-700 transition-colors duration-150">
               {columns.map((column, colIndex) => (
-                <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                <td key={colIndex} className="px-3 py-3 text-sm text-gray-200 lg:px-4">
                   {column.render ? column.render(row[column.key], row) : row[column.key]}
                 </td>
               ))}
               {(onEdit || onDelete || onView) && (
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="sticky right-0 bg-gray-800 px-3 py-3 whitespace-nowrap text-right text-sm font-medium shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.8)] group-hover:bg-gray-700 lg:px-4">
                   <div className="flex items-center justify-end space-x-2">
                     {onView && (
                       <Button
@@ -109,6 +110,7 @@ export const Table = ({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 };

@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+coverage
+.git
+.gitignore
+.env
+.env.*
+!.env.production.example
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+Dockerfile*
+README.md
+AUTHENTICATION_SYSTEM.md

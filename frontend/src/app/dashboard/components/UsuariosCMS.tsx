@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth, usePermissions } from "@/hooks/useAuth";
 import { usuariosService, Usuario } from "@/api/services";
+import { Pagination } from "@/app/components/cms/Pagination";
 
 export function UsuariosCMS() {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
@@ -9,16 +10,20 @@ export function UsuariosCMS() {
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 5;
   
   const { user } = useAuth();
   const { canManageUsers } = usePermissions();
 
-  const loadUsuarios = async () => {
+  const loadUsuarios = async (page = currentPage) => {
     try {
       setIsLoading(true);
       setError("");
       
-      const result = await usuariosService.getAll();
+      const result = await usuariosService.getAll({ page, limit: itemsPerPage });
       console.log('API Response from service:', result);
       
       if (result && result.data) {
@@ -29,12 +34,22 @@ export function UsuariosCMS() {
         // Verificar si result.data tiene la propiedad 'data' (estructura paginada)
         const responseData = result.data as unknown;
         if (responseData && typeof responseData === 'object' && 'data' in responseData) {
-          const nestedData = (responseData as { data: unknown }).data;
+          const nestedResponse = responseData as {
+            data: unknown;
+            pagination?: { page?: number; total?: number; totalPages?: number };
+          };
+          const nestedData = nestedResponse.data;
           if (Array.isArray(nestedData)) {
             usuariosData = nestedData as Usuario[];
           }
+          setCurrentPage(nestedResponse.pagination?.page || page);
+          setTotalPages(nestedResponse.pagination?.totalPages || 1);
+          setTotalItems(nestedResponse.pagination?.total || usuariosData.length);
         } else if (Array.isArray(result.data)) {
           usuariosData = result.data as Usuario[];
+          setCurrentPage(result.pagination?.page || page);
+          setTotalPages(result.pagination?.totalPages || 1);
+          setTotalItems(result.pagination?.total || usuariosData.length);
         } else {
           console.log('Estructura de datos inesperada:', result.data);
           usuariosData = [];
@@ -46,20 +61,24 @@ export function UsuariosCMS() {
         console.error('No se recibieron datos válidos');
         setError('No se pudieron cargar los usuarios');
         setUsuarios([]);
+        setTotalItems(0);
+        setTotalPages(1);
       }
     } catch (error: unknown) {
       console.error("Error al cargar usuarios:", error);
       const errorMessage = error instanceof Error ? error.message : 'Error de conexión al cargar usuarios';
       setError(errorMessage);
       setUsuarios([]);
+      setTotalItems(0);
+      setTotalPages(1);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadUsuarios();
-  }, []);
+    loadUsuarios(currentPage);
+  }, [currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Verificar permisos de administrador
   if (!canManageUsers) {
@@ -92,7 +111,8 @@ export function UsuariosCMS() {
 
       await usuariosService.create(userData);
       setShowForm(false);
-      await loadUsuarios();
+      setCurrentPage(1);
+      await loadUsuarios(1);
       setError("");
     } catch (error: unknown) {
       console.error("Error al crear usuario:", error);
@@ -125,7 +145,7 @@ export function UsuariosCMS() {
       await usuariosService.update(editingUsuario.id!, userData);
       setEditingUsuario(null);
       setShowForm(false);
-      await loadUsuarios();
+      await loadUsuarios(currentPage);
       setError("");
     } catch (error: unknown) {
       console.error("Error al actualizar usuario:", error);
@@ -149,7 +169,12 @@ export function UsuariosCMS() {
       try {
         setIsLoading(true);
         await usuariosService.delete(usuario.id);
-        await loadUsuarios();
+        const targetPage = usuarios.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
+        if (targetPage !== currentPage) {
+          setCurrentPage(targetPage);
+        } else {
+          await loadUsuarios(targetPage);
+        }
         setError("");
       } catch (error: unknown) {
         console.error("Error al eliminar usuario:", error);
@@ -319,11 +344,11 @@ export function UsuariosCMS() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-4 p-4 lg:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white lg:text-3xl">
             Gestión de Usuarios
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -352,7 +377,7 @@ export function UsuariosCMS() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800">
@@ -364,7 +389,7 @@ export function UsuariosCMS() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Usuarios</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{Array.isArray(usuarios) ? usuarios.length : 0}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalItems}</p>
             </div>
           </div>
         </div>
@@ -447,8 +472,8 @@ export function UsuariosCMS() {
             </div>
           ) : (
             usuarios.map((usuario) => (
-              <div key={usuario.id} className="px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center space-x-4">
+              <div key={usuario.id} className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <div className="flex min-w-0 items-center space-x-4">
                   <div className="flex-shrink-0">
                     <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
                       <span className="text-blue-600 dark:text-blue-400 font-medium text-lg">
@@ -480,7 +505,7 @@ export function UsuariosCMS() {
                   </div>
                 </div>
                 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center justify-end space-x-2">
                   <button
                     onClick={() => startEdit(usuario)}
                     className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
@@ -507,6 +532,13 @@ export function UsuariosCMS() {
             ))
           )}
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

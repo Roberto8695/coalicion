@@ -4,11 +4,13 @@ const PublicacionesCoalicionController = require('../controllers/PublicacionesCo
 const { authenticateToken, requirePublicationAccess } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
+const { getCloudinaryStorage } = require('../utils/cloudinary');
 
 const router = express.Router();
 const controller = new PublicacionesCoalicionController();
 
 // Configuración de multer con Cloudinary
+const storage = getCloudinaryStorage('infografia');
 const upload = multer({ 
     storage: storage,
     fileFilter: (req, file, cb) => {

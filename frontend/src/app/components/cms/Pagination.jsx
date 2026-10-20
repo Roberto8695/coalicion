@@ -9,7 +9,7 @@ export const Pagination = ({
   showPageNumbers = true,
   showSummary = true,
   totalItems = 0,
-  itemsPerPage = 10
+  itemsPerPage = 5
 }) => {
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
@@ -28,9 +28,9 @@ export const Pagination = ({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between border-t border-gray-700 bg-gray-800 px-4 py-3 sm:px-6 rounded-b-lg">
+    <div className="flex items-center justify-between gap-3 border-t border-gray-700 bg-gray-800 px-3 py-3 sm:px-4 rounded-b-lg">
       {/* Resumen móvil */}
-      <div className="flex flex-1 justify-between sm:hidden">
+      <div className="flex flex-1 items-center justify-between gap-2 sm:hidden">
         <Button
           variant="outline"
           onClick={() => onPageChange(currentPage - 1)}
@@ -38,6 +38,9 @@ export const Pagination = ({
         >
           Anterior
         </Button>
+        <span className="text-xs text-gray-300" aria-live="polite">
+          {currentPage} / {totalPages}
+        </span>
         <Button
           variant="outline"
           onClick={() => onPageChange(currentPage + 1)}
@@ -48,11 +51,11 @@ export const Pagination = ({
       </div>
 
       {/* Desktop */}
-      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+      <div className="hidden min-w-0 sm:flex sm:flex-1 sm:items-center sm:justify-between sm:gap-3">
         {/* Resumen */}
         {showSummary && (
-          <div>
-            <p className="text-sm text-gray-300">
+          <div className="min-w-0">
+            <p className="whitespace-nowrap text-xs text-gray-300 lg:text-sm">
               Mostrando <span className="font-medium text-white">{startItem}</span> a{' '}
               <span className="font-medium text-white">{endItem}</span> de{' '}
               <span className="font-medium text-white">{totalItems}</span> resultados
@@ -80,12 +83,12 @@ export const Pagination = ({
               <>
                 <button
                   onClick={() => onPageChange(1)}
-                  className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-200 ring-1 ring-inset ring-gray-600 bg-gray-700 hover:bg-gray-600 focus:z-20 focus:outline-offset-0 transition-colors"
+                  className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-200 ring-1 ring-inset ring-gray-600 bg-gray-700 hover:bg-gray-600 focus:z-20 focus:outline-offset-0 transition-colors"
                 >
                   1
                 </button>
                 {currentPage > 4 && (
-                  <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-600 bg-gray-700 focus:outline-offset-0">
+                  <span className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-600 bg-gray-700 focus:outline-offset-0">
                     ...
                   </span>
                 )}
@@ -97,7 +100,7 @@ export const Pagination = ({
               <button
                 key={page}
                 onClick={() => onPageChange(page)}
-                className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-600 focus:z-20 focus:outline-offset-0 transition-colors ${
+                className={`relative inline-flex items-center px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-600 focus:z-20 focus:outline-offset-0 transition-colors ${
                   page === currentPage
                     ? 'z-10 bg-blue-600 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
                     : 'text-gray-200 bg-gray-700 hover:bg-gray-600'
@@ -111,13 +114,13 @@ export const Pagination = ({
             {currentPage < totalPages - 2 && (
               <>
                 {currentPage < totalPages - 3 && (
-                  <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-600 bg-gray-700 focus:outline-offset-0">
+                  <span className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-400 ring-1 ring-inset ring-gray-600 bg-gray-700 focus:outline-offset-0">
                     ...
                   </span>
                 )}
                 <button
                   onClick={() => onPageChange(totalPages)}
-                  className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-200 ring-1 ring-inset ring-gray-600 bg-gray-700 hover:bg-gray-600 focus:z-20 focus:outline-offset-0 transition-colors"
+                  className="relative inline-flex items-center px-3 py-2 text-sm font-semibold text-gray-200 ring-1 ring-inset ring-gray-600 bg-gray-700 hover:bg-gray-600 focus:z-20 focus:outline-offset-0 transition-colors"
                 >
                   {totalPages}
                 </button>

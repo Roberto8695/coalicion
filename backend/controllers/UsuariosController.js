@@ -1,6 +1,6 @@
 const BaseController = require('./BaseController');
 const UsuariosRepository = require('../repositories/UsuariosRepository');
-const jwt = require('jsonwebtoken');
+const { generateToken } = require('../middleware/auth');
 
 class UsuariosController extends BaseController {
   constructor() {
@@ -272,15 +272,7 @@ class UsuariosController extends BaseController {
       }
 
       // Generar JWT token
-      const token = jwt.sign(
-        { 
-          id: usuario.id, 
-          correo: usuario.correo, 
-          rol: usuario.rol 
-        },
-        process.env.JWT_SECRET || 'coalicion_secret_key',
-        { expiresIn: '24h' }
-      );
+      const token = generateToken(usuario);
 
       // Eliminar password de la respuesta
       const { password: _, ...usuarioSinPassword } = usuario;

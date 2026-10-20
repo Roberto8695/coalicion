@@ -1,117 +1,92 @@
 const express = require('express');
-const { Pool } = require('pg'); // Se recomienda usar Pool para manejar conexiones
 const dotenv = require('dotenv');
-const cors = require('cors'); // Para permitir CORS si es necesario
+const cors = require('cors');
 const path = require('path');
 
-dotenv.config(); // Carga las variables de entorno
+dotenv.config();
+
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is required in production');
+}
+
 const app = express();
-const port = process.env.PORT || 4000; // Cambiar puerto por defecto
+const port = Number(process.env.PORT || 4000);
+const host = '0.0.0.0';
+const { pool } = require('./config/db');
 
-// Middlewares
-app.use(express.json()); // Para parsear JSON en las peticiones
+app.use(express.json());
 
-// Configuración de CORS mejorada para permitir descargas
-const allowedOrigins = process.env.NODE_ENV === 'production' 
-    ? [
-        process.env.FRONTEND_URL, 
-        'https://coalicion-frontend.onrender.com',
-        'https://coalicion-two.vercel.app',
-        'https://coalicion-two.vercel.app',
-        /\.onrender\.com$/,
-        /\.vercel\.app$/
-      ]
-    : ['http://localhost:3000', 'http://localhost:3001'];
-
+const configuredOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/$/, ''))
+    .filter(Boolean);
+const allowedOrigins = process.env.NODE_ENV === 'production'
+    ? configuredOrigins
+    : [...configuredOrigins, 'http://localhost:3000', 'http://localhost:3001'];
 
 app.use(cors({
-    origin: allowedOrigins,
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes(origin.replace(/\/$/, ''))) {
+            return callback(null, true);
+        }
+        const error = new Error('Origin is not allowed by CORS');
+        error.status = 403;
+        return callback(error);
+    },
     credentials: true,
     optionsSuccessStatus: 200
 }));
 
-// Servir archivos estáticos desde la carpeta uploads con headers adecuados
 app.use('/uploads', (req, res, next) => {
-    // Headers para permitir CORS pero NO forzar descarga para imágenes
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    
-    // Solo forzar descarga para archivos específicos (PDFs, documentos)
+
     const fileExtension = path.extname(req.path).toLowerCase();
     const downloadableExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.zip', '.rar'];
-    
     if (downloadableExtensions.includes(fileExtension)) {
         res.header('Content-Disposition', 'attachment');
     }
-    
     next();
 }, express.static(path.join(__dirname, 'uploads')));
 
-// Configuración de la base de datos
-// Configuración de la base de datos
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-    ssl: process.env.NODE_ENV === 'production' ? {
-        rejectUnauthorized: false
-    } : false
-});
-// Verificar conexión a la base de datos
-pool.on('connect', () => {
-    console.log('✅ Cliente de PostgreSQL conectado');
-});
-
-pool.on('error', (err) => {
-    console.error('❌ Error inesperado en cliente PostgreSQL:', err);
-    process.exit(-1);
-});
-
-// Importar rutas de la API
 const apiRoutes = require('./routes');
-
-// Configurar rutas
 app.use('/api', apiRoutes);
 
-// Ruta de prueba
-app.get('/', (req, res) => {
-    res.json({ 
-        success: true,
-        message: 'Backend de Coalición funcionando correctamente',
-        version: '1.0.0',
-        database: process.env.DB_DATABASE,
-        api: {
-            base: '/api',
-            documentation: '/api'
-        }
-    });
-});
-
-// Ruta de prueba para la base de datos
-app.get('/test-db', async (req, res) => {
+app.get('/health', async (req, res) => {
     try {
-        const result = await pool.query('SELECT NOW()');
-        res.json({ 
-            success: true,
-            message: 'Conexión a base de datos exitosa',
-            timestamp: result.rows[0].now,
-            database: process.env.DB_DATABASE
-        });
+        await pool.query('SELECT 1');
+        res.status(200).json({ status: 'ok' });
     } catch (error) {
-        console.error('Error al conectar con la base de datos:', error);
-        res.status(500).json({ 
-            success: false,
-            error: 'Error de conexión a la base de datos',
-            details: error.message
-        });
+        console.error('PostgreSQL health check failed:', error.message);
+        res.status(503).json({ status: 'unavailable' });
     }
 });
 
-// Middleware para manejo de errores 404
-app.use((req, res, next) => {
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Backend de Coalicion funcionando correctamente',
+        version: '1.0.0',
+        api: { base: '/api', documentation: '/api' }
+    });
+});
+
+app.get('/test-db', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT NOW()');
+        res.json({
+            success: true,
+            message: 'Conexion a base de datos exitosa',
+            timestamp: result.rows[0].now
+        });
+    } catch (error) {
+        console.error('Database connectivity test failed:', error.message);
+        res.status(500).json({ success: false, error: 'Error de conexion a la base de datos' });
+    }
+});
+
+app.use((req, res) => {
     res.status(404).json({
         success: false,
         message: 'Endpoint no encontrado',
@@ -120,20 +95,39 @@ app.use((req, res, next) => {
     });
 });
 
-// Middleware para manejo de errores generales
 app.use((error, req, res, next) => {
-    console.error('Error no manejado:', error);
-    res.status(500).json({
+    console.error('Unhandled request error:', error.message);
+    const status = error.status || 500;
+    res.status(status).json({
         success: false,
-        message: 'Error interno del servidor',
+        message: status === 403 ? 'Origen no permitido' : 'Error interno del servidor',
         error: process.env.NODE_ENV === 'development' ? error.message : 'Error interno'
     });
 });
 
-// Iniciar servidor
-app.listen(port, () => {
-    console.log(`🚀 Servidor corriendo en http://localhost:${port}`);
-    console.log(`📊 Conectando a base de datos: ${process.env.DB_DATABASE}`);
-    console.log(`📡 API disponible en: http://localhost:${port}/api`);
-    console.log(`📖 Documentación en: http://localhost:${port}/api`);
+const server = app.listen(port, host, () => {
+    console.log(`Server listening on ${host}:${port}`);
+    console.log(`API available at http://localhost:${port}/api`);
 });
+
+let shuttingDown = false;
+const shutdown = (signal) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`${signal} received; shutting down`);
+
+    server.close(async () => {
+        try {
+            await pool.end();
+            process.exit(0);
+        } catch (error) {
+            console.error('Shutdown failed:', error.message);
+            process.exit(1);
+        }
+    });
+
+    setTimeout(() => process.exit(1), 10000).unref();
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

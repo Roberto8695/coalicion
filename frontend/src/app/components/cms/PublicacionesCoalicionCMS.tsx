@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { publicacionesCoalicionService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
+import { Pagination } from './Pagination';
 
 // Tipos para las publicaciones de coalición
 interface PublicacionCoalicion {
@@ -80,6 +81,8 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
   // Estados de paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 5;
 
   // Estados para notificaciones
   const [notification, setNotification] = useState<Notification | null>(null);
@@ -97,7 +100,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       setLoading(true);
       const filters = {
         page,
-        limit: 12,
+        limit: itemsPerPage,
         ...(searchTerm && { search: searchTerm })
       };
       
@@ -107,11 +110,13 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
         setPublicaciones(Array.isArray(response.data) ? response.data : []);
         setCurrentPage(response.pagination?.page || 1);
         setTotalPages(response.pagination?.totalPages || 1);
+        setTotalItems(response.pagination?.total || response.data.length);
       } else {
         console.warn('Respuesta inválida del servicio:', response);
         setPublicaciones([]);
         setCurrentPage(1);
         setTotalPages(1);
+        setTotalItems(0);
       }
     } catch (error) {
       console.error('Error al cargar publicaciones:', error);
@@ -119,6 +124,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
       setPublicaciones([]);
       setCurrentPage(1);
       setTotalPages(1);
+      setTotalItems(0);
     } finally {
       setLoading(false);
     }
@@ -126,13 +132,9 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
 
   // Efectos
   useEffect(() => {
-    loadPublicaciones();
-  }, [loadPublicaciones]);
-
-  useEffect(() => {
     const timeoutId = setTimeout(() => {
       loadPublicaciones(1);
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [searchTerm, loadPublicaciones]);
@@ -327,7 +329,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
   };
 
   return (
-    <div className={`h-screen bg-gray-800 ${className}`}>
+    <div className={`min-h-full min-w-0 bg-gray-800 ${className}`}>
       {/* Notificación */}
       {notification && (
         <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg backdrop-blur-sm ${
@@ -347,19 +349,19 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
         </div>
       )}
 
-      <div className="p-8">
+      <div className="p-4 lg:p-6">
         {/* Header */}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <h1 className="text-2xl font-bold text-white mb-2 lg:text-3xl">
                 Gestión de Publicaciones de Coalición
               </h1>
               <p className="text-gray-300">
                 Administra las publicaciones específicas de la coalición
               </p>
             </div>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
+          <p className="max-w-md text-sm text-gray-300 lg:text-base">
             Gestiona las publicaciones relacionadas con la coalición electoral
           </p>
         </div>
@@ -368,7 +370,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
         
 
         {/* Controles */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="flex flex-col gap-4 mb-6 lg:flex-row">
           <div className="flex-1">
             <div className="relative">
               <input
@@ -417,8 +419,8 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
           </div>
         ) : (
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
+            <div className="w-full overflow-x-auto overscroll-x-contain">
+              <table className="w-full min-w-[760px]">
                 <thead className="bg-gray-700/50">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
@@ -436,7 +438,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                       URL
                     </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    <th className="sticky right-0 z-10 bg-gray-700 px-3 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider lg:px-4">
                       Acciones
                     </th>
                   </tr>
@@ -531,7 +533,7 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
                       </td>
                       
                       {/* Acciones */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="sticky right-0 bg-gray-800 px-3 py-3 whitespace-nowrap shadow-[-8px_0_12px_-12px_rgba(0,0,0,0.8)] lg:px-4">
                         <div className="flex items-center space-x-2">
                           {canEditContent && (
                             <button
@@ -566,54 +568,15 @@ export const PublicacionesCoalicionCMS: React.FC<PublicacionesCoalicionCMSProps>
         )}
 
         {/* Paginación */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center mt-8 space-x-2">
-            <button
-              onClick={() => loadPublicaciones(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-gray-300"
-            >
-              Anterior
-            </button>
-            
-            <div className="flex space-x-1">
-              {[...Array(totalPages)].map((_, index) => {
-                const page = index + 1;
-                if (
-                  page === 1 ||
-                  page === totalPages ||
-                  (page >= currentPage - 1 && page <= currentPage + 1)
-                ) {
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => loadPublicaciones(page)}
-                      className={`px-3 py-2 rounded-lg transition-colors ${
-                        currentPage === page
-                          ? 'bg-[#CBA135] text-white'
-                          : 'bg-gray-800/80 backdrop-blur-sm border border-gray-700 hover:bg-gray-700 text-gray-300'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
-                }
-                if (page === currentPage - 2 || page === currentPage + 2) {
-                  return <span key={page} className="px-2 text-gray-400">...</span>;
-                }
-                return null;
-              })}
-            </div>
-            
-            <button
-              onClick={() => loadPublicaciones(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-gray-800/80 backdrop-blur-sm border border-gray-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors text-gray-300"
-            >
-              Siguiente
-            </button>
-          </div>
-        )}
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={loadPublicaciones}
+          />
+        </div>
       </div>
 
       {/* Modal de formulario */}

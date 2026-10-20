@@ -257,10 +257,10 @@ export const LogoIcon = () => {
 // Componente para contenido personalizado
 const CustomContent = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex flex-1">
-      <div className="flex h-full w-full flex-1 flex-col gap-2 rounded-tl-2xl border border-neutral-200 bg-white p-2 md:p-10 dark:border-neutral-700 dark:bg-neutral-900">
+    <div className="flex min-w-0 flex-1 overflow-hidden">
+      <main className="flex h-full min-w-0 w-full flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto rounded-tl-2xl border border-neutral-200 bg-white p-0 sm:p-2 lg:p-4 xl:p-6 dark:border-neutral-700 dark:bg-neutral-900">
         {children}
-      </div>
+      </main>
     </div>
   );
 };

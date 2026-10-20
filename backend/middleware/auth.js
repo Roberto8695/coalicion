@@ -3,6 +3,14 @@ const UsuariosRepository = require('../repositories/UsuariosRepository');
 
 const usuariosRepository = new UsuariosRepository();
 
+const getJwtSecret = () => {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET is required in production');
+  }
+  return 'coalicion_development_only_secret';
+};
+
 // Middleware para verificar token JWT
 const authenticateToken = async (req, res, next) => {
   try {
@@ -17,7 +25,7 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Verificar token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'coalicion_secret_key');
+    const decoded = jwt.verify(token, getJwtSecret());
     
     // Verificar que el usuario aún existe y está activo
     const usuario = await usuariosRepository.findById(decoded.id);
@@ -198,7 +206,7 @@ const generateToken = (usuario) => {
       correo: usuario.correo,
       rol: usuario.rol
     },
-    process.env.JWT_SECRET || 'coalicion_secret_key',
+    getJwtSecret(),
     { expiresIn: '24h' }
   );
 };

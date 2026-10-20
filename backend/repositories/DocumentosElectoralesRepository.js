@@ -24,27 +24,34 @@ class DocumentosElectoralesRepository extends BaseRepository {
             tags: dbRow.tags,
             authorName: dbRow.autor,
             version: dbRow.version,
-            createdAt: dbRow.createdat,
-            updatedAt: dbRow.updatedat
+            createdAt: dbRow.created_at,
+            updatedAt: dbRow.updated_at
         };
     }
 
     // Mapear del frontend a la base de datos
     mapApiToDb(apiData) {
-        return {
-            titulo: apiData.title,
-            descripcion: apiData.description,
-            formato_archivo: apiData.type,
-            categoria: apiData.category,
-            ruta_archivo: apiData.fileUrl,
-            ruta_vista_previa: apiData.previewUrl,
-            tamano_texto: apiData.fileSize,
-            fecha_publicacion: apiData.publishDate,
-            estado: apiData.status,
-            tags: apiData.tags,
-            autor: apiData.authorName,
-            version: apiData.version
+        const columnMap = {
+            title: 'titulo',
+            description: 'descripcion',
+            type: 'formato_archivo',
+            category: 'categoria',
+            fileUrl: 'ruta_archivo',
+            previewUrl: 'ruta_vista_previa',
+            fileSize: 'tamano_texto',
+            publishDate: 'fecha_publicacion',
+            status: 'estado',
+            tags: 'tags',
+            authorName: 'autor',
+            version: 'version'
         };
+
+        return Object.entries(columnMap).reduce((dbData, [apiKey, dbColumn]) => {
+            if (apiData[apiKey] !== undefined) {
+                dbData[dbColumn] = apiData[apiKey];
+            }
+            return dbData;
+        }, {});
     }
 
     // Obtener todos con mapeo
@@ -52,25 +59,21 @@ class DocumentosElectoralesRepository extends BaseRepository {
         try {
             const offset = (page - 1) * limit;
             let whereClause = '';
-            const queryParams = [limit, offset];
-            let paramCount = 2;
+            const filterValues = [];
 
             // Aplicar filtros
             const conditions = [];
             if (filters.categoria) {
-                paramCount++;
-                conditions.push(`categoria = $${paramCount}`);
-                queryParams.push(filters.categoria);
+                filterValues.push(filters.categoria);
+                conditions.push(`categoria = $${filterValues.length}`);
             }
             if (filters.estado) {
-                paramCount++;
-                conditions.push(`estado = $${paramCount}`);
-                queryParams.push(filters.estado);
+                filterValues.push(filters.estado);
+                conditions.push(`estado = $${filterValues.length}`);
             }
             if (filters.formato_archivo) {
-                paramCount++;
-                conditions.push(`formato_archivo = $${paramCount}`);
-                queryParams.push(filters.formato_archivo);
+                filterValues.push(filters.formato_archivo);
+                conditions.push(`formato_archivo = $${filterValues.length}`);
             }
 
             if (conditions.length > 0) {
@@ -80,8 +83,8 @@ class DocumentosElectoralesRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 ${whereClause}
-                ORDER BY fecha_publicacion DESC, createdat DESC
-                LIMIT $1 OFFSET $2
+                ORDER BY fecha_publicacion DESC, created_at DESC
+                LIMIT $${filterValues.length + 1} OFFSET $${filterValues.length + 2}
             `;
 
             const countQuery = `
@@ -90,8 +93,8 @@ class DocumentosElectoralesRepository extends BaseRepository {
             `;
 
             const [result, countResult] = await Promise.all([
-                pool.query(query, queryParams),
-                pool.query(countQuery, conditions.length > 0 ? queryParams.slice(2) : []) // Solo usar parámetros de filtros para el count
+                pool.query(query, [...filterValues, limit, offset]),
+                pool.query(countQuery, filterValues)
             ]);
 
             const total = parseInt(countResult.rows[0].total);
@@ -149,7 +152,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
     async update(id, data) {
         try {
             const dbData = this.mapApiToDb(data);
-            dbData.updatedat = new Date();
+            dbData.updated_at = new Date();
 
             const columns = Object.keys(dbData);
             const values = Object.values(dbData);
@@ -192,7 +195,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE estado = 'publicado'
-                ORDER BY fecha_publicacion DESC, createdat DESC
+                ORDER BY fecha_publicacion DESC, created_at DESC
                 LIMIT $1 OFFSET $2
             `;
             
@@ -231,7 +234,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
             const query = `
                 SELECT * FROM ${this.tableName}
                 WHERE estado = 'publicado'
-                ORDER BY fecha_publicacion DESC, createdat DESC
+                ORDER BY fecha_publicacion DESC, created_at DESC
                 LIMIT $1
             `;
             const result = await pool.query(query, [limit]);
@@ -255,7 +258,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
                     LOWER(tags) LIKE $1 OR
                     LOWER(autor) LIKE $1
                 )
-                ORDER BY fecha_publicacion DESC, createdat DESC
+                ORDER BY fecha_publicacion DESC, created_at DESC
                 LIMIT $2 OFFSET $3
             `;
 

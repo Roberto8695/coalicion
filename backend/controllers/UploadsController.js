@@ -1,9 +1,6 @@
-const fs = require('fs').promises;
-const path = require('path');
-const multer = require('multer');
-<<<<<<< HEAD
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 const {
   getCloudinaryStorage,
   deleteFromCloudinary,
@@ -12,10 +9,6 @@ const {
   isLocalStorage,
   resolveStorageType
 } = require('../utils/cloudinary');
-=======
-const mime = require('mime-types');
-const { fileTypeFromBuffer } = require('file-type');
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
 
 class UploadsController {
   constructor() {
@@ -24,7 +17,6 @@ class UploadsController {
   }
 
   setupMulter() {
-<<<<<<< HEAD
     // Configuración de multer para diferentes tipos
     this.uploadConfigs = {
       infografia: getCloudinaryStorage('infografia'),
@@ -34,37 +26,6 @@ class UploadsController {
       general: getCloudinaryStorage('general'),
       logos: getCloudinaryStorage('logos')
     };
-=======
-    // Configuración de multer para subida de archivos
-    const storage = multer.diskStorage({
-      destination: async (req, file, cb) => {
-        try {
-          // El tipo se obtiene después del procesamiento de multer
-          // Por ahora usamos 'general' y luego moveremos el archivo si es necesario
-          let destPath = path.join(this.uploadsPath, 'temp');
-          
-          // Crear directorio temporal si no existe
-          await fs.mkdir(destPath, { recursive: true });
-          
-          cb(null, destPath);
-        } catch (error) {
-          cb(error);
-        }
-      },
-      filename: (req, file, cb) => {
-        // Generar nombre único para el archivo
-        const timestamp = Date.now();
-        const ext = path.extname(file.originalname);
-        const name = path.basename(file.originalname, ext)
-          .toLowerCase()
-          .replace(/[^a-z0-9]/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '');
-        
-        cb(null, `${name}-${timestamp}${ext}`);
-      }
-    });
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
 
     // Filtros de archivos más permisivos inicialmente
     const fileFilter = (req, file, cb) => {
@@ -73,7 +34,7 @@ class UploadsController {
     };
 
     this.upload = multer({
-      storage,
+      storage: this.uploadConfigs.general,
       fileFilter,
       limits: {
         fileSize: 100 * 1024 * 1024 // 100MB máximo
@@ -104,7 +65,6 @@ class UploadsController {
         try {
           const { type } = req.body;
           
-<<<<<<< HEAD
           console.log('📁 Subiendo archivo tipo:', type);
           console.log('📄 Archivo recibido:', {
             originalname: req.file.originalname,
@@ -121,15 +81,13 @@ class UploadsController {
             return res.status(400).json({
               success: false,
               message: 'Tipo de multimedia inválido. Tipos permitidos: infografia, video, arte, presentacion, general, logos, thumbnail, preview'
-=======
-          // Validar que se proporcionó el tipo
+            });
+          }
+
           if (!type) {
-            // Eliminar archivo temporal
-            await fs.unlink(req.file.path);
             return res.status(400).json({
               success: false,
               message: 'Debe especificar el tipo de multimedia'
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
             });
           }
 
@@ -138,7 +96,6 @@ class UploadsController {
             'infografia': ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'application/pdf'],
             'video': ['video/mp4', 'video/avi', 'video/quicktime', 'video/x-msvideo'],
             'arte': ['image/jpeg', 'image/jpg', 'image/png', 'image/svg+xml', 'image/gif'],
-<<<<<<< HEAD
             'presentacion': ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'],
             'general': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'], // Para logos y thumbnails
             'logos': ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/svg+xml'], // Para logos de verificadores
@@ -149,25 +106,12 @@ class UploadsController {
           };
 
           if (!allowedTypes[type] || !allowedTypes[type].includes(req.file.mimetype)) {
-            // Eliminar archivo si el tipo no es permitido
-            if (req.file?.filename) {
-              await deleteFromCloudinary(req.file.path || req.file.filename);
-            }
-=======
-            'presentacion': ['application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']
-          };
-
-          if (!allowedTypes[type] || !allowedTypes[type].includes(req.file.mimetype)) {
-            // Eliminar archivo temporal
-            await fs.unlink(req.file.path);
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
             return res.status(400).json({
               success: false,
               message: `Tipo de archivo no permitido para ${type}. Archivo: ${req.file.mimetype}. Tipos permitidos: ${allowedTypes[type]?.join(', ') || 'ninguno'}`
             });
           }
 
-<<<<<<< HEAD
           const fileUrl = buildPublicFileUrl(req.file);
           const fileInfo = {
             originalName: req.file.originalname,
@@ -206,46 +150,6 @@ class UploadsController {
               console.error('❌ Error al eliminar archivo tras error:', deleteError);
             }
           }
-=======
-          // Determinar carpeta final y mover archivo
-          const ext = path.extname(req.file.originalname).toLowerCase().replace('.', '');
-          const finalDir = path.join(this.uploadsPath, type, ext);
-          await fs.mkdir(finalDir, { recursive: true });
-          
-          const finalPath = path.join(finalDir, req.file.filename);
-          await fs.rename(req.file.path, finalPath);
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
-
-          // Obtener información del archivo
-          const fileInfo = await this.getFileInfo(finalPath);
-          
-          // Construir URL del archivo
-          const relativePath = path.relative(this.uploadsPath, finalPath);
-          const fileUrl = `/uploads/${relativePath.replace(/\\/g, '/')}`;
-
-          res.json({
-            success: true,
-            data: {
-              filename: req.file.filename,
-              originalName: req.file.originalname,
-              url: fileUrl,
-              path: relativePath,
-              size: fileInfo.size,
-              format: fileInfo.format,
-              mimetype: req.file.mimetype,
-              duration: fileInfo.duration || null
-            }
-          });
-        } catch (error) {
-          // Si hay error, eliminar el archivo
-          try {
-            if (req.file?.path) {
-              await fs.unlink(req.file.path);
-            }
-          } catch (unlinkError) {
-            console.error('Error eliminando archivo:', unlinkError);
-          }
-          
           res.status(500).json({
             success: false,
             message: 'Error procesando el archivo',
@@ -262,7 +166,6 @@ class UploadsController {
     }
   };
 
-<<<<<<< HEAD
   // Listar archivos locales o indicar que se usa almacenamiento externo
   listFiles = async (req, res) => {
     try {
@@ -310,7 +213,16 @@ class UploadsController {
         success: true,
         message: 'Archivos locales obtenidos exitosamente',
         data: items
-=======
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Error listando archivos',
+        error: error.message
+      });
+    }
+  };
+
   // Subir miniatura o vista previa
   uploadThumbnail = async (req, res) => {
     try {
@@ -318,7 +230,7 @@ class UploadsController {
         destination: async (req, file, cb) => {
           const { type } = req.body; // 'thumbnail' o 'preview'
           const destPath = path.join(this.uploadsPath, type === 'preview' ? 'previews' : 'thumbnails');
-          await fs.mkdir(destPath, { recursive: true });
+          await fs.promises.mkdir(destPath, { recursive: true });
           cb(null, destPath);
         },
         filename: (req, file, cb) => {
@@ -387,33 +299,6 @@ class UploadsController {
     }
   };
 
-  // Listar archivos disponibles
-  listFiles = async (req, res) => {
-    try {
-      const { type, category } = req.query;
-      
-      let searchPath = this.uploadsPath;
-      if (type) {
-        searchPath = path.join(searchPath, type);
-      }
-
-      const files = await this.scanDirectory(searchPath, type);
-      
-      res.json({
-        success: true,
-        data: files
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error listando archivos',
-        error: error.message
-      });
-    }
-  };
-
-<<<<<<< HEAD
   // Eliminar archivo local o de Cloudinary
   deleteFile = async (req, res) => {
     try {
@@ -428,27 +313,6 @@ class UploadsController {
         success: true,
         message: 'Archivo eliminado correctamente',
         data: result
-=======
-  // Eliminar archivo
-  deleteFile = async (req, res) => {
-    try {
-      const { filepath } = req.params;
-      const fullPath = path.join(this.uploadsPath, filepath);
-      
-      // Verificar que el archivo existe y está dentro del directorio uploads
-      if (!fullPath.startsWith(this.uploadsPath)) {
-        return res.status(403).json({
-          success: false,
-          message: 'Acceso denegado'
-        });
-      }
-
-      await fs.unlink(fullPath);
-      
-      res.json({
-        success: true,
-        message: 'Archivo eliminado correctamente'
->>>>>>> 7c7bd56b8ef2567b3236e7125c622232f454da73
       });
     } catch (error) {
       res.status(500).json({
@@ -462,7 +326,7 @@ class UploadsController {
   // Funciones auxiliares
   async getFileInfo(filePath) {
     try {
-      const stats = await fs.stat(filePath);
+      const stats = await fs.promises.stat(filePath);
       const ext = path.extname(filePath).toLowerCase().replace('.', '');
       
       return {
@@ -490,7 +354,7 @@ class UploadsController {
   async scanDirectory(dirPath, type = null) {
     try {
       const items = [];
-      const entries = await fs.readdir(dirPath, { withFileTypes: true });
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
       
       for (const entry of entries) {
         const fullPath = path.join(dirPath, entry.name);
@@ -506,7 +370,7 @@ class UploadsController {
           });
         } else {
           // Si es archivo, obtener información
-          const stats = await fs.stat(fullPath);
+          const stats = await fs.promises.stat(fullPath);
           const relativePath = path.relative(this.uploadsPath, fullPath);
           
           items.push({

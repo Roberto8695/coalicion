@@ -4,16 +4,19 @@ const dotenv = require('dotenv');
 dotenv.config(); // Asegúrate de cargar las variables de entorno
 
 // Configuración del Pool usando variables de entorno
+const sslEnabled = ['true', '1', 'yes'].includes(String(process.env.DB_SSL || '').toLowerCase());
+const rejectUnauthorized = !['false', '0', 'no'].includes(
+    String(process.env.DB_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase()
+);
+
 const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_DATABASE,
     password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
+    port: Number(process.env.DB_PORT || 5432),
     // SSL solo en producción
-    ssl: process.env.NODE_ENV === 'production' ? {
-        rejectUnauthorized: false
-    } : false
+    ssl: sslEnabled ? { rejectUnauthorized } : false
 });
 
 // Opcional: Para verificar la conexión al iniciar la aplicación
