@@ -25,8 +25,10 @@ export function UsuariosCMS() {
       setIsLoading(true);
       setError("");
       
-      const result = await usuariosService.getAll({ page, limit: itemsPerPage });
-      console.log('API Response from service:', result);
+      // Los usuarios eliminados se conservan en la base de datos como inactivos.
+      // La gestión principal solo debe mostrar cuentas activas para que un borrado
+      // no reaparezca inmediatamente en la lista.
+      const result = await usuariosService.getAll({ page, limit: itemsPerPage, activo: true });
       
       if (result && result.data) {
         // El backend devuelve: { success: true, data: { data: [...], pagination: {...} } }
@@ -53,11 +55,9 @@ export function UsuariosCMS() {
           setTotalPages(result.pagination?.totalPages || 1);
           setTotalItems(result.pagination?.total || usuariosData.length);
         } else {
-          console.log('Estructura de datos inesperada:', result.data);
           usuariosData = [];
         }
-        
-        console.log('Usuarios data final:', usuariosData);
+
         setUsuarios(usuariosData);
       } else {
         console.error('No se recibieron datos válidos');
@@ -145,7 +145,10 @@ export function UsuariosCMS() {
         userData.password = password;
       }
 
-      await usuariosService.update(editingUsuario.id!, userData);
+      const response = await usuariosService.update(editingUsuario.id, userData);
+      if (!response.success) {
+        throw new Error(response.message || 'No se pudo actualizar el usuario');
+      }
       notify({ title: "Usuario actualizado", message: "Los cambios se guardaron correctamente." });
       setEditingUsuario(null);
       setShowForm(false);
@@ -155,6 +158,7 @@ export function UsuariosCMS() {
       console.error("Error al actualizar usuario:", error);
       const errorMessage = error instanceof Error ? error.message : 'Error de conexión al actualizar usuario';
       setError(errorMessage);
+      notify({ title: "No se pudo actualizar", message: errorMessage, type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +168,7 @@ export function UsuariosCMS() {
     if (!usuario.id) return;
 
     // Prevenir que un admin se elimine a sí mismo
-    if (usuario.id === user?.id) {
+    if (Number(usuario.id) === Number(user?.id)) {
       notify({
         title: "Acción no permitida",
         message: "No puedes eliminar tu propia cuenta de administrador.",
@@ -180,7 +184,12 @@ export function UsuariosCMS() {
     if (accepted) {
       try {
         setIsLoading(true);
-        await usuariosService.delete(usuario.id);
+        const response = await usuariosService.delete(usuario.id);
+        if (!response.success) {
+          throw new Error(response.message || 'No se pudo eliminar el usuario');
+        }
+
+        setUsuarios((currentUsers) => currentUsers.filter((currentUser) => currentUser.id !== usuario.id));
         notify({ title: "Usuario eliminado", message: "El usuario se eliminó correctamente." });
         const targetPage = usuarios.length === 1 && currentPage > 1 ? currentPage - 1 : currentPage;
         if (targetPage !== currentPage) {
@@ -193,6 +202,7 @@ export function UsuariosCMS() {
         console.error("Error al eliminar usuario:", error);
         const errorMessage = error instanceof Error ? error.message : 'Error de conexión al eliminar usuario';
         setError(errorMessage);
+        notify({ title: "No se pudo eliminar", message: errorMessage, type: "error" });
       } finally {
         setIsLoading(false);
       }
@@ -239,6 +249,7 @@ export function UsuariosCMS() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <button
+            type="button"
             onClick={cancelForm}
             className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
@@ -370,10 +381,16 @@ export function UsuariosCMS() {
         </div>
         
         <button
-          onClick={() => setShowForm(true)}
+          type="button"
+          onClick={() => {
+            setEditingUsuario(null);
+            setError("");
+            setShowForm(true);
+          }}
+          disabled={isLoading}
           className="px-6 py-3 bg-blue-600 hover:bg-[#CBA135] text-white font-semibold rounded-lg 
             transition-all duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 
-            focus:ring-blue-500 focus:ring-offset-2"
+            focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <svg className="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -510,9 +527,9 @@ export function UsuariosCMS() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {usuario.correo}
                     </p>
-                    {usuario.created_at && (
+                    {(usuario.created_at || usuario.createdAt || usuario.createdat) && (
                       <p className="text-xs text-gray-400 dark:text-gray-500">
-                        Creado: {new Date(usuario.created_at).toLocaleDateString()}
+                        Creado: {new Date(usuario.created_at || usuario.createdAt || usuario.createdat || '').toLocaleDateString()}
                       </p>
                     )}
                   </div>
@@ -520,20 +537,38 @@ export function UsuariosCMS() {
                 
                 <div className="flex items-center justify-end space-x-2">
                   <button
+                    type="button"
                     onClick={() => startEdit(usuario)}
-                    className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                    disabled={isLoading}
+                    className="rounded p-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
                     title="Editar usuario"
+                    aria-label={`Editar a ${usuario.nombre}`}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                   </button>
                   
-                  {usuario.id !== user?.id && (
+                  {Number(usuario.id) !== Number(user?.id) ? (
                     <button
+                      type="button"
                       onClick={() => handleDeleteUsuario(usuario)}
-                      className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                      disabled={isLoading}
+                      className="rounded p-2 text-red-600 hover:bg-red-50 hover:text-red-800 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-950/30 dark:hover:text-red-300"
                       title="Eliminar usuario"
+                      aria-label={`Eliminar a ${usuario.nombre}`}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="cursor-not-allowed rounded p-2 text-gray-300 dark:text-gray-600"
+                      title="No puedes eliminar la cuenta con la que has iniciado sesión"
+                      aria-label="No puedes eliminar tu propia cuenta"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

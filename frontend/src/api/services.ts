@@ -155,8 +155,10 @@ export interface Usuario {
   isActive?: boolean; // Para compatibilidad frontend
   created_at?: string;
   createdAt?: string; // Para compatibilidad frontend
+  createdat?: string; // Nombre devuelto por PostgreSQL mediante alias
   updated_at?: string;
   updatedAt?: string; // Para compatibilidad frontend
+  updatedat?: string; // Nombre devuelto por PostgreSQL mediante alias
 }
 
 // Servicios específicos
