@@ -652,99 +652,38 @@ export const MultimediaCMS = () => {
             {/* Miniatura y vista previa */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-300 border-b border-gray-700 pb-2">
-                Imágenes {(formData.type === 'infografia' || formData.type === 'arte') && 
-                         <span className="text-sm font-normal text-blue-400">(Se auto-asignan del archivo principal)</span>}
+                Vista previa
               </h3>
               
-              {/* Mostrar información si es imagen */}
-              {(formData.type === 'infografia' || formData.type === 'arte') && (
-                <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p className="text-sm text-blue-300 font-medium">Auto-asignación de imágenes</p>
-                      <p className="text-xs text-blue-200 mt-1">
-                        Para archivos de imagen (infografías/arte), la miniatura y vista previa se asignan automáticamente 
-                        del archivo principal. Solo necesitas subirlas manualmente si quieres usar imágenes diferentes.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <FileUpload
-                    label={`Subir Miniatura ${(formData.type === 'infografia' || formData.type === 'arte') ? '(Opcional)' : ''}`}
-                    accept="image/*"
-                    maxSize={10}
-                    onFileSelect={(file) => console.log('Miniatura seleccionada:', file)}
-                    onUpload={handleThumbnailUpload}
-                    helperText={
-                      (formData.type === 'infografia' || formData.type === 'arte') 
-                        ? "Solo si quieres una miniatura diferente al archivo principal"
-                        : "Imagen pequeña para mostrar en listas"
-                    }
-                  />
-                  
-                  <FilePicker
-                    label="O seleccionar miniatura existente"
-                    type="thumbnails"
-                    value={formData.thumbnail}
-                    onChange={handleThumbnailSelect}
-                    placeholder="Seleccionar desde archivos existentes"
-                  />
-                </div>
-
-                <div className="space-y-4">
-                  <FileUpload
-                    label={`Subir Vista Previa ${(formData.type === 'infografia' || formData.type === 'arte') ? '(Opcional)' : ''}`}
-                    accept="image/*"
-                    maxSize={10}
-                    onFileSelect={(file) => console.log('Vista previa seleccionada:', file)}
-                    onUpload={handlePreviewUpload}
-                    helperText={
-                      (formData.type === 'infografia' || formData.type === 'arte')
-                        ? "Solo si quieres una vista previa diferente al archivo principal"
-                        : "Imagen de vista previa más grande"
-                    }
-                  />
-                  
-                  <FilePicker
-                    label="O seleccionar vista previa existente"
-                    type="previews"
-                    value={formData.previewurl}
-                    onChange={handlePreviewSelect}
-                    placeholder="Seleccionar desde archivos existentes"
-                  />
-                </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Input
+                  label="URL de miniatura (opcional)"
+                  name="thumbnail"
+                  value={formData.thumbnail}
+                  onChange={handleInputChange}
+                  placeholder="https://.../miniatura.jpg"
+                  helperText="Recomendada para videos cuando el proveedor no permite incrustarlos."
+                />
+                <Input
+                  label="URL de vista previa (opcional)"
+                  name="previewurl"
+                  value={formData.previewurl}
+                  onChange={handleInputChange}
+                  placeholder="https://..."
+                  helperText="Si se deja vacía, se utilizará la URL pública del recurso."
+                />
               </div>
 
-              {/* Mostrar URLs auto-asignadas si aplica */}
-              {(formData.type === 'infografia' || formData.type === 'arte') && formData.downloadurl && (
-                <div className="space-y-3 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-                  <h4 className="text-sm font-medium text-gray-300">URLs Auto-asignadas del Archivo Principal:</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Miniatura</label>
-                      <p className="text-xs text-green-400 bg-gray-800 p-2 rounded border break-all">
-                        {formData.thumbnail === '[Se asignará automáticamente al subir]' ? 
-                          'Se asignará al subir el archivo' : 
-                          formData.thumbnail || formData.downloadurl
-                        }
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Vista Previa</label>
-                      <p className="text-xs text-green-400 bg-gray-800 p-2 rounded border break-all">
-                        {formData.previewurl === '[Se asignará automáticamente al subir]' ? 
-                          'Se asignará al subir el archivo' : 
-                          formData.previewurl || formData.downloadurl
-                        }
-                      </p>
-                    </div>
+              {formData.downloadurl && formData.type && (
+                <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
+                  <p className="mb-3 text-sm font-medium text-gray-300">Resultado de la vista previa</p>
+                  <div className="h-72 overflow-hidden rounded-lg bg-gray-900">
+                    <ExternalMediaPreview
+                      url={getFullUrl(formData.previewurl || formData.downloadurl)}
+                      type={formData.type}
+                      title={formData.title || 'Recurso multimedia'}
+                      thumbnail={getFullUrl(formData.thumbnail)}
+                    />
                   </div>
                 </div>
               )}
