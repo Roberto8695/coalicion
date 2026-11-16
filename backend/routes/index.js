@@ -13,6 +13,8 @@ const verificadoresRoutes = require('./verificadores');
 const categoriasRoutes = require('./categorias');
 const uploadsRoutes = require('./uploads');
 const usuariosRoutes = require('./usuarios');
+const tiposPublicacionRoutes = require('./tipos-publicacion');
+const categoriasDocumentosElectoralesRoutes = require('./categorias-documentos-electorales');
 
 const router = express.Router();
 
@@ -29,6 +31,8 @@ router.use('/verificadores', verificadoresRoutes);
 router.use('/categorias', categoriasRoutes);
 router.use('/uploads', uploadsRoutes);
 router.use('/usuarios', usuariosRoutes);
+router.use('/tipos-publicacion', tiposPublicacionRoutes);
+router.use('/categorias-documentos-electorales', categoriasDocumentosElectoralesRoutes);
 
 // Ruta de información de la API
 router.get('/', (req, res) => {
@@ -47,7 +51,9 @@ router.get('/', (req, res) => {
             'documentos-electorales': '/api/documentos-electorales',
             verificadores: '/api/verificadores',
             categorias: '/api/categorias',
-            usuarios: '/api/usuarios'
+            usuarios: '/api/usuarios',
+            'tipos-publicacion': '/api/tipos-publicacion'
+            ,'categorias-documentos-electorales': '/api/categorias-documentos-electorales'
         },
         documentation: {
             crud: {

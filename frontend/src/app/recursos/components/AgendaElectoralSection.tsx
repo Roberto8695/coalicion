@@ -7,14 +7,10 @@ import {
   IconClock, 
   IconMapPin, 
   IconUsers, 
-  IconChevronLeft, 
-  IconChevronRight,
-  IconBook,
-  IconMicrophone,
-  IconSchool,
   IconX
 } from "@tabler/icons-react";
 import { Evento } from "@/api/services";
+import { RecursosCarousel, RecursosPagination } from "./RecursosPagination";
 
 // Tipos de eventos
 type EventType = 'taller' | 'capacitacion' | 'foro' | 'debate';
@@ -122,7 +118,6 @@ const sampleEvents: CalendarEvent[] = [
 // Configuración de tipos de eventos
 const eventTypeConfig = {
   taller: {
-    icon: IconSchool,
     color: 'bg-blue-500',
     lightColor: 'bg-blue-50',
     borderColor: 'border-blue-200',
@@ -130,7 +125,6 @@ const eventTypeConfig = {
     label: 'Taller'
   },
   capacitacion: {
-    icon: IconBook,
     color: 'bg-green-500',
     lightColor: 'bg-green-50',
     borderColor: 'border-green-200',
@@ -138,7 +132,6 @@ const eventTypeConfig = {
     label: 'Capacitación'
   },
   foro: {
-    icon: IconUsers,
     color: 'bg-purple-500',
     lightColor: 'bg-purple-50',
     borderColor: 'border-purple-200',
@@ -146,7 +139,6 @@ const eventTypeConfig = {
     label: 'Foro'
   },
   debate: {
-    icon: IconMicrophone,
     color: 'bg-red-500',
     lightColor: 'bg-red-50',
     borderColor: 'border-red-200',
@@ -156,10 +148,11 @@ const eventTypeConfig = {
 };
 
 export function AgendaElectoralSection() {
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [viewMode, setViewMode] = useState<'month' | 'list'>('month');
   const [events, setEvents] = useState<CalendarEvent[]>(sampleEvents);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageDirection, setPageDirection] = useState(1);
+  const itemsPerPage = 10;
 
   // Cargar eventos desde API local al montar
   useEffect(() => {
@@ -167,7 +160,7 @@ export function AgendaElectoralSection() {
     async function fetchEvents() {
       try {
         const { eventosService } = await import('@/api');
-        const response = await eventosService.getAll();
+        const response = await eventosService.getAll({ limit: 15 });
         const data = response.data;
         if (!mounted) return;
 
@@ -204,7 +197,10 @@ export function AgendaElectoralSection() {
         }));
 
         // Reemplaza eventos sólo si hay datos desde la API
-        if (mapped.length > 0) setEvents(mapped);
+        if (mapped.length > 0) {
+          setEvents(mapped);
+          setCurrentPage(1);
+        }
       } catch (error) {
         // Si falla, mantenemos los sampleEvents y mostramos en consola
         console.error('Error cargando eventos desde la API:', error);
@@ -215,61 +211,22 @@ export function AgendaElectoralSection() {
     return () => { mounted = false; };
   }, []);
 
-  // Funciones para navegación del calendario
-  const goToPreviousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const getEventsForList = () => {
+    return [...events].sort((a, b) => a.date.getTime() - b.date.getTime());
   };
 
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  const sortedEvents = getEventsForList();
+  const totalPages = Math.ceil(sortedEvents.length / itemsPerPage);
+  const visibleEvents = sortedEvents.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const changePage = (page: number) => {
+    const nextPage = Math.min(Math.max(page, 1), totalPages);
+    setPageDirection(nextPage > currentPage ? 1 : -1);
+    setCurrentPage(nextPage);
   };
-
-  // Obtener eventos próximos (siguientes 30 días)
-  const getUpcomingEvents = () => {
-    const today = new Date();
-    const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
-    
-    return events
-      .filter(event => event.date >= today && event.date <= thirtyDaysFromNow)
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
-  };
-
-  // Generar días del mes para el calendario
-  const generateCalendarDays = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    const days = [];
-    
-    // Días vacíos al inicio
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-    
-    // Días del mes
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const dayEvents = events.filter(event => 
-        event.date.getDate() === day &&
-        event.date.getMonth() === month &&
-        event.date.getFullYear() === year
-      );
-      days.push({ date, events: dayEvents });
-    }
-    
-    return days;
-  };
-
-  const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
-
-  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   return (
     <motion.section
@@ -331,212 +288,98 @@ export function AgendaElectoralSection() {
           </motion.p>
         </div>
 
-        {/* View Mode Toggle */}
+        {/* Event List */}
         <motion.div
-          className="flex justify-center mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <div className="bg-white rounded-lg p-1 shadow-lg border border-gray-200">
-            <button
-              onClick={() => setViewMode('month')}
-              className={`px-6 py-2 rounded-md font-medium font-montserrat transition-all duration-200 ${
-                viewMode === 'month'
-                  ? 'bg-[#CBA135] text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Vista Mensual
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-6 py-2 rounded-md font-medium font-montserrat transition-all duration-200 ${
-                viewMode === 'list'
-                  ? 'bg-[#CBA135] text-white shadow-md'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Lista de Eventos
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Calendar View */}
-        {viewMode === 'month' && (
-          <motion.div
-            className="bg-white rounded-2xl shadow-2xl p-6 lg:p-8 border border-white/50"
+            className="relative"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
             viewport={{ once: true }}
           >
-            {/* Calendar Header */}
-            <div className="flex items-center justify-between mb-8">
-              <button
-                onClick={goToPreviousMonth}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-              >
-                <IconChevronLeft className="h-6 w-6 text-gray-600" />
-              </button>
-              
-              <h2 className="text-2xl lg:text-3xl font-montserrat font-bold text-gray-900">
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </h2>
-              
-              <button
-                onClick={goToNextMonth}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-              >
-                <IconChevronRight className="h-6 w-6 text-gray-600" />
-              </button>
-            </div>
-
-            {/* Days of Week Header */}
-            <div className="grid grid-cols-7 gap-1 mb-4">
-              {dayNames.map((day) => (
-                <div key={day} className="p-3 text-center">
-                  <span className="text-sm font-medium text-gray-500 font-montserrat">
-                    {day}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1">
-              {generateCalendarDays().map((day, index) => (
-                <div
-                  key={index}
-                  className={`min-h-[120px] p-2 border border-gray-100 ${
-                    day ? 'bg-white hover:bg-gray-50' : 'bg-gray-50'
-                  } transition-colors duration-200`}
-                >
-                  {day && (
-                    <>
-                      <div className="text-sm font-medium text-gray-900 mb-2">
-                        {day.date.getDate()}
-                      </div>
-                      <div className="space-y-1">
-                        {day.events.slice(0, 2).map((event) => {
-                          const config = eventTypeConfig[event.type];
-                          return (
-                            <button
-                              key={event.id}
-                              onClick={() => setSelectedEvent(event)}
-                              className={`w-full text-left p-1 rounded text-xs ${config.lightColor} ${config.borderColor} border hover:shadow-sm transition-all duration-200`}
-                            >
-                              <div className={`font-medium ${config.textColor} truncate`}>
-                                {event.title}
-                              </div>
-                              <div className="text-gray-500 truncate">
-                                {event.time}
-                              </div>
-                            </button>
-                          );
-                        })}
-                        {day.events.length > 2 && (
-                          <div className="text-xs text-gray-500 text-center">
-                            +{day.events.length - 2} más
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* List View */}
-        {viewMode === 'list' && (
-          <motion.div
-            className="space-y-6"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-2xl font-montserrat font-bold text-gray-900 text-center mb-8">
-              Próximos Eventos
+            <h2 className="mb-6 text-center text-2xl font-montserrat font-bold text-gray-900">
+              Eventos
             </h2>
-            
-            {getUpcomingEvents().map((event, index) => {
-              const config = eventTypeConfig[event.type];
-              const IconComponent = config.icon;
-              
-              return (
-                <motion.div
-                  key={event.id}
-                  className="bg-white rounded-xl shadow-lg border border-white/50 p-6 hover:shadow-xl transition-all duration-300"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="flex items-start space-x-4">
-                    <div className={`${config.color} p-3 rounded-lg`}>
-                      <IconComponent className="h-6 w-6 text-white" />
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="text-xl font-montserrat font-semibold text-gray-900 mb-1">
-                            {event.title}
-                          </h3>
-                          <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${config.lightColor} ${config.textColor}`}>
-                            {config.label}
-                          </span>
+
+            <RecursosCarousel page={currentPage} direction={pageDirection}>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                {visibleEvents.map((event) => {
+                  const config = eventTypeConfig[event.type];
+
+                  return (
+                    <motion.div
+                      key={event.id}
+                      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-[0_8px_24px_rgba(34,36,38,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-[#CBA135]/40 hover:shadow-[0_16px_34px_rgba(34,36,38,0.12)]"
+                    >
+                      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#CBA135] to-[#B8941F]" />
+
+                      <div className="flex items-start justify-between gap-3 border-b border-gray-100 pb-4">
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${config.lightColor} ${config.textColor}`}>
+                          {config.label}
+                        </span>
+                        <span className="text-right text-xs font-medium uppercase tracking-wide text-gray-400">
+                          {event.date.toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      </div>
+
+                      <div className="mt-5 flex flex-1 flex-col">
+                        <h3 className="mb-3 text-xl font-montserrat font-semibold leading-tight text-gray-900 transition-colors duration-300 group-hover:text-[#B8941F]">
+                          {event.title}
+                        </h3>
+
+                        <p className="mb-5 line-clamp-3 flex-1 text-sm leading-relaxed text-gray-600 font-opensans">
+                          {event.description}
+                        </p>
+
+                        <div className="space-y-3 border-t border-gray-100 pt-4 text-sm">
+                          <div className="flex items-start gap-2">
+                            <IconCalendar className="mt-0.5 h-4 w-4 shrink-0 text-[#B8941F]" />
+                            <span className="text-gray-600 font-opensans">
+                              {event.date.toLocaleDateString('es-ES', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <IconClock className="h-4 w-4 shrink-0 text-[#B8941F]" />
+                            <span className="text-gray-600 font-opensans">
+                              {event.time} ({event.duration})
+                            </span>
+                          </div>
+
+                          <div className="flex items-start gap-2">
+                            <IconMapPin className="mt-0.5 h-4 w-4 shrink-0 text-[#B8941F]" />
+                            <span className="text-gray-600 font-opensans">
+                              {event.location}
+                            </span>
+                          </div>
                         </div>
+
                         <button
                           onClick={() => setSelectedEvent(event)}
-                          className="bg-[#CBA135] hover:bg-[#B8941F] text-white px-4 py-2 rounded-lg font-medium font-montserrat transition-colors duration-200"
+                          className="mt-6 w-full rounded-xl bg-gradient-to-r from-[#CBA135] to-[#B8941F] px-4 py-2.5 font-medium font-montserrat text-white shadow-sm transition-all duration-300 hover:from-[#B8941F] hover:to-[#A67E0E] hover:shadow-md"
                         >
                           Ver Detalles
                         </button>
                       </div>
-                      
-                      <p className="text-gray-600 font-opensans mb-4">
-                        {event.description}
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div className="flex items-center space-x-2">
-                          <IconCalendar className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600 font-opensans">
-                            {event.date.toLocaleDateString('es-ES', { 
-                              weekday: 'long', 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <IconClock className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600 font-opensans">
-                            {event.time} ({event.duration})
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <IconMapPin className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600 font-opensans">
-                            {event.location}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </RecursosCarousel>
+            <RecursosPagination
+              page={currentPage}
+              totalPages={totalPages}
+              onPageChange={changePage}
+            />
           </motion.div>
-        )}
 
         {/* Event Detail Modal */}
         {selectedEvent && (

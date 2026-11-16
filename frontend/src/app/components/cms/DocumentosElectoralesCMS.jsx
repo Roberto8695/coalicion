@@ -7,7 +7,7 @@ import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
 import { IconFileDescription, IconPlus } from '@tabler/icons-react';
-import { documentosElectoralesService } from '@/api';
+import { documentosElectoralesService, categoriasDocumentosElectoralesService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
@@ -29,6 +29,7 @@ export const DocumentosElectoralesCMS = () => {
 
   // Estados principales
   const [documentos, setDocumentos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -168,13 +169,10 @@ export const DocumentosElectoralesCMS = () => {
     { value: 'PPTX', label: 'PowerPoint (PPTX)' }
   ];
 
-  const categoryOptions = [
-    { value: 'Manual', label: 'Manual' },
-    { value: 'Procedimiento', label: 'Procedimiento' },
-    { value: 'Normativa', label: 'Normativa' },
-    { value: 'Capacitación', label: 'Capacitación' },
-    { value: 'Informe', label: 'Informe' }
-  ];
+  const categoryOptions = categorias.map((categoria) => ({
+    value: categoria.name,
+    label: categoria.name
+  }));
 
   const statusOptions = [
     { value: 'borrador', label: 'Borrador' },
@@ -186,7 +184,19 @@ export const DocumentosElectoralesCMS = () => {
   // Cargar datos
   useEffect(() => {
     loadDocumentos();
+    loadCategorias();
   }, [currentPage]);
+
+  const loadCategorias = async () => {
+    try {
+      const response = await categoriasDocumentosElectoralesService.getActive();
+      if (response.success) {
+        setCategorias(response.data);
+      }
+    } catch (err) {
+      setError('Error al cargar categorías de documentos: ' + err.message);
+    }
+  };
 
   const loadDocumentos = async () => {
     try {

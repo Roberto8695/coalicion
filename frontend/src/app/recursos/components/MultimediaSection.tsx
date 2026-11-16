@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { IconExternalLink, IconPhoto } from "@tabler/icons-react";
 import { multimediaService } from "@/api";
+import { RecursosCarousel, RecursosPagination } from "./RecursosPagination";
 import {
   ExternalMediaPreview,
   type ExternalMediaType,
@@ -38,6 +39,9 @@ export function MultimediaSection() {
   const [multimediaItems, setMultimediaItems] = useState<MultimediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageDirection, setPageDirection] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     async function fetchMultimedia() {
@@ -109,6 +113,21 @@ export function MultimediaSection() {
   const filteredItems = selectedCategory === "all"
     ? multimediaItems
     : multimediaItems.filter((item) => item.type === selectedCategory);
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const visibleItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const changeCategory = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const changePage = (page: number) => {
+    setPageDirection(page > currentPage ? 1 : -1);
+    setCurrentPage(page);
+  };
 
   const handleOpenResource = (url?: string) => {
     const fullUrl = getFullUrl(url);
@@ -144,7 +163,7 @@ export function MultimediaSection() {
   }
 
   return (
-    <section id="multimedia" className="bg-gradient-to-br from-gray-50 to-blue-50 py-20 lg:py-28">
+    <section id="multimedia" className="scroll-mt-24 bg-gradient-to-br from-gray-50 to-blue-50 py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-16 text-center">
           <h2 className="mb-6 text-4xl font-bold font-montserrat sm:text-5xl lg:text-6xl">
@@ -161,7 +180,7 @@ export function MultimediaSection() {
             <button
               type="button"
               key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => changeCategory(category.id)}
               aria-pressed={selectedCategory === category.id}
               className={`rounded-full px-6 py-3 font-semibold transition-all duration-300 ${selectedCategory === category.id
                 ? "bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white shadow-lg"
@@ -173,8 +192,10 @@ export function MultimediaSection() {
         </div>
 
         {filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {filteredItems.map((item) => {
+          <>
+          <RecursosCarousel page={currentPage} direction={pageDirection}>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {visibleItems.map((item) => {
               const resourceUrl = item.downloadurl || item.previewurl;
               const previewUrl = getFullUrl(item.previewurl || item.downloadurl);
               const thumbnailUrl = item.thumbnail ? getFullUrl(item.thumbnail) : undefined;
@@ -190,7 +211,6 @@ export function MultimediaSection() {
                       className="transition-transform duration-300 group-hover:scale-[1.01]"
                     />
                   </div>
-
                   <div className="p-6">
                     <div className="mb-4 flex items-center justify-between">
                       <span className={`rounded-full bg-gradient-to-r px-3 py-1 text-xs font-semibold text-white ${getTypeColor(item.type)}`}>
@@ -218,6 +238,9 @@ export function MultimediaSection() {
               );
             })}
           </div>
+          </RecursosCarousel>
+          <RecursosPagination page={currentPage} totalPages={totalPages} onPageChange={changePage} />
+          </>
         ) : (
           <div className="py-16 text-center">
             <IconPhoto className="mx-auto mb-4 h-16 w-16 text-gray-400" />

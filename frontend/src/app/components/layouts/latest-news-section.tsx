@@ -116,7 +116,7 @@ export function LatestNewsSection() {
                 className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg h-[450px]"
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
+                transition={{ duration: 0.8 }}
               >
                 <div className="h-48 bg-gray-200 animate-pulse"></div>
                 <div className="p-6">
@@ -130,13 +130,13 @@ export function LatestNewsSection() {
               </motion.div>
             ))
           ) : latestPublications.length > 0 ? (
-            latestPublications.map((publication, index) => (
+            latestPublications.map((publication) => (
               <motion.article
                 key={publication.id}
                 className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer group flex flex-col h-full min-h-[450px]"
                 initial={{ opacity: 0, y: 50, scale: 0.95 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.5 + index * 0.1 }}
+                transition={{ duration: 0.8 }}
                 viewport={{ once: true }}
                 onClick={() => handleCardClick(publication.url)}
               >

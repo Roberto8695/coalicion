@@ -17,7 +17,8 @@ import {
   IconUsersGroup,
   IconUserCog,
 
-  IconFileDescription
+  IconFileDescription,
+  IconCategory
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { cn } from "@/app/lib/utils";
@@ -58,14 +59,14 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
   // Links de contenido (para lectores, editores y administradores)
   const contentLinks = [
     {
-      label: "Publicaciones",
+      label: "Publicaciones e Informes",
       href: "#publicaciones",
       icon: (
         <IconFileText className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     },
     {
-      label: "Publicaciones Tendencias E.",
+      label: "Tendencias Electorales",
       href: "#publicaciones-tendencias",
       icon: (
         <IconTrendingUp className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
@@ -79,7 +80,7 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
       ),
     },
     {
-      label: "Noticias",
+      label: "Notas",
       href: "#noticias",
       icon: (
         <IconNews className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
@@ -125,6 +126,20 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
         <IconTags className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     }] : []),
+    ...(canManageCategories ? [{
+      label: "Tipos de publicaciones",
+      href: "#tipos-publicacion",
+      icon: (
+        <IconCategory className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    }] : []),
+    ...(canManageCategories ? [{
+      label: "Categorías de documentos",
+      href: "#categorias-documentos-electorales",
+      icon: (
+        <IconFileDescription className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+      ),
+    }] : []),
     ...(canManageUsers ? [{
       label: "Usuarios",
       href: "#usuarios",
@@ -141,7 +156,7 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
   return (
     <div
       className={cn(
-        "flex w-full flex-1 flex-col overflow-hidden bg-gray-100 md:flex-row dark:bg-neutral-800",
+        "dark flex w-full flex-1 flex-col overflow-hidden bg-neutral-950 text-neutral-100 md:flex-row dark:bg-neutral-800",
         "h-screen", // Cambiado a h-screen para ocupar toda la pantalla
       )}
     >
@@ -242,7 +257,7 @@ export const LogoIcon = () => {
 const CustomContent = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex min-w-0 flex-1 overflow-hidden">
-      <main className="flex h-full min-w-0 w-full flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto rounded-tl-2xl border border-neutral-200 bg-white p-0 sm:p-2 lg:p-4 xl:p-6 dark:border-neutral-700 dark:bg-neutral-900">
+      <main className="flex h-full min-w-0 w-full flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto rounded-tl-2xl border border-neutral-700 bg-neutral-900 p-0 sm:p-2 lg:p-4 xl:p-6 dark:border-neutral-700 dark:bg-neutral-900">
         {children}
       </main>
     </div>
@@ -253,7 +268,7 @@ const CustomContent = ({ children }: { children: React.ReactNode }) => {
 const Dashboard = () => {
   return (
     <div className="flex flex-1">
-      <div className="flex h-full w-full flex-1 flex-col gap-2 rounded-tl-2xl border border-neutral-200 bg-white p-2 md:p-10 dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="flex h-full w-full flex-1 flex-col gap-2 rounded-tl-2xl border border-neutral-700 bg-neutral-900 p-2 md:p-10 dark:border-neutral-700 dark:bg-neutral-900">
         <div className="flex gap-2">
           {[...new Array(4)].map((i, idx) => (
             <div

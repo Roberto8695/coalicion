@@ -6,6 +6,11 @@ const { authenticateToken, requirePublicationAccess } = require('../middleware/a
 const router = express.Router();
 const controller = new MultimediaController();
 
+// Obtener miniatura desde metadatos públicos de una página (dashboard)
+router.get('/dashboard/preview-metadata', authenticateToken, requirePublicationAccess('create'), (req, res) => {
+    controller.getPreviewMetadata(req, res);
+});
+
 // ===========================================
 // RUTAS PÚBLICAS (SIN AUTENTICACIÓN)
 // Para el sitio web público

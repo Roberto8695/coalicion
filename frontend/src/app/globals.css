@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Aplicar fuente sans globalmente */
 * {
   font-family: var(--font-opensans), ui-sans-serif, system-ui, sans-serif;

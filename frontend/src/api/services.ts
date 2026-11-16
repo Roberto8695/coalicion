@@ -42,6 +42,14 @@ export interface Categoria {
   isActive?: boolean;
 }
 
+export interface TipoPublicacion {
+  id?: number;
+  name: string;
+  slug: string;
+  color?: string;
+  is_active?: boolean;
+}
+
 export interface Noticia {
   id?: number;
   title: string;
@@ -129,6 +137,15 @@ export interface DocumentoElectoral {
   updatedAt?: string;
 }
 
+export interface CategoriaDocumentoElectoral {
+  id?: number;
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  is_active?: boolean;
+}
+
 export interface Verificador {
   id?: number;
   name: string;
@@ -214,6 +231,16 @@ export class CategoriasService extends BaseService<Categoria> {
   }
 }
 
+export class TiposPublicacionService extends BaseService<TipoPublicacion> {
+  constructor() {
+    super('tipos-publicacion');
+  }
+
+  async getActive(): Promise<ApiResponse<TipoPublicacion[]>> {
+    return await api.get(`${this.endpoint}/active`);
+  }
+}
+
 export class NoticiasService extends BaseService<Noticia> {
   constructor() {
     super('noticias');
@@ -227,6 +254,16 @@ export class NoticiasService extends BaseService<Noticia> {
 export class MultimediaService extends BaseService<Multimedia> {
   constructor() {
     super('multimedia');
+  }
+
+  async getPreviewMetadata(url: string): Promise<ApiResponse<{
+    imageUrl: string;
+    title?: string;
+    description?: string;
+  }>> {
+    return await api.get(`${this.endpoint}/dashboard/preview-metadata`, {
+      params: { url }
+    });
   }
 
   async getByType(type: string, params?: Record<string, unknown>) {
@@ -277,6 +314,16 @@ export class DocumentosElectoralesService extends BaseService<DocumentoElectoral
 
   async getPublished(params?: Record<string, unknown>): Promise<ApiResponse<DocumentoElectoral[]>> {
     return await api.get(`${this.endpoint}/published`, { params });
+  }
+}
+
+export class CategoriasDocumentosElectoralesService extends BaseService<CategoriaDocumentoElectoral> {
+  constructor() {
+    super('categorias-documentos-electorales');
+  }
+
+  async getActive(): Promise<ApiResponse<CategoriaDocumentoElectoral[]>> {
+    return await api.get(`${this.endpoint}/active`);
   }
 }
 
@@ -456,11 +503,13 @@ export class UploadsService {
 export const publicacionesService = new PublicacionesService();
 export const publicacionesTendenciasService = new PublicacionesTendenciasService();
 export const categoriasService = new CategoriasService();
+export const tiposPublicacionService = new TiposPublicacionService();
 export const noticiasService = new NoticiasService();
 export const multimediaService = new MultimediaService();
 export const eventosService = new EventosService();
 export const guiasElectoralesService = new GuiasElectoralesService();
 export const documentosElectoralesService = new DocumentosElectoralesService();
+export const categoriasDocumentosElectoralesService = new CategoriasDocumentosElectoralesService();
 export const verificadoresService = new VerificadoresService();
 export const usuariosService = new UsuariosService();
 export const uploadsService = new UploadsService();

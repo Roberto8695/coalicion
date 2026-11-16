@@ -122,6 +122,13 @@ class PublicacionesRepository extends BaseRepository {
             throw new Error(`Error en búsqueda avanzada de publicaciones: ${error.message}`);
         }
     }
+
+    async findActiveTypeSlugs() {
+        const result = await pool.query(
+            'SELECT slug FROM tipos_publicacion WHERE is_active = TRUE'
+        );
+        return result.rows.map((row) => row.slug);
+    }
 }
 
 module.exports = PublicacionesRepository;

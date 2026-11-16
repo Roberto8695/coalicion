@@ -11,11 +11,13 @@ export {
   publicacionesTendenciasService,
   publicacionesCoalicionService,
   categoriasService,
+  tiposPublicacionService,
   noticiasService,
   multimediaService,
   eventosService,
   guiasElectoralesService,
   documentosElectoralesService,
+  categoriasDocumentosElectoralesService,
   verificadoresService,
   uploadsService
 } from './services';

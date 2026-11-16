@@ -120,6 +120,22 @@ export function ExternalMediaPreview({
     );
   }
 
+  if (fallbackImage) {
+    return (
+      <div className={`relative h-full min-h-48 w-full bg-gray-100 ${className}`}>
+        {/* Las páginas que bloquean iframes se representan mediante su imagen Open Graph. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={fallbackImage}
+          alt={title}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          className="h-full w-full object-contain"
+        />
+      </div>
+    );
+  }
+
   if (isPdf || type === "video" || type === "presentacion" || type === "infografia" || type === "arte") {
     return (
       <div className={`h-full min-h-48 w-full bg-gray-900 ${className}`}>

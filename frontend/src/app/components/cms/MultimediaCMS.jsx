@@ -9,7 +9,7 @@ import { Pagination } from './Pagination';
 import { multimediaService, categoriasService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
-import { ExternalMediaPreview, isValidExternalUrl } from '@/app/components/media/ExternalMediaPreview';
+import { isValidExternalUrl } from '@/app/components/media/ExternalMediaPreview';
 
 export const MultimediaCMS = () => {
   const { confirmAction, notify } = useDashboardFeedback();
@@ -21,6 +21,7 @@ export const MultimediaCMS = () => {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [thumbnailLoading, setThumbnailLoading] = useState(false);
 
   // Estados del modal
   const [showModal, setShowModal] = useState(false);
@@ -156,6 +157,42 @@ export const MultimediaCMS = () => {
     loadMultimedia();
     loadCategorias();
   }, [currentPage]);
+
+  useEffect(() => {
+    const sourceUrl = formData.downloadurl.trim();
+    const currentThumbnail = formData.thumbnail.trim();
+    const thumbnailIsTheSourcePage = currentThumbnail === sourceUrl;
+
+    if (
+      !sourceUrl
+      || !isValidExternalUrl(sourceUrl)
+      || (currentThumbnail && !thumbnailIsTheSourcePage)
+    ) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        setThumbnailLoading(true);
+        const response = await multimediaService.getPreviewMetadata(sourceUrl);
+        const imageUrl = response.data?.imageUrl;
+
+        if (response.success && imageUrl) {
+          setFormData(prev => (
+            prev.thumbnail === sourceUrl || !prev.thumbnail
+              ? { ...prev, thumbnail: imageUrl }
+              : prev
+          ));
+        }
+      } catch (err) {
+        console.warn('No se pudo obtener la miniatura de la página:', err);
+      } finally {
+        setThumbnailLoading(false);
+      }
+    }, 700);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [formData.downloadurl, formData.thumbnail]);
 
   const loadMultimedia = async () => {
     try {
@@ -486,23 +523,6 @@ export const MultimediaCMS = () => {
         {modalMode === 'view' ? (
           // Vista de solo lectura
           <div className="space-y-6">
-            {/* Vista previa del archivo */}
-            {selectedItem?.downloadurl && (
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <label className="block text-sm font-medium text-gray-300 mb-3">Vista previa en línea</label>
-                <div className="h-96 overflow-hidden rounded-lg bg-gray-800">
-                  <ExternalMediaPreview
-                    url={getFullUrl(selectedItem.previewurl || selectedItem.downloadurl)}
-                    type={selectedItem.type}
-                    title={selectedItem.title}
-                    thumbnail={getFullUrl(selectedItem.thumbnail)}
-                  />
-                </div>
-              </div>
-            )}
-
-            
-
             <div className="grid grid-cols-2 gap-6">
               <div className="bg-gray-700 p-4 rounded-lg">
                 <label className="block text-sm font-medium text-gray-300 mb-2">Título</label>
@@ -540,21 +560,6 @@ export const MultimediaCMS = () => {
                       </button>
                       <p className="text-xs text-gray-400 break-all">{selectedItem.downloadurl}</p>
                     </div>
-                  ) : '-'}
-                </div>
-              </div>
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <label className="block text-sm font-medium text-gray-300 mb-2">URL de Vista Previa</label>
-                <div className="text-white">
-                  {selectedItem?.previewurl ? (
-                    <a 
-                      href={getFullUrl(selectedItem.previewurl)} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-blue-400 hover:text-blue-300 underline break-all"
-                    >
-                      {selectedItem.previewurl}
-                    </a>
                   ) : '-'}
                 </div>
               </div>
@@ -649,40 +654,37 @@ export const MultimediaCMS = () => {
               helperText="URL amigable - se genera automáticamente del nombre del archivo"
             />
 
-            {/* Miniatura y vista previa */}
+            {/* Miniatura */}
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-300 border-b border-gray-700 pb-2">
-                Vista previa
+                Miniatura
               </h3>
               
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <Input
-                  label="URL de miniatura (opcional)"
-                  name="thumbnail"
-                  value={formData.thumbnail}
-                  onChange={handleInputChange}
-                  placeholder="https://.../miniatura.jpg"
-                  helperText="Recomendada para videos cuando el proveedor no permite incrustarlos."
-                />
-                <Input
-                  label="URL de vista previa (opcional)"
-                  name="previewurl"
-                  value={formData.previewurl}
-                  onChange={handleInputChange}
-                  placeholder="https://..."
-                  helperText="Si se deja vacía, se utilizará la URL pública del recurso."
-                />
-              </div>
+              <Input
+                label="URL de miniatura (opcional)"
+                name="thumbnail"
+                value={formData.thumbnail}
+                onChange={handleInputChange}
+                placeholder="https://.../miniatura.jpg"
+                helperText="Se obtiene automáticamente de la página cuando publica una imagen."
+              />
+              {thumbnailLoading && (
+                <p className="text-sm text-gray-400">
+                  Buscando la miniatura publicada por la página...
+                </p>
+              )}
 
-              {formData.downloadurl && formData.type && (
+              {formData.thumbnail && (
                 <div className="rounded-lg border border-gray-700 bg-gray-800/50 p-4">
-                  <p className="mb-3 text-sm font-medium text-gray-300">Resultado de la vista previa</p>
-                  <div className="h-72 overflow-hidden rounded-lg bg-gray-900">
-                    <ExternalMediaPreview
-                      url={getFullUrl(formData.previewurl || formData.downloadurl)}
-                      type={formData.type}
-                      title={formData.title || 'Recurso multimedia'}
-                      thumbnail={getFullUrl(formData.thumbnail)}
+                  <p className="mb-3 text-sm font-medium text-gray-300">Miniatura actual</p>
+                  <div className="h-48 overflow-hidden rounded-lg bg-gray-900">
+                    <img
+                      src={getFullUrl(formData.thumbnail)}
+                      alt={formData.title || 'Miniatura del recurso'}
+                      className="h-full w-full object-contain"
+                      onError={(event) => {
+                        event.currentTarget.style.display = 'none';
+                      }}
                     />
                   </div>
                 </div>

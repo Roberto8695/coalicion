@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconDownload, IconEye, IconCalendar, IconTag, IconFileText } from "@tabler/icons-react";
-import { publicacionesService, Publicacion as PublicacionAPI } from "@/api";
+import { publicacionesService, tiposPublicacionService, Publicacion as PublicacionAPI, TipoPublicacion } from "@/api";
+import { RecursosCarousel, RecursosPagination } from "./RecursosPagination";
 
 // Función para convertir URLs de Google Drive a URLs de descarga directa
 const convertGoogleDriveUrl = (url: string): string => {
@@ -34,7 +35,7 @@ interface Publicacion {
   id: number;
   title: string;
   description: string;
-  type: 'informe' | 'estudio' | 'monitoreo' | 'investigacion';
+  type: string;
   category: string;
   date?: string;
   author?: string;
@@ -60,11 +61,14 @@ const getTypeColor = (type: string) => {
   }
 };
 
-const getTypeLabel = (type: string) => {
+const getTypeLabel = (type: string, tipos: TipoPublicacion[]) => {
+  const configuredType = tipos.find((item) => item.slug === type);
+  if (configuredType) return configuredType.name;
+
   switch (type) {
     case "informe": return "Informe";
     case "estudio": return "Estudio";
-    case "monitoreo": return "Monitoreo";
+    case "monitoreos": return "Monitoreo";
     case "investigacion": return "Investigación";
     default: return "Documento";
   }
@@ -78,6 +82,10 @@ export function PublicacionesSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [conversionMessage, setConversionMessage] = useState<string | null>(null);
+  const [tiposPublicacion, setTiposPublicacion] = useState<TipoPublicacion[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageDirection, setPageDirection] = useState(1);
+  const itemsPerPage = 6;
 
   // Load publicaciones from local API
   useEffect(() => {
@@ -85,6 +93,14 @@ export function PublicacionesSection() {
       try {
         setLoading(true);
         const response = await publicacionesService.getAll();
+        try {
+          const tiposResponse = await tiposPublicacionService.getActive();
+          if (tiposResponse.success) {
+            setTiposPublicacion(tiposResponse.data);
+          }
+        } catch (typesError) {
+          console.error('Error loading publication types:', typesError);
+        }
         
         // Debug: ver qué campos están llegando de la API
         console.log('Datos de API response:', response.data);
@@ -100,9 +116,7 @@ export function PublicacionesSection() {
             id: pub.id || 0,
             title: pub.title || '',
             description: pub.description || '',
-            type: pub.type && ['informe', 'estudio', 'monitoreo', 'investigacion'].includes(pub.type) 
-              ? pub.type as 'informe' | 'estudio' | 'monitoreo' | 'investigacion' 
-              : 'informe',
+            type: pub.type || 'informe',
             category: 'electoral', // Valor por defecto, podríamos mapear desde categoria_id
             date: pub.date,
             author: pub.author,
@@ -170,6 +184,21 @@ export function PublicacionesSection() {
         return publicaciones;
     }
   })();
+  const totalPages = Math.ceil(filteredPublicaciones.length / itemsPerPage);
+  const visiblePublicaciones = filteredPublicaciones.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const changeCategory = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const changePage = (page: number) => {
+    setPageDirection(page > currentPage ? 1 : -1);
+    setCurrentPage(page);
+  };
 
   const handleDownload = (url: string | undefined, title: string) => {
     console.log('handleDownload called with:', { url, title });
@@ -244,7 +273,7 @@ export function PublicacionesSection() {
   return (
     <motion.section
       id="publicaciones"
-      className="py-20 lg:py-28 bg-white relative overflow-hidden"
+      className="scroll-mt-24 py-20 lg:py-28 bg-white relative overflow-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
@@ -308,7 +337,7 @@ export function PublicacionesSection() {
           {categories.map((category) => (
             <button
               key={category.id}
-              onClick={() => setSelectedCategory(category.id)}
+              onClick={() => changeCategory(category.id)}
               className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
                 selectedCategory === category.id
                   ? "bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white shadow-lg"
@@ -322,18 +351,15 @@ export function PublicacionesSection() {
 
         {/* Publications Grid */}
         {filteredPublicaciones.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredPublicaciones.map((publicacion, index) => (
+          <>
+          <RecursosCarousel page={currentPage} direction={pageDirection}>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {visiblePublicaciones.map((publicacion) => (
             <motion.div
               key={publicacion.id}
               className={`bg-white rounded-2xl border-2 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group ${
                 publicacion.featured ? "border-[#CBA135]" : "border-gray-200"
               }`}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              layout
             >
              
              
@@ -341,7 +367,7 @@ export function PublicacionesSection() {
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getTypeColor(publicacion.type)}`}>
-                  {getTypeLabel(publicacion.type)}
+                  {getTypeLabel(publicacion.type, tiposPublicacion)}
                 </span>
                 <div className="text-xs text-gray-500">
                   {publicacion.pages} páginas
@@ -426,6 +452,9 @@ export function PublicacionesSection() {
             </motion.div>
           ))}
           </div>
+          </RecursosCarousel>
+          <RecursosPagination page={currentPage} totalPages={totalPages} onPageChange={changePage} />
+          </>
         ) : (
           <motion.div
             className="text-center py-16"
@@ -447,23 +476,7 @@ export function PublicacionesSection() {
           </motion.div>
         )}
 
-        {/* Bottom CTA - Show only when there are publications */}
-        {filteredPublicaciones.length > 0 && (
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
-          <div className="inline-flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-full border border-gray-200">
-            <IconTag className="h-5 w-5 text-[#CBA135]" />
-            <span className="text-gray-700 font-opensans font-medium">
-              Nuevas publicaciones disponibles mensualmente
-            </span>
-          </div>
-        </motion.div>
-        )}
+        
       </div>
     </motion.section>
   );

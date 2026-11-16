@@ -9,6 +9,8 @@ const DocumentosElectoralesRepository = require('./DocumentosElectoralesReposito
 const VerificadoresRepository = require('./VerificadoresRepository');
 const CategoriasRepository = require('./CategoriasRepository');
 const UsuariosRepository = require('./UsuariosRepository');
+const TiposPublicacionRepository = require('./TiposPublicacionRepository');
+const CategoriasDocumentosElectoralesRepository = require('./CategoriasDocumentosElectoralesRepository');
 
 module.exports = {
     PublicacionesRepository,
@@ -21,5 +23,7 @@ module.exports = {
     DocumentosElectoralesRepository,
     VerificadoresRepository,
     CategoriasRepository,
-    UsuariosRepository
+    UsuariosRepository,
+    TiposPublicacionRepository,
+    CategoriasDocumentosElectoralesRepository
 };

@@ -12,11 +12,10 @@ class DocumentosElectoralesController extends BaseController {
             const { category } = req.params;
             const { page = 1, limit = 10 } = req.query;
 
-            const validCategories = ['Manual', 'Procedimiento', 'Normativa', 'Capacitación', 'Informe'];
-            if (!validCategories.includes(category)) {
+            if (!(await this.repository.findCategoryId(category))) {
                 return res.status(400).json({
                     success: false,
-                    message: `Categoría inválida. Debe ser: ${validCategories.join(', ')}`
+                    message: 'Categoría de documento electoral inválida o inactiva'
                 });
             }
 
@@ -208,11 +207,10 @@ class DocumentosElectoralesController extends BaseController {
                 });
             }
 
-            const validCategories = ['Manual', 'Procedimiento', 'Normativa', 'Capacitación', 'Informe'];
-            if (!validCategories.includes(data.category)) {
+            if (!(await this.repository.findCategoryId(data.category))) {
                 return res.status(400).json({
                     success: false,
-                    message: `Categoría inválida. Debe ser: ${validCategories.join(', ')}`
+                    message: 'Categoría de documento electoral inválida o inactiva'
                 });
             }
 
@@ -280,11 +278,10 @@ class DocumentosElectoralesController extends BaseController {
             }
 
             if (data.category) {
-                const validCategories = ['Manual', 'Procedimiento', 'Normativa', 'Capacitación', 'Informe'];
-                if (!validCategories.includes(data.category)) {
+                if (!(await this.repository.findCategoryId(data.category))) {
                     return res.status(400).json({
                         success: false,
-                        message: `Categoría inválida. Debe ser: ${validCategories.join(', ')}`
+                        message: 'Categoría de documento electoral inválida o inactiva'
                     });
                 }
             }

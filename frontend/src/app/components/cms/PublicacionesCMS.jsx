@@ -6,7 +6,7 @@ import { Modal } from './Modal';
 import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
-import { publicacionesService, categoriasService } from '@/api';
+import { publicacionesService, categoriasService, tiposPublicacionService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
@@ -35,6 +35,7 @@ export const PublicacionesCMS = () => {
   // Estados principales
   const [publicaciones, setPublicaciones] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [tiposPublicacion, setTiposPublicacion] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -121,12 +122,10 @@ export const PublicacionesCMS = () => {
   ];
 
   // Opciones para selects
-  const typeOptions = [
-    { value: 'informe', label: 'Informe' },
-    { value: 'estudio', label: 'Estudio' },
-    { value: 'monitoreo', label: 'Monitoreo' },
-    { value: 'investigacion', label: 'Investigación' }
-  ];
+  const typeOptions = tiposPublicacion.map(tipo => ({
+    value: tipo.slug,
+    label: tipo.name
+  }));
 
   const statusOptions = [
     { value: 'draft', label: 'Borrador' },
@@ -138,6 +137,7 @@ export const PublicacionesCMS = () => {
   useEffect(() => {
     loadPublicaciones();
     loadCategorias();
+    loadTiposPublicacion();
   }, [currentPage]);
 
   const loadPublicaciones = async () => {
@@ -168,6 +168,17 @@ export const PublicacionesCMS = () => {
       }
     } catch (err) {
       console.error('Error al cargar categorías:', err);
+    }
+  };
+
+  const loadTiposPublicacion = async () => {
+    try {
+      const response = await tiposPublicacionService.getActive();
+      if (response.success) {
+        setTiposPublicacion(response.data);
+      }
+    } catch (err) {
+      setError('Error al cargar tipos de publicación: ' + err.message);
     }
   };
 

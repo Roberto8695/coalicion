@@ -6,6 +6,7 @@ import { IconExternalLink, IconShield } from "@tabler/icons-react";
 import Image from "next/image";
 import { verificadoresService } from "@/api/services";
 import type { Verificador } from "@/api/services";
+import { RecursosCarousel, RecursosPagination } from "./RecursosPagination";
 
 const staticVerificadores: Verificador[] = [
   {
@@ -95,6 +96,9 @@ const getTypeLabel = (type: string) => {
 export function VerificacionHechosSection() {
   const [verificadores, setVerificadores] = useState<Verificador[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageDirection, setPageDirection] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
     const loadVerificadores = async () => {
@@ -116,10 +120,21 @@ export function VerificacionHechosSection() {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  const totalPages = Math.ceil(verificadores.length / itemsPerPage);
+  const visibleVerificadores = verificadores.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const changePage = (page: number) => {
+    setPageDirection(page > currentPage ? 1 : -1);
+    setCurrentPage(page);
+  };
+
   return (
     <motion.section
       id="verificacion-hechos"
-      className="py-20 lg:py-28 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden"
+      className="scroll-mt-24 py-20 lg:py-28 bg-gradient-to-br from-gray-50 via-white to-gray-100 relative overflow-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
@@ -179,17 +194,15 @@ export function VerificacionHechosSection() {
             </div>
           </div>
         ) : (
+          <>
           /* Tools Grid */
+          <RecursosCarousel page={currentPage} direction={pageDirection}>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {verificadores.map((verificador, index) => {
+          {visibleVerificadores.map((verificador) => {
             return (
               <motion.div
                 key={verificador.id}
                 className="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group relative overflow-hidden"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
               >
                 {/* Logo en la esquina superior derecha */}
                 {verificador.logo && (
@@ -253,23 +266,12 @@ export function VerificacionHechosSection() {
             );
           })}
         </div>
+        </RecursosCarousel>
+        <RecursosPagination page={currentPage} totalPages={totalPages} onPageChange={changePage} />
+          </>
         )}
 
-        {/* Bottom Info */}
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
-          <div className="inline-flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-200">
-            <IconShield className="h-5 w-5 text-blue-600" />
-            <span className="text-blue-700 font-opensans font-medium">
-              Todas las herramientas son verificadas y actualizadas regularmente
-            </span>
-          </div>
-        </motion.div>
+       
       </div>
     </motion.section>
   );

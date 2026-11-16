@@ -118,7 +118,7 @@ export const TendenciasGrid: React.FC<TendenciasGridProps> = ({ limit }) => {
               className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: i * 0.1 }}
+              transition={{ duration: 0.8 }}
             >
               <div className="h-64 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 animate-pulse relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
@@ -166,7 +166,6 @@ export const TendenciasGrid: React.FC<TendenciasGridProps> = ({ limit }) => {
                 }}
                 transition={{ 
                   duration: 0.8,
-                  delay: i * 0.1,
                   ease: "easeOut"
                 }}
                 whileHover={{

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "motion/react";
+import { IconChartBar, IconShieldCheck, IconUsersGroup } from "@tabler/icons-react";
 
 export function IndicadoresSection() {
   return (
@@ -108,13 +109,12 @@ export function IndicadoresSection() {
               {/* Feature 1 */}
               <motion.div
                 className="bg-gradient-to-r from-[#CBA135]/10 to-[#B8941F]/10 rounded-2xl p-6 border border-[#CBA135]/20 hover:shadow-lg transition-all duration-300"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.7 }}
-                viewport={{ once: true }}
               >
                 <h3 className="text-xl font-montserrat font-semibold text-[#222426] mb-2">
-                  🤝 Trabajo Colaborativo
+                  <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#CBA135]/15 text-[#B8941F]">
+                    <IconUsersGroup className="h-6 w-6" stroke={1.8} />
+                  </span>
+                  <span className="block">Trabajo Colaborativo</span>
                 </h3>
                 <p className="text-gray-600 font-opensans">
                   Unión estratégica de múltiples sectores de la sociedad boliviana
@@ -124,13 +124,12 @@ export function IndicadoresSection() {
               {/* Feature 2 */}
               <motion.div
                 className="bg-gradient-to-r from-red-500/10 to-rose-500/10 rounded-2xl p-6 border border-red-300/20 hover:shadow-lg transition-all duration-300"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.8 }}
-                viewport={{ once: true }}
               >
                 <h3 className="text-xl font-montserrat font-semibold text-[#222426] mb-2">
-                  🛡️ Protección Electoral
+                  <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/15 text-red-700">
+                    <IconShieldCheck className="h-6 w-6" stroke={1.8} />
+                  </span>
+                  <span className="block">Protección Electoral</span>
                 </h3>
                 <p className="text-gray-600 font-opensans">
                   Salvaguardando la integridad de los procesos democráticos
@@ -140,13 +139,12 @@ export function IndicadoresSection() {
               {/* Feature 3 */}
               <motion.div
                 className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl p-6 border border-emerald-300/20 hover:shadow-lg transition-all duration-300"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.9 }}
-                viewport={{ once: true }}
               >
                 <h3 className="text-xl font-montserrat font-semibold text-[#222426] mb-2">
-                  📊 Transparencia Total
+                  <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700">
+                    <IconChartBar className="h-6 w-6" stroke={1.8} />
+                  </span>
+                  <span className="block">Transparencia Total</span>
                 </h3>
                 <p className="text-gray-600 font-opensans">
                   Promoviendo información veraz y verificable para todos

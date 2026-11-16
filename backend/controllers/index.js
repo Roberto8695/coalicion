@@ -10,6 +10,8 @@ const VerificadoresController = require('./VerificadoresController');
 const CategoriasController = require('./CategoriasController');
 const UploadsController = require('./UploadsController');
 const UsuariosController = require('./UsuariosController');
+const TiposPublicacionController = require('./TiposPublicacionController');
+const CategoriasDocumentosElectoralesController = require('./CategoriasDocumentosElectoralesController');
 
 module.exports = {
     PublicacionesController,
@@ -23,5 +25,7 @@ module.exports = {
     VerificadoresController,
     CategoriasController,
     UploadsController,
-    UsuariosController
+    UsuariosController,
+    TiposPublicacionController,
+    CategoriasDocumentosElectoralesController
 };

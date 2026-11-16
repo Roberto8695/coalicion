@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconCalendar, IconMapPin, IconExternalLink, IconUsers, IconMicrophone, IconClock } from "@tabler/icons-react";
 import { noticiasService, type Noticia } from "@/api";
+import { RecursosCarousel, RecursosPagination } from "./RecursosPagination";
 
 interface NoticiaItem {
   id: number;
@@ -30,6 +31,9 @@ export function NoticiasSection() {
   const [noticias, setNoticias] = useState<NoticiaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageDirection, setPageDirection] = useState(1);
+  const itemsPerPage = 6;
 
   // Load noticias from local API
   useEffect(() => {
@@ -138,6 +142,21 @@ export function NoticiasSection() {
   const filteredNoticias = selectedStatus === "all" 
     ? noticias 
     : noticias.filter(noticia => noticia.status === selectedStatus);
+  const totalPages = Math.ceil(filteredNoticias.length / itemsPerPage);
+  const visibleNoticias = filteredNoticias.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const changeStatus = (status: string) => {
+    setSelectedStatus(status);
+    setCurrentPage(1);
+  };
+
+  const changePage = (page: number) => {
+    setPageDirection(page > currentPage ? 1 : -1);
+    setCurrentPage(page);
+  };
 
   const handleViewMore = (noticia: NoticiaItem) => {
     // Priorizar registrationurl, luego url
@@ -186,7 +205,7 @@ export function NoticiasSection() {
   return (
     <motion.section
       id="noticias"
-      className="py-20 lg:py-28 bg-white relative overflow-hidden"
+      className="scroll-mt-24 py-20 lg:py-28 bg-white relative overflow-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
@@ -202,10 +221,8 @@ export function NoticiasSection() {
           viewport={{ once: true }}
         >
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-montserrat font-bold mb-6">
-            <span className="text-[#222426]">Noticias y </span>
-            <span className="bg-gradient-to-r from-[#CBA135] to-[#B8941F] bg-clip-text text-transparent">
-              Actividades
-            </span>
+            <span className="text-[#222426]">Notas </span>
+            
           </h2>
           
           <motion.div 
@@ -232,7 +249,7 @@ export function NoticiasSection() {
           {statusOptions.map((status) => (
             <button
               key={status.id}
-              onClick={() => setSelectedStatus(status.id)}
+              onClick={() => changeStatus(status.id)}
               className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
                 selectedStatus === status.id
                   ? "bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white shadow-lg"
@@ -246,8 +263,10 @@ export function NoticiasSection() {
 
         {/* News Grid */}
         {filteredNoticias.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredNoticias.map((noticia, index) => {
+          <>
+          <RecursosCarousel page={currentPage} direction={pageDirection}>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {visibleNoticias.map((noticia) => {
             const IconComponent = getTypeIcon(noticia.type);
             
             return (
@@ -256,10 +275,6 @@ export function NoticiasSection() {
                 className={`bg-white rounded-2xl border-2 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group relative ${
                   noticia.featured ? "border-[#CBA135]" : "border-gray-200"
                 }`}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
               >
                 {/* Featured Badge */}
                 {noticia.featured && (
@@ -273,9 +288,7 @@ export function NoticiasSection() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg bg-gradient-to-r ${getTypeColor(noticia.type)}`}>
-                      <IconComponent className="h-4 w-4 text-white" />
-                    </div>
+                    
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getTypeColor(noticia.type)}`}>
                       {getTypeLabel(noticia.type)}
                     </span>
@@ -353,6 +366,9 @@ export function NoticiasSection() {
             );
           })}
           </div>
+          </RecursosCarousel>
+          <RecursosPagination page={currentPage} totalPages={totalPages} onPageChange={changePage} />
+          </>
         ) : (
           <motion.div
             className="text-center py-16"
@@ -374,23 +390,7 @@ export function NoticiasSection() {
           </motion.div>
         )}
 
-        {/* Bottom CTA - Show only when there are items */}
-        {filteredNoticias.length > 0 && (
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
-          <div className="inline-flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border border-green-200">
-            <IconMicrophone className="h-5 w-5 text-green-600" />
-            <span className="text-green-700 font-opensans font-medium">
-              Suscríbete para recibir notificaciones de nuevas actividades
-            </span>
-          </div>
-        </motion.div>
-        )}
+        
       </div>
     </motion.section>
   );

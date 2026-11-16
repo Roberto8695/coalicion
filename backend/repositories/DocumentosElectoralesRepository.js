@@ -15,7 +15,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
             title: dbRow.titulo,
             description: dbRow.descripcion,
             type: dbRow.formato_archivo,
-            category: dbRow.categoria,
+            category: dbRow.categoria_name || dbRow.categoria,
             fileUrl: dbRow.ruta_archivo,
             previewUrl: dbRow.ruta_vista_previa,
             fileSize: dbRow.tamano_texto,
@@ -65,7 +65,7 @@ class DocumentosElectoralesRepository extends BaseRepository {
             const conditions = [];
             if (filters.categoria) {
                 filterValues.push(filters.categoria);
-                conditions.push(`categoria = $${filterValues.length}`);
+                conditions.push(`(c.slug = $${filterValues.length} OR c.name = $${filterValues.length} OR d.categoria = $${filterValues.length})`);
             }
             if (filters.estado) {
                 filterValues.push(filters.estado);
@@ -81,14 +81,18 @@ class DocumentosElectoralesRepository extends BaseRepository {
             }
 
             const query = `
-                SELECT * FROM ${this.tableName}
+                SELECT d.*, c.name AS categoria_name
+                FROM ${this.tableName} d
+                LEFT JOIN categorias_documentos_electorales c ON c.id = d.categoria_id
                 ${whereClause}
                 ORDER BY fecha_publicacion DESC, created_at DESC
                 LIMIT $${filterValues.length + 1} OFFSET $${filterValues.length + 2}
             `;
 
             const countQuery = `
-                SELECT COUNT(*) as total FROM ${this.tableName}
+                SELECT COUNT(*) as total
+                FROM ${this.tableName} d
+                LEFT JOIN categorias_documentos_electorales c ON c.id = d.categoria_id
                 ${whereClause}
             `;
 
@@ -131,6 +135,9 @@ class DocumentosElectoralesRepository extends BaseRepository {
     async create(data) {
         try {
             const dbData = this.mapApiToDb(data);
+            if (data.category) {
+                dbData.categoria_id = await this.findCategoryId(data.category);
+            }
             const columns = Object.keys(dbData);
             const values = Object.values(dbData);
             const placeholders = values.map((_, index) => `$${index + 1}`);
@@ -152,6 +159,9 @@ class DocumentosElectoralesRepository extends BaseRepository {
     async update(id, data) {
         try {
             const dbData = this.mapApiToDb(data);
+            if (data.category) {
+                dbData.categoria_id = await this.findCategoryId(data.category);
+            }
             dbData.updated_at = new Date();
 
             const columns = Object.keys(dbData);
@@ -175,6 +185,16 @@ class DocumentosElectoralesRepository extends BaseRepository {
     // Obtener documentos por categoría
     async findByCategory(category, page = 1, limit = 10) {
         return await this.findAll(page, limit, { categoria: category });
+    }
+
+    async findCategoryId(category) {
+        const result = await pool.query(`
+            SELECT id
+            FROM categorias_documentos_electorales
+            WHERE is_active = TRUE AND (slug = $1 OR name = $1 OR LOWER(name) = LOWER($1))
+            LIMIT 1
+        `, [category]);
+        return result.rows[0]?.id || null;
     }
 
     // Obtener documentos por tipo de archivo

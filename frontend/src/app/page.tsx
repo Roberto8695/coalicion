@@ -42,8 +42,7 @@ export default function InstitucionalPage() {
         {/* 5. Miembros - Slider Logos Section */}
         <SliderLogos />
         
-        {/* 6. Cómo participar */}
-        <HowToParticipateSection />
+       
 
         {/* Footer */}
         <Footer />

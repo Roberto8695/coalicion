@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconDownload, IconEye, IconFileText, IconCalendar } from "@tabler/icons-react";
 import { documentosElectoralesService, type DocumentoElectoral } from "@/api";
+import { RecursosCarousel, RecursosPagination } from "./RecursosPagination";
 
 // Interfaz local eliminada - usamos la del servicio
 
@@ -26,6 +27,9 @@ export function GuiasElectoralesSection() {
   const [documentos, setDocumentos] = useState<DocumentoElectoral[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageDirection, setPageDirection] = useState(1);
+  const itemsPerPage = 6;
 
   // Cargar documentos desde API local
   useEffect(() => {
@@ -135,6 +139,17 @@ export function GuiasElectoralesSection() {
     }
   };
 
+  const totalPages = Math.ceil(documentos.length / itemsPerPage);
+  const visibleDocumentos = documentos.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const changePage = (page: number) => {
+    setPageDirection(page > currentPage ? 1 : -1);
+    setCurrentPage(page);
+  };
+
   // Show loading state
   if (loading) {
     return (
@@ -172,7 +187,7 @@ export function GuiasElectoralesSection() {
   return (
     <motion.section
       id="guias-electorales"
-      className="py-20 lg:py-28 bg-white relative overflow-hidden"
+      className="scroll-mt-24 py-20 lg:py-28 bg-white relative overflow-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       transition={{ duration: 0.8 }}
@@ -211,15 +226,12 @@ export function GuiasElectoralesSection() {
         </motion.div>
 
         {/* Guides Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
-          {documentos.map((documento, index) => (
+        <RecursosCarousel page={currentPage} direction={pageDirection}>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {visibleDocumentos.map((documento) => (
             <motion.div
               key={documento.id}
               className="bg-white rounded-2xl border border-gray-200 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group"
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
             >
               {/* Header with category and file info */}
               <div className="flex items-center justify-between mb-4">
@@ -290,22 +302,10 @@ export function GuiasElectoralesSection() {
             </motion.div>
           ))}
         </div>
+        </RecursosCarousel>
+        <RecursosPagination page={currentPage} totalPages={totalPages} onPageChange={changePage} />
 
-        {/* Bottom CTA */}
-        <motion.div
-          className="text-center mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
-          <div className="inline-flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-full border border-gray-200">
-            <IconFileText className="h-5 w-5 text-[#CBA135]" />
-            <span className="text-gray-700 font-opensans font-medium">
-              ¿Necesitas más recursos? Contáctanos para acceso completo
-            </span>
-          </div>
-        </motion.div>
+        
       </div>
     </motion.section>
   );

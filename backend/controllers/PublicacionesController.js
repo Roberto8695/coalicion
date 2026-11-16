@@ -121,10 +121,11 @@ class PublicacionesController extends BaseController {
                 });
             }
 
-            if (!['informe', 'estudio', 'monitoreo', 'investigacion'].includes(data.type)) {
+            const activeTypes = await this.repository.findActiveTypeSlugs();
+            if (!activeTypes.includes(data.type)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Tipo inválido. Debe ser: informe, estudio, monitoreo, investigacion'
+                    message: 'El tipo seleccionado no existe o está inactivo'
                 });
             }
 
@@ -135,6 +136,29 @@ class PublicacionesController extends BaseController {
             res.status(500).json({
                 success: false,
                 message: 'Error al crear la publicación',
+                error: error.message
+            });
+        }
+    }
+
+    async update(req, res) {
+        try {
+            if (req.body.type) {
+                const activeTypes = await this.repository.findActiveTypeSlugs();
+                if (!activeTypes.includes(req.body.type)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'El tipo seleccionado no existe o está inactivo'
+                    });
+                }
+            }
+
+            await super.update(req, res);
+        } catch (error) {
+            console.error('Error en update publicación:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al actualizar la publicación',
                 error: error.message
             });
         }

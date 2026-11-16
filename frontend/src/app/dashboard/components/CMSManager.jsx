@@ -13,6 +13,8 @@ import { VerificadoresCMS } from '@/app/components/cms/VerificadoresCMS';
 import { CMSDashboard } from '@/app/components/cms/CMSDashboard';
 import { UsuariosCMS } from './UsuariosCMS';
 import { DocumentosElectoralesCMS } from '@/app/components/cms/DocumentosElectoralesCMS';
+import TiposPublicacionCMS from '@/app/components/cms/TiposPublicacionCMS';
+import CategoriasDocumentosElectoralesCMS from '@/app/components/cms/CategoriasDocumentosElectoralesCMS';
 
 export const CMSManager = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -29,6 +31,10 @@ export const CMSManager = () => {
         return <PublicacionesCoalicionCMS />;
       case 'categorias':
         return <CategoriasCMS />;
+      case 'tipos-publicacion':
+        return <TiposPublicacionCMS />;
+      case 'categorias-documentos-electorales':
+        return <CategoriasDocumentosElectoralesCMS />;
       case 'noticias':
         return <NoticiasCMS />;
       case 'multimedia':
