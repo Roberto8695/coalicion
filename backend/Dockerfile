@@ -13,6 +13,7 @@ ENV UPLOADS_DIR=/app/uploads
 
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --chown=node:node . .
+COPY --chown=node:node migrations ./migrations
 RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
 
 USER node

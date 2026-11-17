@@ -14,8 +14,6 @@ uploads
 Dockerfile*
 README.md
 MIGRATION_README.md
-*.sql
-migrations
 sql_scripts
 test-*.js
 check_*.js
