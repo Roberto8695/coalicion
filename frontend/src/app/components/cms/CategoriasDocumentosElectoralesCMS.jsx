@@ -79,7 +79,7 @@ const CategoriasDocumentosElectoralesCMS = () => {
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    event?.preventDefault();
     try {
       setLoading(true);
       const response = modalMode === 'create'

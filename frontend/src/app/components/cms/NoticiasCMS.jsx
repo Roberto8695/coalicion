@@ -225,7 +225,7 @@ const NoticiasCMS = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     
     // Verificar permisos
     if (modalMode === 'create' && !permissions.canCreateContent) {

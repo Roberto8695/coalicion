@@ -401,9 +401,16 @@ export function PublicacionesSection() {
 
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getTypeColor(publicacion.type)}`}>
-                  {getTypeLabel(publicacion.type, tiposPublicacion)}
-                </span>
+                <div className="flex flex-wrap items-center gap-2 pr-2">
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold text-white bg-gradient-to-r ${getTypeColor(publicacion.type)}`}>
+                    {getTypeLabel(publicacion.type, tiposPublicacion)}
+                  </span>
+                  {publicacion.categoriaName && (
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold text-[#7A5A11] bg-[#F4E9C4] border border-[#D8BE73]">
+                      {publicacion.categoriaName}
+                    </span>
+                  )}
+                </div>
                 <div className="text-xs text-gray-500">
                   {publicacion.pages} páginas
                 </div>
