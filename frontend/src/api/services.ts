@@ -50,6 +50,30 @@ export interface TipoPublicacion {
   is_active?: boolean;
 }
 
+export interface TipoNoticia {
+  id?: number;
+  name: string;
+  slug: string;
+  color?: string;
+  is_active?: boolean;
+}
+
+export interface TipoMultimedia {
+  id?: number;
+  name: string;
+  slug: string;
+  color?: string;
+  is_active?: boolean;
+}
+
+export interface CatalogoEvento {
+  id?: number;
+  name: string;
+  slug: string;
+  color?: string;
+  is_active?: boolean;
+}
+
 export interface Noticia {
   id?: number;
   title: string;
@@ -248,6 +272,40 @@ export class NoticiasService extends BaseService<Noticia> {
 
   async getFeatured(limit?: number) {
     return await api.get(`${this.endpoint}/featured`, { params: { limit } });
+  }
+}
+
+export class TiposNoticiaService extends BaseService<TipoNoticia> {
+  constructor() {
+    super('tipos-noticia');
+  }
+
+  async getActive(): Promise<ApiResponse<TipoNoticia[]>> {
+    return await api.get(`${this.endpoint}/active`);
+  }
+}
+
+export class TiposMultimediaService extends BaseService<TipoMultimedia> {
+  constructor() {
+    super('tipos-multimedia');
+  }
+
+  async getActive(): Promise<ApiResponse<TipoMultimedia[]>> {
+    return await api.get(`${this.endpoint}/active`);
+  }
+}
+
+export class TiposEventoService extends BaseService<CatalogoEvento> {
+  constructor() { super('tipos-evento'); }
+  async getActive(): Promise<ApiResponse<CatalogoEvento[]>> {
+    return await api.get(`${this.endpoint}/active`);
+  }
+}
+
+export class EstadosEventoService extends BaseService<CatalogoEvento> {
+  constructor() { super('estados-evento'); }
+  async getActive(): Promise<ApiResponse<CatalogoEvento[]>> {
+    return await api.get(`${this.endpoint}/active`);
   }
 }
 
@@ -506,6 +564,10 @@ export const categoriasService = new CategoriasService();
 export const tiposPublicacionService = new TiposPublicacionService();
 export const noticiasService = new NoticiasService();
 export const multimediaService = new MultimediaService();
+export const tiposNoticiaService = new TiposNoticiaService();
+export const tiposMultimediaService = new TiposMultimediaService();
+export const tiposEventoService = new TiposEventoService();
+export const estadosEventoService = new EstadosEventoService();
 export const eventosService = new EventosService();
 export const guiasElectoralesService = new GuiasElectoralesService();
 export const documentosElectoralesService = new DocumentosElectoralesService();

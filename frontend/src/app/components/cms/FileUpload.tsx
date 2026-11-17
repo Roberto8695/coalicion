@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { Button } from './Button';
 
 interface FileUploadProps {
@@ -234,9 +235,12 @@ export const FileUpload = ({
             {preview && selectedFile.type.startsWith('image/') && (
               <div className="mt-2" onClick={(e) => e.stopPropagation()}>
                 <div className="relative max-w-xs mx-auto">
-                  <img
+                  <Image
                     src={URL.createObjectURL(selectedFile)}
                     alt="Preview"
+                    width={320}
+                    height={200}
+                    unoptimized
                     className="rounded-lg object-contain max-w-full h-auto"
                   />
                 </div>

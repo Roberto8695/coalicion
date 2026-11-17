@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from './Button';
 
 export const Modal = ({ 
@@ -16,6 +16,9 @@ export const Modal = ({
   cancelText = 'Cancelar',
   isLoading = false
 }) => {
+  const modalRef = useRef(null);
+  const [validationMessage, setValidationMessage] = useState('');
+
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -34,7 +37,27 @@ export const Modal = ({
     };
   }, [isOpen, onClose]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      setValidationMessage('');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const handleConfirm = () => {
+    const form = modalRef.current?.querySelector('form');
+
+    if (form && !form.checkValidity()) {
+      setValidationMessage('Debes completar todos los campos obligatorios antes de continuar.');
+      form.reportValidity();
+      form.querySelector(':invalid')?.focus();
+      return;
+    }
+
+    setValidationMessage('');
+    onConfirm();
+  };
 
   const getSizeClasses = () => {
     switch (size) {
@@ -60,7 +83,7 @@ export const Modal = ({
       />
       
       {/* Modal */}
-      <div className={`relative bg-gray-800 rounded-lg shadow-2xl ${getSizeClasses()} w-full mx-4 ${size === 'full' ? 'h-full' : 'max-h-[90vh]'} overflow-hidden border border-gray-700`}>
+      <div ref={modalRef} className={`relative bg-gray-800 rounded-lg shadow-2xl ${getSizeClasses()} w-full mx-4 ${size === 'full' ? 'h-full' : 'max-h-[90vh]'} overflow-hidden border border-gray-700`}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <h3 className="text-lg font-medium text-white">
@@ -86,6 +109,11 @@ export const Modal = ({
         {/* Footer */}
         {(onConfirm || onCancel) && (
           <div className="flex items-center justify-end space-x-4 p-6 border-t border-gray-700 bg-gray-750">
+            {validationMessage && (
+              <p role="alert" className="mr-auto rounded-md border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                {validationMessage}
+              </p>
+            )}
             {onCancel && (
               <Button
                 variant="outline"
@@ -97,7 +125,7 @@ export const Modal = ({
             )}
             {onConfirm && (
               <Button
-                onClick={onConfirm}
+                onClick={handleConfirm}
                 isLoading={isLoading}
               >
                 {confirmText}

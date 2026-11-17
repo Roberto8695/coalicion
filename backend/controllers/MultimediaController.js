@@ -146,10 +146,10 @@ class MultimediaController extends BaseController {
             const { type } = req.params;
             const { page = 1, limit = 10 } = req.query;
 
-            if (!['infografia', 'video', 'arte', 'presentacion'].includes(type)) {
+            if (!await this.repository.isActiveType(type)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Tipo inválido. Debe ser: infografia, video, arte, presentacion'
+                    message: 'El tipo seleccionado no existe o está inactivo'
                 });
             }
 
@@ -214,10 +214,10 @@ class MultimediaController extends BaseController {
                 });
             }
 
-            if (!['infografia', 'video', 'arte', 'presentacion'].includes(data.type)) {
+            if (!await this.repository.isActiveType(data.type)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Tipo inválido. Debe ser: infografia, video, arte, presentacion'
+                    message: 'El tipo seleccionado no existe o está inactivo'
                 });
             }
 

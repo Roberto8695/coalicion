@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { PublicacionesCMS } from '@/app/components/cms/PublicacionesCMS';
 import { PublicacionesTendenciasCMS } from '@/app/components/cms/PublicacionesTendenciasCMS';
 import { PublicacionesCoalicionCMS } from '@/app/components/cms/PublicacionesCoalicionCMS';
-import CategoriasCMS from '@/app/components/cms/CategoriasCMS';
 import NoticiasCMS from '@/app/components/cms/NoticiasCMS';
 import { MultimediaCMS } from '@/app/components/cms/MultimediaCMS';
 import EventosCMS from '@/app/components/cms/EventosCMS';
@@ -13,8 +12,7 @@ import { VerificadoresCMS } from '@/app/components/cms/VerificadoresCMS';
 import { CMSDashboard } from '@/app/components/cms/CMSDashboard';
 import { UsuariosCMS } from './UsuariosCMS';
 import { DocumentosElectoralesCMS } from '@/app/components/cms/DocumentosElectoralesCMS';
-import TiposPublicacionCMS from '@/app/components/cms/TiposPublicacionCMS';
-import CategoriasDocumentosElectoralesCMS from '@/app/components/cms/CategoriasDocumentosElectoralesCMS';
+import CategoriasTiposCMS from '@/app/components/cms/CategoriasTiposCMS';
 
 export const CMSManager = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -29,12 +27,8 @@ export const CMSManager = () => {
         return <PublicacionesTendenciasCMS />;
       case 'publicaciones-coalicion':
         return <PublicacionesCoalicionCMS />;
-      case 'categorias':
-        return <CategoriasCMS />;
-      case 'tipos-publicacion':
-        return <TiposPublicacionCMS />;
-      case 'categorias-documentos-electorales':
-        return <CategoriasDocumentosElectoralesCMS />;
+      case 'categorias-tipos':
+        return <CategoriasTiposCMS />;
       case 'noticias':
         return <NoticiasCMS />;
       case 'multimedia':

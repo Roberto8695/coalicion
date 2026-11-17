@@ -136,10 +136,10 @@ class NoticiasController extends BaseController {
                 });
             }
 
-            if (!['actividad', 'taller', 'comunicado', 'evento'].includes(data.type)) {
+            if (!await this.repository.isActiveType(data.type)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Tipo inválido. Debe ser: actividad, taller, comunicado, evento'
+                    message: 'El tipo seleccionado no existe o está inactivo'
                 });
             }
 
@@ -150,6 +150,25 @@ class NoticiasController extends BaseController {
             res.status(500).json({
                 success: false,
                 message: 'Error al crear la noticia',
+                error: error.message
+            });
+        }
+    }
+
+    async update(req, res) {
+        try {
+            if (req.body.type && !await this.repository.isActiveType(req.body.type)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'El tipo seleccionado no existe o está inactivo'
+                });
+            }
+            await super.update(req, res);
+        } catch (error) {
+            console.error('Error en update noticia:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Error al actualizar la noticia',
                 error: error.message
             });
         }

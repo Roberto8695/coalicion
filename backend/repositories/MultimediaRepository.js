@@ -6,6 +6,14 @@ class MultimediaRepository extends BaseRepository {
         super('multimedia');
     }
 
+    async isActiveType(type) {
+        const result = await pool.query(
+            'SELECT 1 FROM tipos_multimedia WHERE slug = $1 AND is_active = TRUE',
+            [type]
+        );
+        return result.rowCount > 0;
+    }
+
     // Obtener multimedia con categoría
     async findAllWithCategory(page = 1, limit = 10, filters = {}) {
         try {

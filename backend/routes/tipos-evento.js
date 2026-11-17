@@ -1,0 +1,12 @@
+const express = require('express');
+const Controller = require('../controllers/TiposEventoController');
+const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const router = express.Router();
+const controller = new Controller();
+router.get('/active', (req, res) => controller.getActive(req, res));
+router.get('/', (req, res) => controller.getAll(req, res));
+router.get('/:id', (req, res) => controller.getById(req, res));
+router.post('/', authenticateToken, requireAdmin, (req, res) => controller.create(req, res));
+router.put('/:id', authenticateToken, requireAdmin, (req, res) => controller.update(req, res));
+router.delete('/:id', authenticateToken, requireAdmin, (req, res) => controller.delete(req, res));
+module.exports = router;

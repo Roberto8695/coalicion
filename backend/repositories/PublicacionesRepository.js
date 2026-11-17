@@ -11,7 +11,7 @@ class PublicacionesRepository extends BaseRepository {
         try {
             const offset = (page - 1) * limit;
             let query = `
-                SELECT p.*, c.name as categoria_name, c.color as categoria_color 
+                SELECT p.*, c.name as categoria_name, c.slug as categoria_slug, c.color as categoria_color
                 FROM ${this.tableName} p
                 LEFT JOIN categorias c ON p.categoria_id = c.id
             `;
@@ -68,7 +68,7 @@ class PublicacionesRepository extends BaseRepository {
     async findFeatured(limit = 5) {
         try {
             const query = `
-                SELECT p.*, c.name as categoria_name, c.color as categoria_color 
+                SELECT p.*, c.name as categoria_name, c.slug as categoria_slug, c.color as categoria_color
                 FROM ${this.tableName} p
                 LEFT JOIN categorias c ON p.categoria_id = c.id
                 WHERE p.featured = true AND p.status = 'published'
@@ -87,7 +87,7 @@ class PublicacionesRepository extends BaseRepository {
         try {
             const offset = (page - 1) * limit;
             let query = `
-                SELECT p.*, c.name as categoria_name, c.color as categoria_color 
+                SELECT p.*, c.name as categoria_name, c.slug as categoria_slug, c.color as categoria_color
                 FROM ${this.tableName} p
                 LEFT JOIN categorias c ON p.categoria_id = c.id
                 WHERE (p.title ILIKE $1 OR p.description ILIKE $1 OR p.author ILIKE $1)

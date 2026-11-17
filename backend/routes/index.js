@@ -15,6 +15,10 @@ const uploadsRoutes = require('./uploads');
 const usuariosRoutes = require('./usuarios');
 const tiposPublicacionRoutes = require('./tipos-publicacion');
 const categoriasDocumentosElectoralesRoutes = require('./categorias-documentos-electorales');
+const tiposNoticiaRoutes = require('./tipos-noticia');
+const tiposMultimediaRoutes = require('./tipos-multimedia');
+const tiposEventoRoutes = require('./tipos-evento');
+const estadosEventoRoutes = require('./estados-evento');
 
 const router = express.Router();
 
@@ -33,6 +37,10 @@ router.use('/uploads', uploadsRoutes);
 router.use('/usuarios', usuariosRoutes);
 router.use('/tipos-publicacion', tiposPublicacionRoutes);
 router.use('/categorias-documentos-electorales', categoriasDocumentosElectoralesRoutes);
+router.use('/tipos-noticia', tiposNoticiaRoutes);
+router.use('/tipos-multimedia', tiposMultimediaRoutes);
+router.use('/tipos-evento', tiposEventoRoutes);
+router.use('/estados-evento', estadosEventoRoutes);
 
 // Ruta de información de la API
 router.get('/', (req, res) => {

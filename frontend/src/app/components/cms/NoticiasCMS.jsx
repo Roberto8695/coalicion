@@ -6,9 +6,10 @@ import { Modal } from './Modal';
 import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
-import { noticiasService, categoriasService } from '@/api';
+import { noticiasService, categoriasService, tiposNoticiaService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
+import { QuickAddSelect } from './QuickAddSelect';
 
 const NoticiasCMS = () => {
   const { confirmAction, notify } = useDashboardFeedback();
@@ -29,6 +30,7 @@ const NoticiasCMS = () => {
   // Estados principales
   const [noticias, setNoticias] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [tiposNoticia, setTiposNoticia] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -145,17 +147,16 @@ const NoticiasCMS = () => {
     { value: 'completed', label: 'Completado' }
   ];
 
-  const typeOptions = [
-    { value: 'actividad', label: 'Actividad' },
-    { value: 'taller', label: 'Taller' },
-    { value: 'comunicado', label: 'Comunicado' },
-    { value: 'evento', label: 'Evento' }
-  ];
+  const typeOptions = tiposNoticia.map((tipo) => ({
+    value: tipo.slug,
+    label: tipo.name
+  }));
 
   // Cargar datos
   useEffect(() => {
     loadNoticias();
     loadCategorias();
+    loadTiposNoticia();
   }, [currentPage]);
 
   const loadNoticias = async () => {
@@ -186,6 +187,15 @@ const NoticiasCMS = () => {
       }
     } catch (err) {
       console.error('Error al cargar categorías:', err);
+    }
+  };
+
+  const loadTiposNoticia = async () => {
+    try {
+      const response = await tiposNoticiaService.getActive();
+      if (response.success) setTiposNoticia(response.data);
+    } catch (err) {
+      setError('Error al cargar tipos de noticia: ' + err.message);
     }
   };
 
@@ -441,9 +451,9 @@ const NoticiasCMS = () => {
           isOpen={showModal}
           onClose={closeModal}
           title={
-            modalMode === 'create' ? 'Nueva Noticia' :
-            modalMode === 'edit' ? 'Editar Noticia' :
-            'Ver Noticia'
+            modalMode === 'create' ? 'Nueva Nota' :
+            modalMode === 'edit' ? 'Editar Nota' :
+            'Ver Nota'
           }
           size="lg"
           onConfirm={modalMode !== 'view' ? handleSubmit : undefined}
@@ -517,15 +527,20 @@ const NoticiasCMS = () => {
                   required
                   placeholder="Título del evento/actividad"
                 />
-                <Input
+                <QuickAddSelect
                   label="Tipo"
                   name="type"
-                  type="select"
                   value={formData.type}
                   onChange={handleInputChange}
                   required
                   placeholder="Selecciona un tipo"
                   options={typeOptions}
+                  service={tiposNoticiaService}
+                  initialForm={{ name: '', slug: '', color: '#3B82F6', is_active: true }}
+                  onCreated={(tipo) => {
+                    setTiposNoticia((current) => [...current, tipo]);
+                    setFormData((current) => ({ ...current, type: tipo.slug }));
+                  }}
                 />
                 <Input
                   label="Organizador"

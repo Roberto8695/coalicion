@@ -85,15 +85,6 @@ export function NoticiasSection() {
     fetchNoticias();
   }, []);
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "taller": return IconUsers;
-      case "comunicado": return IconMicrophone;
-      case "evento": return IconCalendar;
-      default: return IconCalendar;
-    }
-  };
-
   const getTypeColor = (type: string) => {
     switch (type) {
       case "actividad": return "from-blue-600 to-blue-700";
@@ -267,8 +258,6 @@ export function NoticiasSection() {
           <RecursosCarousel page={currentPage} direction={pageDirection}>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {visibleNoticias.map((noticia) => {
-            const IconComponent = getTypeIcon(noticia.type);
-            
             return (
               <motion.div
                 key={noticia.id}

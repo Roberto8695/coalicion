@@ -6,7 +6,6 @@ import { useAuth, usePermissions } from "@/hooks/useAuth";
 import {
   IconArrowLeft,
   IconFileText,
-  IconTags,
   IconNews,
   IconPhoto,
   IconCalendar,
@@ -18,7 +17,7 @@ import {
   IconUserCog,
 
   IconFileDescription,
-  IconCategory
+  IconAdjustmentsHorizontal
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 import { cn } from "@/app/lib/utils";
@@ -120,24 +119,10 @@ export function SidebarDemo({ children, activeSection = 'dashboard', onSectionCh
   // Links administrativos (solo para administradores)
   const adminLinks = [
     ...(canManageCategories ? [{
-      label: "Categorías",
-      href: "#categorias",
+      label: "Categorías y tipos",
+      href: "#categorias-tipos",
       icon: (
-        <IconTags className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
-      ),
-    }] : []),
-    ...(canManageCategories ? [{
-      label: "Tipos de publicaciones",
-      href: "#tipos-publicacion",
-      icon: (
-        <IconCategory className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
-      ),
-    }] : []),
-    ...(canManageCategories ? [{
-      label: "Categorías de documentos",
-      href: "#categorias-documentos-electorales",
-      icon: (
-        <IconFileDescription className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
+        <IconAdjustmentsHorizontal className="h-5 w-5 shrink-0 text-neutral-700 dark:text-neutral-200" />
       ),
     }] : []),
     ...(canManageUsers ? [{

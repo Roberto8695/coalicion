@@ -13,6 +13,22 @@ class EventosRepository extends BaseRepository {
         ];
     }
 
+    async isActiveType(type) {
+        const result = await pool.query(
+            'SELECT 1 FROM tipos_evento WHERE slug = $1 AND is_active = TRUE',
+            [type]
+        );
+        return result.rowCount > 0;
+    }
+
+    async isActiveStatus(status) {
+        const result = await pool.query(
+            'SELECT 1 FROM estados_evento WHERE slug = $1 AND is_active = TRUE',
+            [status]
+        );
+        return result.rowCount > 0;
+    }
+
     // Función para limpiar datos antes de operaciones
     cleanEventData(data) {
         const cleanData = {};

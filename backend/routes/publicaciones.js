@@ -11,9 +11,6 @@ const controller = new PublicacionesController();
 // Para el sitio web público
 // ===========================================
 
-// Aplicar rutas base CRUD públicas
-router.use('/', createBaseRoutes(PublicacionesController));
-
 // Rutas específicas públicas
 // GET /api/publicaciones/with-category - Obtener publicaciones con información de categoría
 router.get('/with-category', (req, res) => controller.getAllWithCategory(req, res));
@@ -67,5 +64,8 @@ router.delete('/dashboard/:id', authenticateToken, requirePublicationAccess('del
     }
     controller.delete(req, res);
 });
+
+// CRUD público base al final para que no capture rutas específicas ni del dashboard.
+router.use('/', createBaseRoutes(PublicacionesController));
 
 module.exports = router;

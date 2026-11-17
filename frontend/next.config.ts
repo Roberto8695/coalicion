@@ -32,8 +32,8 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Configuración para deployment
-  output: 'standalone', // Para optimizar el build
+  // Standalone se activa explícitamente en entornos de despliegue.
+  output: process.env.NEXT_OUTPUT === 'standalone' ? 'standalone' : undefined,
   
   // Suprimir warnings de hydration en desarrollo
   ...(process.env.NODE_ENV === 'development' && {

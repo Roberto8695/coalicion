@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { IconDownload, IconEye, IconFileText, IconCalendar } from "@tabler/icons-react";
+import { IconDownload, IconEye, IconCalendar } from "@tabler/icons-react";
 import { documentosElectoralesService, type DocumentoElectoral } from "@/api";
 import { RecursosCarousel, RecursosPagination } from "./RecursosPagination";
 

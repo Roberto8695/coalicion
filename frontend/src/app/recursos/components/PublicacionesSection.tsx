@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { IconDownload, IconEye, IconCalendar, IconTag, IconFileText } from "@tabler/icons-react";
-import { publicacionesService, tiposPublicacionService, Publicacion as PublicacionAPI, TipoPublicacion } from "@/api";
+import { publicacionesService, categoriasService, tiposPublicacionService, Publicacion as PublicacionAPI, TipoPublicacion, Categoria } from "@/api";
 import { RecursosCarousel, RecursosPagination } from "./RecursosPagination";
 
 // Función para convertir URLs de Google Drive a URLs de descarga directa
@@ -37,6 +37,9 @@ interface Publicacion {
   description: string;
   type: string;
   category: string;
+  categoriaId?: number;
+  categoriaName?: string;
+  categoriaSlug?: string;
   date?: string;
   author?: string;
   pages?: number;
@@ -68,7 +71,7 @@ const getTypeLabel = (type: string, tipos: TipoPublicacion[]) => {
   switch (type) {
     case "informe": return "Informe";
     case "estudio": return "Estudio";
-    case "monitoreos": return "Monitoreo";
+    case "monitoreo": return "Monitoreo";
     case "investigacion": return "Investigación";
     default: return "Documento";
   }
@@ -78,11 +81,13 @@ const getTypeLabel = (type: string, tipos: TipoPublicacion[]) => {
 
 export function PublicacionesSection() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedType, setSelectedType] = useState<string>("all");
   const [publicaciones, setPublicaciones] = useState<Publicacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [conversionMessage, setConversionMessage] = useState<string | null>(null);
   const [tiposPublicacion, setTiposPublicacion] = useState<TipoPublicacion[]>([]);
+  const [categoriasPublicacion, setCategoriasPublicacion] = useState<Categoria[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageDirection, setPageDirection] = useState(1);
   const itemsPerPage = 6;
@@ -92,14 +97,19 @@ export function PublicacionesSection() {
     async function fetchPublicaciones() {
       try {
         setLoading(true);
-        const response = await publicacionesService.getAll();
-        try {
-          const tiposResponse = await tiposPublicacionService.getActive();
-          if (tiposResponse.success) {
-            setTiposPublicacion(tiposResponse.data);
-          }
-        } catch (typesError) {
-          console.error('Error loading publication types:', typesError);
+        const [response, tiposResponse, categoriasResponse] = await Promise.all([
+          publicacionesService.getWithCategory({ limit: 100 }),
+          tiposPublicacionService.getActive(),
+          categoriasService.getAll({ limit: 100 })
+        ]);
+        if (tiposResponse.success) {
+          setTiposPublicacion(tiposResponse.data.filter((tipo) => tipo.is_active !== false));
+        }
+        if (categoriasResponse.success) {
+          setCategoriasPublicacion(categoriasResponse.data.filter((categoria) => {
+            const active = (categoria as Categoria & { isactive?: boolean }).isactive;
+            return categoria.isActive !== false && active !== false;
+          }));
         }
         
         // Debug: ver qué campos están llegando de la API
@@ -117,7 +127,12 @@ export function PublicacionesSection() {
             title: pub.title || '',
             description: pub.description || '',
             type: pub.type || 'informe',
-            category: 'electoral', // Valor por defecto, podríamos mapear desde categoria_id
+            category: (pub as ExtendedPublicacionAPI & { categoria_slug?: string }).categoria_slug ||
+              (pub as ExtendedPublicacionAPI & { categoria_name?: string }).categoria_name ||
+              '',
+            categoriaId: pub.categoria_id,
+            categoriaName: (pub as ExtendedPublicacionAPI & { categoria_name?: string }).categoria_name,
+            categoriaSlug: (pub as ExtendedPublicacionAPI & { categoria_slug?: string }).categoria_slug,
             date: pub.date,
             author: pub.author,
             pages: pub.pages,
@@ -152,38 +167,36 @@ export function PublicacionesSection() {
     fetchPublicaciones();
   }, []);
   
-  const categories = [
-    { id: "all", label: "Todos" },
-    { id: "electoral", label: "Electoral" },
-    { id: "desinformacion", label: "Desinformación" },
-    { id: "democracia", label: "Democracia" },
-    { id: "analisis", label: "Análisis" }
+  const categoryFilters = [
+    { id: "all", label: "Todas las categorías" },
+    ...categoriasPublicacion.map((categoria) => ({
+      id: String(categoria.id),
+      label: categoria.name
+    }))
   ];
 
-  const filteredPublicaciones = (() => {
-    if (selectedCategory === "all") {
-      return publicaciones;
-    }
-    
-    switch (selectedCategory) {
-      case "electoral":
-        // Electoral: Informe, Monitoreo, Estudio
-        return publicaciones.filter(pub => 
-          pub.type === "informe" || pub.type === "monitoreo" || pub.type === "estudio"
-        );
-      case "desinformacion":
-        // Desinformación: solo Estudio
-        return publicaciones.filter(pub => pub.type === "estudio");
-      case "democracia":
-        // Democracia: solo Investigación
-        return publicaciones.filter(pub => pub.type === "investigacion");
-      case "analisis":
-        // Análisis: solo Informe
-        return publicaciones.filter(pub => pub.type === "informe");
-      default:
-        return publicaciones;
-    }
-  })();
+  const typeFilters = [
+    { id: "all", label: "Todos los tipos" },
+    ...tiposPublicacion.map((tipo) => ({
+      id: tipo.slug,
+      label: tipo.name
+    }))
+  ];
+
+  const filteredPublicaciones = publicaciones.filter((publicacion) => {
+    const matchesCategory =
+      selectedCategory === "all" ||
+      (publicacion.categoriaId !== undefined &&
+        String(publicacion.categoriaId) === selectedCategory) ||
+      publicacion.categoriaSlug === selectedCategory ||
+      publicacion.category === selectedCategory;
+
+    const matchesType =
+      selectedType === "all" ||
+      publicacion.type === selectedType;
+
+    return matchesCategory && matchesType;
+  });
   const totalPages = Math.ceil(filteredPublicaciones.length / itemsPerPage);
   const visiblePublicaciones = filteredPublicaciones.slice(
     (currentPage - 1) * itemsPerPage,
@@ -192,6 +205,11 @@ export function PublicacionesSection() {
 
   const changeCategory = (category: string) => {
     setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
+  const changeType = (type: string) => {
+    setSelectedType(type);
     setCurrentPage(1);
   };
 
@@ -326,27 +344,44 @@ export function PublicacionesSection() {
           </motion.div>
         )}
 
-        {/* Category Filter */}
+        {/* Dynamic CMS Filters */}
         <motion.div
-          className="flex flex-wrap justify-center gap-4 mb-12"
+          className="flex flex-col items-center gap-5 mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
           viewport={{ once: true }}
         >
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => changeCategory(category.id)}
-              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                selectedCategory === category.id
-                  ? "bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white shadow-lg"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {category.label}
-            </button>
-          ))}
+          <div className="flex flex-wrap justify-center gap-3">
+            {categoryFilters.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => changeCategory(category.id)}
+                className={`px-5 py-2.5 rounded-full font-semibold transition-all duration-300 ${
+                  selectedCategory === category.id
+                    ? "bg-gradient-to-r from-[#CBA135] to-[#B8941F] text-white shadow-lg"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            {typeFilters.map((type) => (
+              <button
+                key={type.id}
+                onClick={() => changeType(type.id)}
+                className={`px-5 py-2.5 rounded-full font-semibold transition-all duration-300 ${
+                  selectedType === type.id
+                    ? "bg-gradient-to-r from-red-800 to-rose-800 text-white shadow-lg"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
         </motion.div>
 
         {/* Publications Grid */}
@@ -468,9 +503,9 @@ export function PublicacionesSection() {
               No hay publicaciones disponibles
             </h3>
             <p className="text-gray-500">
-              {selectedCategory === "all" 
+              {selectedCategory === "all"
                 ? "Aún no se han cargado publicaciones."
-                : `No hay publicaciones en la categoría "${categories.find(c => c.id === selectedCategory)?.label}".`
+                : `No hay publicaciones en la categoría "${categoryFilters.find(c => c.id === selectedCategory)?.label || selectedCategory}".`
               }
             </p>
           </motion.div>

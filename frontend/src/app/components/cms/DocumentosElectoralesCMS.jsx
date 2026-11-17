@@ -10,6 +10,7 @@ import { IconFileDescription, IconPlus } from '@tabler/icons-react';
 import { documentosElectoralesService, categoriasDocumentosElectoralesService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
+import { QuickAddSelect } from './QuickAddSelect';
 
 export const DocumentosElectoralesCMS = () => {
   const { confirmAction, notify } = useDashboardFeedback();
@@ -270,7 +271,7 @@ export const DocumentosElectoralesCMS = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     
     // Verificar permisos
     if (modalMode === 'create' && !permissions.canCreateContent) {
@@ -484,8 +485,8 @@ export const DocumentosElectoralesCMS = () => {
         isOpen={showModal}
         onClose={closeModal}
         title={
-          modalMode === 'create' ? '📄 Nuevo Documento Electoral OEP' :
-          modalMode === 'edit' ? '✏️ Editar Documento Electoral' :
+          modalMode === 'create' ? 'Nuevo Documento Electoral OEP' :
+          modalMode === 'edit' ? 'Editar Documento Electoral' :
           '👁️ Ver Documento Electoral'
         }
         size="lg"
@@ -575,14 +576,19 @@ export const DocumentosElectoralesCMS = () => {
                 required
                 options={typeOptions}
               />
-              <Input
+              <QuickAddSelect
                 label="Categoría"
                 name="category"
-                type="select"
                 value={formData.category}
                 onChange={handleInputChange}
                 required
                 options={categoryOptions}
+                service={categoriasDocumentosElectoralesService}
+                initialForm={{ name: '', slug: '', description: '', color: '#3B82F6', is_active: true }}
+                onCreated={(categoria) => {
+                  setCategorias((current) => [...current, categoria]);
+                  setFormData((current) => ({ ...current, category: categoria.name }));
+                }}
               />
               <Input
                 label="Estado"

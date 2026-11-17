@@ -9,6 +9,7 @@ import { Pagination } from './Pagination';
 import { publicacionesService, categoriasService, tiposPublicacionService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
+import { QuickAddSelect } from './QuickAddSelect';
 
 // Función para convertir URLs de Google Drive a URLs de descarga directa
 const convertGoogleDriveUrl = (url) => {
@@ -476,24 +477,34 @@ export const PublicacionesCMS = () => {
                 required
                 placeholder="Título de la publicación"
               />
-              <Input
+              <QuickAddSelect
                 label="Tipo"
                 name="type"
-                type="select"
                 value={formData.type}
                 onChange={handleInputChange}
                 required
                 placeholder="Selecciona un tipo"
                 options={typeOptions}
+                service={tiposPublicacionService}
+                initialForm={{ name: '', slug: '', color: '#3B82F6', is_active: true }}
+                onCreated={(tipo) => {
+                  setTiposPublicacion((current) => [...current, tipo]);
+                  setFormData((current) => ({ ...current, type: tipo.slug }));
+                }}
               />
-              <Input
+              <QuickAddSelect
                 label="Categoría"
                 name="categoria_id"
-                type="select"
                 value={formData.categoria_id}
                 onChange={handleInputChange}
                 placeholder="Selecciona una categoría"
                 options={categorias.map(cat => ({ value: cat.id, label: cat.name }))}
+                service={categoriasService}
+                initialForm={{ name: '', description: '', icon: '', color: '#3B82F6', slug: '', isActive: true }}
+                onCreated={(categoria) => {
+                  setCategorias((current) => [...current, categoria]);
+                  setFormData((current) => ({ ...current, categoria_id: categoria.id }));
+                }}
               />
               <Input
                 label="Autor"

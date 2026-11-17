@@ -11,6 +11,9 @@ const CategoriasRepository = require('./CategoriasRepository');
 const UsuariosRepository = require('./UsuariosRepository');
 const TiposPublicacionRepository = require('./TiposPublicacionRepository');
 const CategoriasDocumentosElectoralesRepository = require('./CategoriasDocumentosElectoralesRepository');
+const TiposNoticiaRepository = require('./TiposNoticiaRepository');
+const TiposMultimediaRepository = require('./TiposMultimediaRepository');
+const CatalogosEventosRepository = require('./CatalogosEventosRepository');
 
 module.exports = {
     PublicacionesRepository,
@@ -25,5 +28,8 @@ module.exports = {
     CategoriasRepository,
     UsuariosRepository,
     TiposPublicacionRepository,
-    CategoriasDocumentosElectoralesRepository
+    CategoriasDocumentosElectoralesRepository,
+    TiposNoticiaRepository,
+    TiposMultimediaRepository,
+    CatalogosEventosRepository
 };

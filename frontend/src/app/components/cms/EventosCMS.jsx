@@ -6,7 +6,8 @@ import { Modal } from './Modal';
 import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
-import { eventosService } from '@/api';
+import { eventosService, tiposEventoService, estadosEventoService } from '@/api';
+import { QuickAddSelect } from './QuickAddSelect';
 import { usePermissions } from '@/hooks/useAuth';
 import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 
@@ -17,6 +18,8 @@ export const EventosCMS = () => {
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [eventTypes, setEventTypes] = useState([]);
+  const [eventStatuses, setEventStatuses] = useState([]);
 
   // Estados del modal
   const [showModal, setShowModal] = useState(false);
@@ -153,20 +156,25 @@ export const EventosCMS = () => {
   ];
 
   // Opciones de tipo de evento
-  const eventTypeOptions = [
-    { value: 'taller', label: 'Taller' },
-    { value: 'capacitacion', label: 'Capacitación' },
-    { value: 'foro', label: 'Foro' },
-    { value: 'debate', label: 'Debate' }
-  ];
+  const eventTypeOptions = eventTypes.map(item => ({ value: item.slug, label: item.name }));
+  const statusOptions = eventStatuses.map(item => ({ value: item.slug, label: item.name }));
 
-  // Opciones de estado
-  const statusOptions = [
-    { value: 'upcoming', label: 'Próximo' },
-    { value: 'ongoing', label: 'En curso' },
-    { value: 'completed', label: 'Completado' },
-    { value: 'cancelled', label: 'Cancelado' }
-  ];
+  const loadCatalogos = async () => {
+    try {
+      const [typesResponse, statusesResponse] = await Promise.all([
+        tiposEventoService.getActive(),
+        estadosEventoService.getActive()
+      ]);
+      if (typesResponse.success) setEventTypes(typesResponse.data);
+      if (statusesResponse.success) setEventStatuses(statusesResponse.data);
+    } catch (err) {
+      setError(`Error al cargar tipos y estados: ${err.message}`);
+    }
+  };
+
+  useEffect(() => {
+    loadCatalogos();
+  }, []);
 
   // Cargar eventos
   const loadEventos = async (page = 1) => {
@@ -589,22 +597,21 @@ export const EventosCMS = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Tipo *
-                </label>
-                <select
+                <QuickAddSelect
+                  label="Tipo *"
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border  border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  options={eventTypeOptions}
                   required
-                >
-                  {eventTypeOptions.map(option => (
-                    <option className='bg-gray-800 ' key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  service={tiposEventoService}
+                  initialForm={{ name: '', slug: '', color: '#3B82F6', is_active: true }}
+                  getOption={(item) => ({ value: item.slug, label: item.name })}
+                  onCreated={(item) => {
+                    setEventTypes(current => [...current, item]);
+                    setFormData(current => ({ ...current, type: item.slug }));
+                  }}
+                />
               </div>
               <div>
                 <Input
@@ -653,22 +660,21 @@ export const EventosCMS = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1">
-                  Estado *
-                </label>
-                <select
+                <QuickAddSelect
+                  label="Estado *"
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  options={statusOptions}
                   required
-                >
-                  {statusOptions.map(option => (
-                    <option className='bg-gray-800' key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                  service={estadosEventoService}
+                  initialForm={{ name: '', slug: '', color: '#3B82F6', is_active: true }}
+                  getOption={(item) => ({ value: item.slug, label: item.name })}
+                  onCreated={(item) => {
+                    setEventStatuses(current => [...current, item]);
+                    setFormData(current => ({ ...current, status: item.slug }));
+                  }}
+                />
               </div>
               <div>
                 <Input

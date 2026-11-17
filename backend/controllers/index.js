@@ -12,6 +12,10 @@ const UploadsController = require('./UploadsController');
 const UsuariosController = require('./UsuariosController');
 const TiposPublicacionController = require('./TiposPublicacionController');
 const CategoriasDocumentosElectoralesController = require('./CategoriasDocumentosElectoralesController');
+const TiposNoticiaController = require('./TiposNoticiaController');
+const TiposMultimediaController = require('./TiposMultimediaController');
+const TiposEventoController = require('./TiposEventoController');
+const EstadosEventoController = require('./EstadosEventoController');
 
 module.exports = {
     PublicacionesController,
@@ -27,5 +31,9 @@ module.exports = {
     UploadsController,
     UsuariosController,
     TiposPublicacionController,
-    CategoriasDocumentosElectoralesController
+    CategoriasDocumentosElectoralesController,
+    TiposNoticiaController,
+    TiposMultimediaController,
+    TiposEventoController,
+    EstadosEventoController
 };

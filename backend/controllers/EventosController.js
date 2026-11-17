@@ -53,6 +53,16 @@ class EventosController extends BaseController {
             
             console.log('EventosController.create - Datos originales:', originalData);
             console.log('EventosController.create - Datos limpiados:', cleanData);
+
+            if (!cleanData.title) {
+                return res.status(400).json({ success: false, message: 'El título es requerido' });
+            }
+            if (!cleanData.type || !await this.repository.isActiveType(cleanData.type)) {
+                return res.status(400).json({ success: false, message: 'El tipo seleccionado no existe o está inactivo' });
+            }
+            if (!cleanData.status || !await this.repository.isActiveStatus(cleanData.status)) {
+                return res.status(400).json({ success: false, message: 'El estado seleccionado no existe o está inactivo' });
+            }
             
             // Temporalmente modificar req.body
             req.body = cleanData;
@@ -77,6 +87,13 @@ class EventosController extends BaseController {
             
             console.log('EventosController.update - Datos originales:', originalData);
             console.log('EventosController.update - Datos limpiados:', cleanData);
+
+            if (cleanData.type && !await this.repository.isActiveType(cleanData.type)) {
+                return res.status(400).json({ success: false, message: 'El tipo seleccionado no existe o está inactivo' });
+            }
+            if (cleanData.status && !await this.repository.isActiveStatus(cleanData.status)) {
+                return res.status(400).json({ success: false, message: 'El estado seleccionado no existe o está inactivo' });
+            }
             
             // Temporalmente modificar req.body
             req.body = cleanData;
@@ -99,10 +116,10 @@ class EventosController extends BaseController {
             const { status } = req.params;
             const { page = 1, limit = 10 } = req.query;
 
-            if (!['upcoming', 'ongoing', 'completed', 'cancelled'].includes(status)) {
+            if (!await this.repository.isActiveStatus(status)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Status inválido. Debe ser: upcoming, ongoing, completed, cancelled'
+                    message: 'El estado seleccionado no existe o está inactivo'
                 });
             }
 
@@ -154,10 +171,10 @@ class EventosController extends BaseController {
             const { type } = req.params;
             const { page = 1, limit = 10 } = req.query;
 
-            if (!['taller', 'capacitacion', 'foro', 'debate'].includes(type)) {
+            if (!await this.repository.isActiveType(type)) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Tipo inválido. Debe ser: taller, capacitacion, foro, debate'
+                    message: 'El tipo seleccionado no existe o está inactivo'
                 });
             }
 
@@ -182,42 +199,6 @@ class EventosController extends BaseController {
         }
     }
 
-    // Validaciones específicas para crear evento
-    async create(req, res) {
-        try {
-            const data = req.body;
-            
-            if (!data.title) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'El título es requerido'
-                });
-            }
-
-            if (!data.type) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'El tipo es requerido'
-                });
-            }
-
-            if (!['taller', 'capacitacion', 'foro', 'debate'].includes(data.type)) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Tipo inválido. Debe ser: taller, capacitacion, foro, debate'
-                });
-            }
-
-            await super.create(req, res);
-        } catch (error) {
-            console.error('Error en create evento:', error);
-            res.status(500).json({
-                success: false,
-                message: 'Error al crear evento',
-                error: error.message
-            });
-        }
-    }
 }
 
 module.exports = EventosController;

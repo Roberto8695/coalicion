@@ -102,6 +102,14 @@ class NoticiasRepository extends BaseRepository {
             throw new Error(`Error al obtener noticias destacadas: ${error.message}`);
         }
     }
+
+    async isActiveType(type) {
+        const result = await pool.query(
+            'SELECT 1 FROM tipos_noticia WHERE slug = $1 AND is_active = TRUE',
+            [type]
+        );
+        return result.rowCount > 0;
+    }
 }
 
 module.exports = NoticiasRepository;

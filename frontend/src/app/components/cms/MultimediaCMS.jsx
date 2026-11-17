@@ -6,10 +6,11 @@ import { Modal } from './Modal';
 import { Input } from './Input';
 import { Table } from './Table';
 import { Pagination } from './Pagination';
-import { multimediaService, categoriasService } from '@/api';
+import { multimediaService, categoriasService, tiposMultimediaService } from '@/api';
 import { usePermissions } from '@/hooks/useAuth';
 import { useDashboardFeedback } from '@/app/dashboard/components/DashboardFeedback';
 import { isValidExternalUrl } from '@/app/components/media/ExternalMediaPreview';
+import { QuickAddSelect } from './QuickAddSelect';
 
 export const MultimediaCMS = () => {
   const { confirmAction, notify } = useDashboardFeedback();
@@ -19,6 +20,7 @@ export const MultimediaCMS = () => {
   // Estados principales
   const [multimedia, setMultimedia] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [tiposMultimedia, setTiposMultimedia] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [thumbnailLoading, setThumbnailLoading] = useState(false);
@@ -145,17 +147,16 @@ export const MultimediaCMS = () => {
   ];
 
   // Opciones para selects
-  const typeOptions = [
-    { value: 'infografia', label: 'Infografía' },
-    { value: 'video', label: 'Video' },
-    { value: 'arte', label: 'Arte' },
-    { value: 'presentacion', label: 'Presentación' }
-  ];
+  const typeOptions = tiposMultimedia.map((tipo) => ({
+    value: tipo.slug,
+    label: tipo.name
+  }));
 
   // Cargar datos
   useEffect(() => {
     loadMultimedia();
     loadCategorias();
+    loadTiposMultimedia();
   }, [currentPage]);
 
   useEffect(() => {
@@ -225,6 +226,15 @@ export const MultimediaCMS = () => {
     }
   };
 
+  const loadTiposMultimedia = async () => {
+    try {
+      const response = await tiposMultimediaService.getActive();
+      if (response.success) setTiposMultimedia(response.data);
+    } catch (err) {
+      setError('Error al cargar tipos de multimedia: ' + err.message);
+    }
+  };
+
   // Manejar formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -232,7 +242,7 @@ export const MultimediaCMS = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     
     // Verificar permisos
     if (modalMode === 'create' && !permissions.canCreateContent) {
@@ -510,8 +520,8 @@ export const MultimediaCMS = () => {
         isOpen={showModal}
         onClose={closeModal}
         title={
-          modalMode === 'create' ? '📁 Nuevo Multimedia' :
-          modalMode === 'edit' ? '✏️ Editar Multimedia' :
+          modalMode === 'create' ? 'Nuevo Multimedia' :
+          modalMode === 'edit' ? 'Editar Multimedia' :
           '👁️ Ver Multimedia'
         }
         size={modalMode === 'view' ? "xl" : "lg"}
@@ -588,15 +598,20 @@ export const MultimediaCMS = () => {
                 required
                 placeholder="Título del archivo"
               />
-              <Input
+              <QuickAddSelect
                 label="Tipo"
                 name="type"
-                type="select"
                 value={formData.type}
                 onChange={handleInputChange}
                 required
                 placeholder="Selecciona un tipo"
                 options={typeOptions}
+                service={tiposMultimediaService}
+                initialForm={{ name: '', slug: '', color: '#3B82F6', is_active: true }}
+                onCreated={(tipo) => {
+                  setTiposMultimedia((current) => [...current, tipo]);
+                  setFormData((current) => ({ ...current, type: tipo.slug }));
+                }}
               />
             </div>
 
@@ -715,14 +730,19 @@ export const MultimediaCMS = () => {
                   placeholder="Se completa automáticamente"
                   helperText="Nombre del archivo de medios"
                 />
-                <Input
+                <QuickAddSelect
                   label="Categoría"
                   name="categoria_id"
-                  type="select"
                   value={formData.categoria_id}
                   onChange={handleInputChange}
                   placeholder="Selecciona una categoría"
                   options={categorias.map(cat => ({ value: cat.id, label: cat.name }))}
+                  service={categoriasService}
+                  initialForm={{ name: '', description: '', icon: '', color: '#3B82F6', slug: '', isActive: true }}
+                  onCreated={(categoria) => {
+                    setCategorias((current) => [...current, categoria]);
+                    setFormData((current) => ({ ...current, categoria_id: categoria.id }));
+                  }}
                 />
               </div>
 

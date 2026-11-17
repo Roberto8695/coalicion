@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { IconExternalLink, IconShield } from "@tabler/icons-react";
+import { IconExternalLink } from "@tabler/icons-react";
 import Image from "next/image";
 import { verificadoresService } from "@/api/services";
 import type { Verificador } from "@/api/services";
@@ -195,7 +195,7 @@ export function VerificacionHechosSection() {
           </div>
         ) : (
           <>
-          /* Tools Grid */
+          {/* Tools Grid */}
           <RecursosCarousel page={currentPage} direction={pageDirection}>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {visibleVerificadores.map((verificador) => {
