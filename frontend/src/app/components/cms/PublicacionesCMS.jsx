@@ -193,7 +193,7 @@ export const PublicacionesCMS = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     try {
       setLoading(true);
       
